@@ -1,51 +1,94 @@
 // 🌟 Abdullah's Journey OS - Master 360° Life OS Controller & Security Gateway
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.4';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
-import { getCairoPrayerTimes } from './lib/prayer_times.js';
+const SUPABASE_URL = 'https://iluvbcadeteawbyrlqmo.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlsdXZiY2FkZXRlYXdieXJscW1vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NzYzMjAsImV4cCI6MjEwMjU1MjMyMH0.sMZqoW6697HLOCNb5CJFO47ZQzjCBRw7KBIxLfvtI6g';
 
-const AUTH_STORAGE_KEY = 'abdallah_journey_auth_token';
-const AUTH_TOKEN_VAL = 'authenticated_dr_abdallah_secure_key_2026';
-
-function normalizePasscode(str) {
-  if (!str) return '';
-  return str
-    .trim()
-    .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)) // Convert Arabic numbers
-    .replace(/\s+/g, '')
-    .toLowerCase();
-}
-
-function isValidMasterPasscode(inputStr) {
-  const norm = normalizePasscode(inputStr);
-
-  const validVariants = [
-    '@bodyyy0100192168',
-    'bodyyy0100192168@',
-    'bodyyy0100192168',
-    '@bodyyy010019168',
-    'bodyyy010019168@',
-    'bodyyy010019168',
-    '@bodyy0100192168',
-    'bodyy0100192168@',
-    'bodyy0100192168',
-    '@bodyy010019168',
-    'bodyy010019168@',
-    'bodyy010019168',
-    '0100192168',
-    '010019168',
-    'bodyyy',
-    'bodyy'
-  ];
-
-  if (validVariants.includes(norm)) return true;
-  // Also pass if it contains both 'body' and ('0100' or '192' or '191')
-  if (norm.includes('body') && (norm.includes('0100') || norm.includes('192') || norm.includes('191') || norm.includes('168'))) {
-    return true;
+function getSupabaseClient() {
+  if (window._supabaseInstance) return window._supabaseInstance;
+  if (window.supabase && typeof window.supabase.createClient === 'function') {
+    window._supabaseInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    return window._supabaseInstance;
   }
-  return false;
+  return null;
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = new Proxy({}, {
+  get(target, prop) {
+    const client = getSupabaseClient();
+    if (client && typeof client[prop] === 'function') {
+      return client[prop].bind(client);
+    }
+    return client ? client[prop] : undefined;
+  }
+});
+
+// Cairo Prayer Times Engine
+function getCairoPrayerTimes(date = new Date()) {
+  const CAIRO_LAT = 30.0444;
+  const CAIRO_LNG = 31.2357;
+  const degToRad = d => (d * Math.PI) / 180.0;
+  const radToDeg = r => (r * 180.0) / Math.PI;
+
+  const startOfYear = new Date(date.getFullYear(), 0, 0);
+  const diff = (date - startOfYear) + ((startOfYear.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000);
+  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  const b = (2 * Math.PI * (dayOfYear - 81)) / 365;
+  const eot = 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
+  const declination = 23.45 * Math.sin(degToRad((360 / 365) * (dayOfYear - 81)));
+
+  let timezoneOffset = 3;
+  const solarNoon = 12 + timezoneOffset - (CAIRO_LNG / 15) - (eot / 60);
+
+  function getHourAngle(angle, isAboveHorizon = false) {
+    const latRad = degToRad(CAIRO_LAT);
+    const decRad = degToRad(declination);
+    const targetAngleRad = degToRad(angle);
+    const cosH = isAboveHorizon
+      ? (Math.sin(targetAngleRad) - Math.sin(latRad) * Math.sin(decRad)) / (Math.cos(latRad) * Math.cos(decRad))
+      : (-Math.sin(targetAngleRad) - Math.sin(latRad) * Math.sin(decRad)) / (Math.cos(latRad) * Math.cos(decRad));
+    if (cosH > 1 || cosH < -1) return null;
+    return radToDeg(Math.acos(cosH)) / 15.0;
+  }
+
+  const fajrHA = getHourAngle(19.5, false) || 1.6;
+  const sunriseHA = getHourAngle(0.833, false) || 1.4;
+  const asrAltitude = radToDeg(Math.atan(1 / (1 + Math.tan(Math.abs(degToRad(CAIRO_LAT) - degToRad(declination))))));
+  const asrHA = getHourAngle(asrAltitude, true) || 1.1;
+  const maghribHA = sunriseHA;
+  const ishaHA = getHourAngle(17.5, false) || 1.5;
+
+  const toTimeStr = hDec => {
+    const totalM = Math.round(hDec * 60);
+    const h = Math.floor(totalM / 60) % 24;
+    const m = totalM % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  };
+
+  const format12H = tStr => {
+    if (!tStr) return '';
+    const [hStr, mStr] = tStr.split(':');
+    let h = parseInt(hStr, 10);
+    const sfx = h >= 12 ? 'م' : 'ص';
+    h = h % 12;
+    if (h === 0) h = 12;
+    return `${String(h).padStart(2, '0')}:${mStr} ${sfx}`;
+  };
+
+  const tFajr = toTimeStr(solarNoon - fajrHA);
+  const tSunrise = toTimeStr(solarNoon - sunriseHA);
+  const tDhuhr = toTimeStr(solarNoon + (1 / 60));
+  const tAsr = toTimeStr(solarNoon + asrHA);
+  const tMaghrib = toTimeStr(solarNoon + maghribHA + (2 / 60));
+  const tIsha = toTimeStr(solarNoon + ishaHA);
+
+  return {
+    fajr: tFajr, sunrise: tSunrise, dhuhr: tDhuhr, asr: tAsr, maghrib: tMaghrib, isha: tIsha,
+    formatted: {
+      fajr: format12H(tFajr), sunrise: format12H(tSunrise), dhuhr: format12H(tDhuhr),
+      asr: format12H(tAsr), maghrib: format12H(tMaghrib), isha: format12H(tIsha)
+    }
+  };
+}
 
 function formatEgp(num) {
   return Number(num || 0).toLocaleString('en-US') + ' ج.م';
@@ -53,6 +96,58 @@ function formatEgp(num) {
 
 function getCairoToday() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
+}
+
+// 🕒 Smart Arabic Relative Date & Time Formatter (اليوم، أمس، قبل أمس، منذ X أيام)
+function formatRelativeDate(dateStr, createdAtStr = null) {
+  if (!dateStr && !createdAtStr) return 'الآن';
+
+  const todayStr = getCairoToday();
+  
+  let timePortion = '';
+  if (createdAtStr) {
+    try {
+      const createdDate = new Date(createdAtStr);
+      timePortion = createdDate.toLocaleTimeString('ar-EG', { timeZone: 'Africa/Cairo', hour: '2-digit', minute: '2-digit', hour12: true });
+    } catch (e) {}
+  }
+
+  let targetDateStr = dateStr;
+  if (!targetDateStr && createdAtStr) {
+    try {
+      targetDateStr = new Date(createdAtStr).toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
+    } catch (e) {}
+  }
+
+  if (!targetDateStr || targetDateStr === todayStr) {
+    return timePortion ? `اليوم • ${timePortion}` : 'اليوم';
+  }
+
+  try {
+    const dToday = new Date(todayStr);
+    const dTarget = new Date(targetDateStr);
+    const diffTime = dToday.getTime() - dTarget.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
+
+    let dayLabel = '';
+    if (diffDays === 1) {
+      dayLabel = 'أمس';
+    } else if (diffDays === 2) {
+      dayLabel = 'قبل أمس';
+    } else if (diffDays > 2 && diffDays <= 10) {
+      dayLabel = `منذ ${diffDays} أيام`;
+    } else if (diffDays > 10) {
+      dayLabel = `منذ ${diffDays} يوم`;
+    } else if (diffDays < 0) {
+      dayLabel = `موعد قادم`;
+    } else {
+      dayLabel = targetDateStr;
+    }
+
+    return timePortion ? `${dayLabel} • ${timePortion} (${targetDateStr})` : `${dayLabel} (${targetDateStr})`;
+  } catch (err) {
+    return targetDateStr || 'اليوم';
+  }
 }
 
 // 🔒 Security & Authentication Gateway
@@ -585,44 +680,220 @@ async function renderHomeOverview(period = activeHomePeriod) {
     if (expTransEl) expTransEl.textContent = `${catTransport.toLocaleString('en-US', { minimumFractionDigits: 2 })} ج.م`;
     if (expBizEl) expBizEl.textContent = `${catBusiness.toLocaleString('en-US', { minimumFractionDigits: 2 })} ج.م`;
 
-    // 15. Live Realtime Activity Stream & Dynamic Modules Progress on Home
+    // 15. Comprehensive Unified Realtime Activity Ledger & Event Stream on Home
     const activityFeedEl = document.getElementById('homeRecentActivities');
-    const { data: recentSessions } = await supabase.from('study_sessions').select('*').order('created_at', { ascending: false }).limit(4);
-    const { data: recentFlashcards } = await supabase.from('english_spaced_flashcards').select('*').order('created_at', { ascending: false }).limit(3);
-    
-    let activityHtml = '';
-    if (recentSessions && recentSessions.length > 0) {
-      recentSessions.forEach(s => {
+    try {
+      const [
+        { data: recentStudy },
+        { data: recentFinance },
+        { data: recentQuran },
+        { data: recentGym },
+        { data: recentEnglish },
+        { data: recentTasks },
+        { data: recentAppts },
+        { data: recentWellness },
+        { data: recentWork },
+        { data: recentContent },
+        { data: recentThoughts },
+        { data: recentAttendance }
+      ] = await Promise.all([
+        supabase.from('study_sessions').select('*').order('created_at', { ascending: false }).limit(6),
+        supabase.from('personal_finance').select('*').order('created_at', { ascending: false }).limit(6),
+        supabase.from('quran_logs').select('*').order('created_at', { ascending: false }).limit(6),
+        supabase.from('fitness_gym_logs').select('*').order('created_at', { ascending: false }).limit(5),
+        supabase.from('english_spaced_flashcards').select('*').order('created_at', { ascending: false }).limit(5),
+        supabase.from('daily_tasks').select('*').order('created_at', { ascending: false }).limit(5),
+        supabase.from('appointments_and_reminders').select('*').order('created_at', { ascending: false }).limit(5),
+        supabase.from('mental_wellness_logs').select('*').order('created_at', { ascending: false }).limit(4),
+        supabase.from('work_projects').select('*').order('created_at', { ascending: false }).limit(4),
+        supabase.from('content_creation').select('*').order('created_at', { ascending: false }).limit(4),
+        supabase.from('thoughts_and_wisdom').select('*').order('created_at', { ascending: false }).limit(4),
+        supabase.from('attendance_logs').select('*').order('created_at', { ascending: false }).limit(4)
+      ]);
+
+      const allEvents = [];
+
+      (recentStudy || []).forEach(s => {
         const durMins = Number(s.duration_minutes || 0);
-        let durText = durMins >= 60 ? `${(durMins / 60).toFixed(1).replace('.0', '')} ساعة (${durMins} د)` : `${durMins} دقيقة`;
-        activityHtml += `
-          <div class="session-item" style="border-right: 4px solid var(--accent-primary);">
-            <div class="item-top-row">
-              <span class="item-title">🩺 [${s.course_code || 'CAD402'}] <b>${s.topic || 'مذاكرة'}</b></span>
-              <span class="task-status-badge status-done">⏱️ ${durText}</span>
-            </div>
-            <div class="item-desc">📅 <b>التاريخ:</b> ${s.date || 'اليوم'}${s.pages_covered ? ` | 📄 <b>${s.pages_covered} صفحة</b>` : ''}${s.comprehension_rating ? ` | 🧠 استيعاب: ${'⭐'.repeat(s.comprehension_rating)}` : ''}</div>
-          </div>
-        `;
+        const durText = durMins >= 60 ? `${(durMins / 60).toFixed(1).replace('.0', '')} ${durMins === 60 ? 'ساعة' : durMins === 120 ? 'ساعتين' : durMins >= 180 && durMins <= 600 ? 'ساعات' : 'ساعة'} (${durMins} دقيقة)` : `${durMins} دقيقة`;
+        allEvents.push({
+          icon: '🩺',
+          category: 'مذاكرة طبية',
+          title: `[${s.course_code || 'CAD402'}] ${s.topic || 'جلسة مذاكرة'}`,
+          subtext: `⏱️ <b>المدة:</b> ${durText}${s.pages_covered ? ` | 📄 <b>${s.pages_covered} صفحة</b>` : ''}${s.comprehension_rating ? ` | 🧠 استيعاب: ${'⭐'.repeat(s.comprehension_rating)}` : ''}`,
+          dateStr: s.date,
+          createdAt: s.created_at,
+          borderAccent: 'var(--accent-primary)'
+        });
       });
-    }
 
-    if (recentFlashcards && recentFlashcards.length > 0) {
-      recentFlashcards.forEach(f => {
-        activityHtml += `
-          <div class="session-item" style="border-right: 4px solid var(--accent-cyan);">
-            <div class="item-top-row">
-              <span class="item-title">🗣️ فلاش كارد: <b>${f.term_or_sentence || ''}</b></span>
-              <span class="task-status-badge status-done">مستوى ${f.repetition_level || 0}/6</span>
-            </div>
-            <div class="item-desc">💡 ${f.egyptian_translation || ''} ${f.example_sentence ? `| 📝 "${f.example_sentence}"` : ''}</div>
-          </div>
-        `;
+      (recentFinance || []).forEach(f => {
+        const isIncome = f.type === 'دخل' || f.type === 'إيراد' || f.type === 'income';
+        allEvents.push({
+          icon: isIncome ? '💰' : '💵',
+          category: isIncome ? 'إيراد مالي' : 'مصروف شخصي',
+          title: `${isIncome ? 'إيراد' : 'مصروف'}: ${formatEgp(f.amount)} (${f.description || f.category || 'عام'})`,
+          subtext: `💳 <b>الوسيلة:</b> ${f.payment_method || 'خزنة شخصية'} | 🏷️ <b>التصنيف:</b> ${f.category || 'عام'}`,
+          dateStr: f.date,
+          createdAt: f.created_at,
+          borderAccent: isIncome ? '#4ade80' : '#f43f5e'
+        });
       });
-    }
 
-    if (activityHtml && activityFeedEl) {
-      activityFeedEl.innerHTML = activityHtml;
+      (recentQuran || []).forEach(q => {
+        allEvents.push({
+          icon: '📖',
+          category: 'ورد القرآن',
+          title: `سورة ${q.surah_name} (${q.session_type || 'مراجعة وتثبيت'})`,
+          subtext: `📑 <b>الكمية:</b> ${q.pages_count || 1} صفحة | ⭐ <b>الإتقان:</b> ${q.quality_rating || 5}/5`,
+          dateStr: q.date,
+          createdAt: q.created_at,
+          borderAccent: 'var(--accent-primary)'
+        });
+      });
+
+      (recentGym || []).forEach(g => {
+        allEvents.push({
+          icon: '🏋️‍♂️',
+          category: 'لياقة وجيم',
+          title: `تمرين: ${g.workout_type || 'حديد ومقاومة'}`,
+          subtext: `⏱️ <b>المدة:</b> ${g.duration_minutes || 45} دقيقة${g.muscle_groups ? ` | 💪 <b>العضلات:</b> ${g.muscle_groups}` : ''}`,
+          dateStr: g.date,
+          createdAt: g.created_at,
+          borderAccent: '#38bdf8'
+        });
+      });
+
+      (recentEnglish || []).forEach(c => {
+        allEvents.push({
+          icon: '🗣️',
+          category: 'إنجليزية (Anki)',
+          title: `فلاش كارد: "${c.term_or_sentence || ''}"`,
+          subtext: `💡 <b>المعنى:</b> ${c.egyptian_translation || ''}${c.example_sentence ? ` | 📝 <i>"${c.example_sentence}"</i>` : ''}`,
+          dateStr: null,
+          createdAt: c.created_at,
+          borderAccent: 'var(--accent-gold)'
+        });
+      });
+
+      (recentTasks || []).forEach(t => {
+        allEvents.push({
+          icon: '🎯',
+          category: 'مهمة يومية',
+          title: `${t.title}`,
+          subtext: `📌 <b>الحالة:</b> ${t.status || 'معلق'} | 🏷️ <b>التصنيف:</b> ${t.category || 'عام'}`,
+          dateStr: t.date,
+          createdAt: t.created_at,
+          borderAccent: t.status === 'تم الإنجاز' ? 'var(--accent-primary)' : 'var(--accent-gold)'
+        });
+      });
+
+      (recentAppts || []).forEach(a => {
+        allEvents.push({
+          icon: '⏰',
+          category: 'موعد وتنبيه',
+          title: `${a.title}`,
+          subtext: `${a.notes ? `📝 ${a.notes}` : ''}`,
+          dateStr: a.date,
+          createdAt: a.due_datetime || a.created_at,
+          borderAccent: '#a855f7'
+        });
+      });
+
+      (recentWellness || []).forEach(w => {
+        allEvents.push({
+          icon: '🧠',
+          category: 'اتزان نفسي',
+          title: `فضفضة: "${(w.venting_content || w.emotional_state || '').slice(0, 45)}..."`,
+          subtext: `💭 <b>المشاعر:</b> ${w.emotional_state || 'تفريغ'} | ⭐ <b>المزاج:</b> ${w.mood_rating || 4}/5`,
+          dateStr: w.date,
+          createdAt: w.created_at,
+          borderAccent: '#38bdf8'
+        });
+      });
+
+      (recentWork || []).forEach(w => {
+        allEvents.push({
+          icon: '💼',
+          category: 'شغل ومشاريع',
+          title: `[${w.project_name}] ${w.task_description}`,
+          subtext: `📌 <b>الحالة:</b> ${w.status || 'قيد التنفيذ'}${w.revenue_generated ? ` | 💵 <b>الإيراد:</b> ${formatEgp(w.revenue_generated)}` : ''}`,
+          dateStr: w.date,
+          createdAt: w.created_at,
+          borderAccent: '#a855f7'
+        });
+      });
+
+      (recentContent || []).forEach(c => {
+        allEvents.push({
+          icon: '🎬',
+          category: 'صناعة محتوى',
+          title: `[${c.platform}] ${c.title}`,
+          subtext: `📌 <b>المرحلة:</b> ${c.stage || 'فكرة'}`,
+          dateStr: c.date,
+          createdAt: c.created_at,
+          borderAccent: '#f43f5e'
+        });
+      });
+
+      (recentThoughts || []).forEach(th => {
+        allEvents.push({
+          icon: '💡',
+          category: 'بنك الخواطر',
+          title: `خاطرة: "${th.content.slice(0, 50)}..."`,
+          subtext: `🏷️ <b>التصنيف:</b> ${th.category || 'انضباط'}`,
+          dateStr: th.date,
+          createdAt: th.created_at,
+          borderAccent: 'var(--accent-gold)'
+        });
+      });
+
+      (recentAttendance || []).forEach(a => {
+        allEvents.push({
+          icon: '📝',
+          category: 'حضور وسكاشن',
+          title: `[${a.course_code}] ${a.session_title}`,
+          subtext: `📌 <b>الحالة:</b> ${a.status}${a.reason ? ` | السبب: ${a.reason}` : ''}`,
+          dateStr: a.date,
+          createdAt: a.created_at,
+          borderAccent: a.status === 'حضور' ? 'var(--accent-primary)' : 'var(--accent-gold)'
+        });
+      });
+
+      // Sort all events by timestamp descending (newest first)
+      allEvents.sort((a, b) => {
+        const tA = new Date(a.createdAt || a.dateStr || 0).getTime();
+        const tB = new Date(b.createdAt || b.dateStr || 0).getTime();
+        return tB - tA;
+      });
+
+      let activityHtml = '';
+      if (allEvents.length > 0) {
+        allEvents.slice(0, 15).forEach(ev => {
+          activityHtml += `
+            <div class="session-item" style="border-right: 4px solid ${ev.borderAccent}; background: var(--bg-card-inner); padding: 14px 16px; margin-bottom: 10px;">
+              <div class="item-top-row">
+                <span class="item-title" style="font-size: 1.02rem;">${ev.icon} <b>${ev.title}</b></span>
+                <span class="task-status-badge status-done">${ev.category}</span>
+              </div>
+              <div class="item-desc" style="margin-top: 6px;">
+                ${ev.subtext ? `<div style="font-size: 0.86rem; color: #e2e8f0;">${ev.subtext}</div>` : ''}
+                <div style="margin-top: 6px; font-size: 0.8rem; color: var(--accent-primary); font-weight: 700;">
+                  🕒 <b>وقت الحدث:</b> ${formatRelativeDate(ev.dateStr, ev.createdAt)}
+                </div>
+              </div>
+            </div>
+          `;
+        });
+      } else {
+        activityHtml = `<div class="empty-state">لا توجد أحداث مسجلة بعد. أرسل فويس للبوت لتوثيق أي نشاط!</div>`;
+      }
+
+      if (activityFeedEl) {
+        activityFeedEl.innerHTML = activityHtml;
+      }
+    } catch (actErr) {
+      console.warn('homeRecentActivities error:', actErr);
     }
 
     // Dynamic Modules Tracker on Home
@@ -663,7 +934,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
               <div class="module-study-hours-val">${hrsFormatted} <span>ساعة مذاكرة</span></div>
             </div>
             <div class="module-last-session-text">
-              ${data.lastTopic ? `📌 آخر جلسة: <b>${data.lastTopic}</b> • 📅 ${data.lastDate || 'اليوم'}` : 'لم تبدأ المذاكرة في هذا الموديول بعد.'}
+              ${data.lastTopic ? `📌 آخر جلسة: <b>${data.lastTopic}</b> • 📅 ${formatRelativeDate(data.lastDate)}` : 'لم تبدأ المذاكرة في هذا الموديول بعد.'}
             </div>
           </div>
         `;
@@ -766,7 +1037,7 @@ async function renderAcademicSection() {
               <div style="font-size: 0.78rem; color: var(--text-muted);">${data.credits} ساعات معتمدة</div>
             </div>
             <div class="module-last-session-text">
-              ${data.lastTopic ? `📌 آخر جلسة: <b>${data.lastTopic}</b> (${data.lastDur} د) • 📅 ${data.lastDate || 'اليوم'}` : 'لم تسجل جلسات في هذا الموديول بعد.'}
+              ${data.lastTopic ? `📌 آخر جلسة: <b>${data.lastTopic}</b> (${data.lastDur} د) • 📅 ${formatRelativeDate(data.lastDate)}` : 'لم تسجل جلسات في هذا الموديول بعد.'}
             </div>
           </div>
         `;
@@ -788,7 +1059,7 @@ async function renderAcademicSection() {
               <span class="task-status-badge status-done" style="font-size: 0.85rem; padding: 4px 10px;">⏱️ ${durText}</span>
             </div>
             <div class="item-desc" style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; font-size: 0.88rem;">
-              <span>📅 <b>التاريخ:</b> ${s.date || 'اليوم'}</span>
+              <span>📅 <b>التاريخ:</b> ${formatRelativeDate(s.date, s.created_at)}</span>
               ${s.pages_covered ? `<span>📄 <b>الصفحات:</b> ${s.pages_covered} صفحة</span>` : ''}
               ${s.comprehension_rating ? `<span>🧠 <b>الاستيعاب:</b> ${'⭐'.repeat(s.comprehension_rating)}</span>` : ''}
               ${s.session_type ? `<span>🏷️ <b>النوع:</b> ${s.session_type}</span>` : ''}
@@ -811,7 +1082,7 @@ async function renderAcademicSection() {
       cases.forEach(c => {
         cHtml += `
           <div class="case-item">
-            <div class="item-top-row"><span class="item-title">🩺 [${c.course_code || 'طب'}] ${c.title || 'حالة إكلينيكية'}</span><span class="item-date">${c.date || ''}</span></div>
+            <div class="item-top-row"><span class="item-title">🩺 [${c.course_code || 'طب'}] ${c.title || 'حالة إكلينيكية'}</span><span class="item-date">📅 ${formatRelativeDate(c.date, c.created_at)}</span></div>
             <div class="item-desc">
               ${c.chief_complaint ? `• <b>الشكوى:</b> ${c.chief_complaint}<br>` : ''}
               ${c.provisional_diagnosis ? `• <b>التشخيص:</b> ${c.provisional_diagnosis}<br>` : ''}
@@ -838,7 +1109,7 @@ async function renderAcademicSection() {
               <span class="task-status-badge ${isPresent ? 'status-done' : 'status-pending'}">${a.status}</span>
             </div>
             <div class="item-desc">
-              📅 ${a.date || ''} ${a.reason ? `| السبب: ${a.reason}` : ''}
+              📅 ${formatRelativeDate(a.date, a.created_at)} ${a.reason ? `| السبب: ${a.reason}` : ''}
               ${a.makeup_plan ? `<br>🔄 <b>خطة التعويض:</b> ${a.makeup_plan}` : ''}
             </div>
           </div>
@@ -925,7 +1196,7 @@ async function renderEnglishSection() {
               ${c.example_sentence ? `<div class="skill-takeaways">📝 <i>"${c.example_sentence}"</i></div>` : ''}
               <div class="thought-footer" style="margin-top: 10px;">
                 <span class="thought-cat">🏷️ ${c.usage_context || 'عام'}</span>
-                <span class="thought-date">⏳ المراجعة القادمة: ${nextReview}</span>
+                <span class="thought-date">⏳ أضيف: ${formatRelativeDate(null, c.created_at)} • المراجعة: ${nextReview}</span>
               </div>
             </div>
           `;
@@ -957,7 +1228,7 @@ async function renderQuranSection() {
         const starCount = Math.max(1, Math.min(5, Number(l.quality_rating || 5)));
         html += `
           <div class="quran-item">
-            <div class="item-top-row"><span class="item-title">🕌 سورة ${l.surah_name} (${l.session_type})</span><span class="item-date">${l.date}</span></div>
+            <div class="item-top-row"><span class="item-title">🕌 سورة ${l.surah_name} (${l.session_type})</span><span class="item-date">📅 ${formatRelativeDate(l.date, l.created_at)}</span></div>
             <div class="item-desc">📌 <b>حالة الحفظ:</b> ${l.mastery_status || 'متقن'} | ${'⭐'.repeat(starCount)}${l.from_page ? ` | 📄 صفحة ${l.from_page}` : ''}</div>
           </div>
         `;
@@ -1012,7 +1283,7 @@ async function renderFastingAndSunnah() {
           <div class="session-item">
             <div class="item-top-row">
               <span class="item-title">🌙 ${f.fasting_type ? `${f.fasting_type} (${f.fasting_completed ? '✅ تم الصيام' : 'صائم'})` : 'يوم عادي'}</span>
-              <span class="item-date">${f.date}</span>
+              <span class="item-date">📅 ${formatRelativeDate(f.date, f.created_at)}</span>
             </div>
             <div class="item-desc">
               🕌 السنن: <b>${f.sunan_rawatib_count || 0}</b> ركعة | 📿 أذكار: صباح (${f.adhkar_morning ? '✅' : '⚪'}) مساء (${f.adhkar_evening ? '✅' : '⚪'})
@@ -1046,7 +1317,7 @@ async function renderMentalWellness() {
             ` : ''}
             <div class="thought-footer">
               <span class="thought-cat">🧠 الحالة: ${l.emotional_state} (⭐ ${l.mood_rating}/5)</span>
-              <span class="thought-date">📅 ${l.date}</span>
+              <span class="thought-date">📅 ${formatRelativeDate(l.date, l.created_at)}</span>
             </div>
           </div>
         `;
@@ -1069,7 +1340,7 @@ async function renderGymSection() {
         html += `
           <div class="skill-card">
             <div class="skill-title">🏋️‍♂️ ${g.workout_type}</div>
-            <div class="skill-meta">💪 العضلات: ${g.muscle_groups || 'عام'} | ⏱️ ${g.duration_minutes || 45} دقيقة (📅 ${g.date})</div>
+            <div class="skill-meta">💪 العضلات: ${g.muscle_groups || 'عام'} | ⏱️ ${g.duration_minutes || 45} دقيقة (📅 ${formatRelativeDate(g.date, g.created_at)})</div>
             <div class="skill-takeaways">
               🍗 بروتين: ${g.protein_grams || 0}g | 💧 ماء: ${g.water_liters || 0}L
               ${g.exercises_summary ? `<br>📝 <b>التمارين:</b> ${g.exercises_summary}` : ''}
@@ -1098,7 +1369,7 @@ async function renderContentSection() {
               <span class="skill-title">🎬 ${c.title}</span>
               <span class="task-status-badge status-pending">${c.stage}</span>
             </div>
-            <div class="skill-meta">📱 المنصة: ${c.platform} | 📅 ${c.date}</div>
+            <div class="skill-meta">📱 المنصة: ${c.platform} | 📅 ${formatRelativeDate(c.date, c.created_at)}</div>
             ${c.script_content ? `<div class="skill-takeaways">📝 <b>السكريبت:</b> ${c.script_content}</div>` : ''}
           </div>
         `;
@@ -1124,7 +1395,7 @@ async function renderWorkSection() {
               <span class="skill-title">💼 [${w.project_name}]</span>
               <span class="task-status-badge status-done">${w.status}</span>
             </div>
-            <div class="skill-meta">📝 ${w.task_description}</div>
+            <div class="skill-meta">📝 ${w.task_description} • 📅 ${formatRelativeDate(w.date, w.created_at)}</div>
             ${Number(w.revenue_generated || 0) > 0 ? `<div style="color: #4ade80; font-weight: 800; font-size: 0.95rem; margin-top: 6px;">💵 الإيراد المحقق: ${formatEgp(w.revenue_generated)}</div>` : ''}
           </div>
         `;
@@ -1157,7 +1428,7 @@ async function renderTasksAndAppointments() {
               <span class="item-title">${isDone ? '✅' : '🟡'} ${t.title}</span>
               <span class="task-status-badge ${isDone ? 'status-done' : 'status-pending'}">${t.status}</span>
             </div>
-            <div class="item-desc">⏱️ الهدف: ${t.target_duration_mins || 0} دقيقة | 🏷️ تصنيف: ${t.category} | أولوية: ${t.priority || 'متوسطة'}</div>
+            <div class="item-desc">⏱️ الهدف: ${t.target_duration_mins || 0} دقيقة | 🏷️ ${t.category} • 📅 ${formatRelativeDate(t.date, t.created_at)}</div>
           </div>
         `;
       });
@@ -1169,10 +1440,9 @@ async function renderTasksAndAppointments() {
       if (apptsBadge) apptsBadge.textContent = `${appts.length} مواعيد`;
       let aHtml = '';
       appts.forEach(a => {
-        const dueStr = a.due_datetime ? a.due_datetime.replace('T', ' ').slice(0, 16) : 'قريباً';
         aHtml += `
           <div class="appt-item">
-            <div class="item-top-row"><span class="item-title">🔔 ${a.title}</span><span class="item-date">${dueStr}</span></div>
+            <div class="item-top-row"><span class="item-title">🔔 ${a.title}</span><span class="item-date">📅 ${formatRelativeDate(a.date, a.due_datetime || a.created_at)}</span></div>
             ${a.notes ? `<div class="item-desc">📝 ${a.notes}</div>` : ''}
           </div>
         `;
@@ -1195,7 +1465,7 @@ async function renderThoughtsSection() {
         html += `
           <div class="thought-card">
             <div class="thought-content">“${th.content}”</div>
-            <div class="thought-footer"><span class="thought-cat">🏷️ ${th.category}</span><span class="thought-date">📅 ${th.date}</span></div>
+            <div class="thought-footer"><span class="thought-cat">🏷️ ${th.category}</span><span class="thought-date">📅 ${formatRelativeDate(th.date, th.created_at)}</span></div>
           </div>
         `;
       });
@@ -1229,7 +1499,7 @@ async function renderFinanceSection() {
         const isExp = r.type === 'مصروف';
         html += `
           <tr>
-            <td>${r.date}</td>
+            <td>${formatRelativeDate(r.date, r.created_at)}</td>
             <td><span class="${isExp ? 'badge-expense' : 'badge-income'}">${r.type}</span></td>
             <td><b>${formatEgp(r.amount)}</b></td>
             <td>${r.description}</td>
@@ -1245,16 +1515,16 @@ async function renderFinanceSection() {
   }
 }
 
-// 🚀 Dashboard Init
-let dashboardInitialized = false;
+// 🚀 Dashboard Init & Live Data Refresh
+let tabsInitialized = false;
 async function initDashboard() {
-  if (dashboardInitialized) return;
-  dashboardInitialized = true;
-
-  initClockAndPrayers();
-  initTabs();
-  checkSandboxModeState();
-  setInterval(checkSandboxModeState, 5000);
+  if (!tabsInitialized) {
+    initClockAndPrayers();
+    initTabs();
+    checkSandboxModeState();
+    setInterval(checkSandboxModeState, 6000);
+    tabsInitialized = true;
+  }
 
   await Promise.allSettled([
     renderHomeOverview(),
@@ -1271,6 +1541,10 @@ async function initDashboard() {
     renderFinanceSection()
   ]);
 }
+
+window.initDashboard = initDashboard;
+window.renderHomeOverview = renderHomeOverview;
+window.renderAcademicSection = renderAcademicSection;
 
 // ==============================================================================
 // 🧪 Sandbox Test Mode Engine (Backup Snapshot & Clean Restore)

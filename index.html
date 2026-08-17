@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;600;700;800&family=Amiri:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <!-- Supabase Cloud CDN (Universal compatibility for file:/// and https://) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -573,19 +575,19 @@
             </div>
           </div>
 
-          <!-- ⚡ 4. Live Activity Stream (سجل النشاطات الحية) -->
+          <!-- ⚡ 4. Master Unified Live Activity Stream (سجل الأحداث والأنشطة الشامل) -->
           <div class="split-card full-width-card" style="margin-bottom: 24px;">
             <div class="card-header">
-              <h3>⚡ سجل النشاطات الحية والتفاعلات التلقائية (Live Activity Stream)</h3>
-              <span class="card-badge" id="liveActivityCount">مزامنة تليجرام والموقع</span>
+              <h3>⚡ سجل الأحداث والأنشطة الشامل (سجل كل حدث وحصل إمتى لحظياً)</h3>
+              <span class="card-badge" id="liveActivityCount" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-primary); border: 1px solid rgba(16, 185, 129, 0.3);">🟢 مزامنة حية مباشرة</span>
             </div>
             <div class="sessions-list" id="homeRecentActivities">
               <div class="session-item">
                 <div class="item-top-row">
                   <span class="item-title">🩺 مرحباً بك في المنظومة يا د. عبدالله!</span>
-                  <span class="item-date">الآن</span>
+                  <span class="item-date">اليوم</span>
                 </div>
-                <div class="item-desc">أرسل أي فويس أو رسالة في البوت @abdallahprobot وسيقوم بتوثيق كل إنجازاتك تلقائياً هنا!</div>
+                <div class="item-desc">أرسل أي فويس أو رسالة في البوت وسيقوم بتوثيق كل إنجازاتك ووقت حدوثها لحظياً هنا!</div>
               </div>
             </div>
           </div>
@@ -1053,6 +1055,7 @@
             if (overlay) overlay.style.display = 'none';
             if (mainContent) mainContent.style.display = 'flex';
             if (errorMsg) errorMsg.textContent = '';
+            if (typeof window.initDashboard === 'function') window.initDashboard();
           } else {
             if (errorMsg) errorMsg.textContent = '⛔ كلمة المرور غير صحيحة، يرجى كتابة الرمز بشكل صحيح.';
             if (input) input.focus();
@@ -1131,10 +1134,23 @@
           }
         });
       });
+
+      // 🔄 Realtime Auto-Sync Listeners
+      window.addEventListener('focus', () => {
+        if (typeof window.initDashboard === 'function') window.initDashboard();
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && typeof window.initDashboard === 'function') {
+          window.initDashboard();
+        }
+      });
+      setInterval(() => {
+        if (typeof window.initDashboard === 'function') window.initDashboard();
+      }, 8000);
     });
   </script>
 
-  <!-- ES6 Module (Loads live Supabase cloud data when on web/Vercel) -->
-  <script type="module" src="app.js"></script>
+  <!-- Universal Dashboard Controller (Works seamlessly on file:/// and https://) -->
+  <script src="app.js"></script>
 </body>
 </html>
