@@ -11,7 +11,28 @@
 </head>
 <body>
 
-  <div class="app-container">
+  <!-- 🔒 Executive Master Passcode Screen -->
+  <div class="auth-lock-overlay" id="authLockOverlay">
+    <div class="auth-card">
+      <div class="auth-avatar">🩺</div>
+      <h1 class="auth-title">منظومة رحلة عبدالله</h1>
+      <p class="auth-subtitle">بوابة الإدارة الذكية — الوصول مصرح حصرياً لـ د. عبدالله</p>
+      
+      <form id="authForm" class="auth-form">
+        <div class="input-group">
+          <label for="passcodeInput">رمز المرور السري (Master Passcode):</label>
+          <input type="password" id="passcodeInput" placeholder="أدخل كلمة المرور..." required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn-auth-submit" id="btnAuthSubmit">
+          <span>🔓 فتح المنظومة</span>
+        </button>
+        <div class="auth-error-msg" id="authErrorMsg"></div>
+      </form>
+      <div class="auth-footer-note">نظام مشفر ومحمي © 2026 Abdullah's Journey OS</div>
+    </div>
+  </div>
+
+  <div class="app-container" id="mainAppContent" style="display: none;">
     
     <!-- Top Header -->
     <header class="app-header">
@@ -37,13 +58,16 @@
         <div class="cairo-clock" id="cairoClock">--:--:--</div>
         <a href="https://t.me/abdallahprobot" target="_blank" class="bot-badge">
           <span class="bot-status-dot"></span>
-          <span>البوت الصوتي: @abdallahprobot</span>
+          <span>البوت: @abdallahprobot</span>
         </a>
+        <button class="btn-lock-system" id="btnLockSystem" title="قفل الشاشة">
+          🔒 قفل
+        </button>
       </div>
     </header>
 
     <!-- Cairo Live Prayer Times Banner -->
-    <section class="prayer-times-banner" id="prayerTimesBanner" style="background: var(--bg-surface); border: 1px solid var(--border-card); border-radius: var(--radius-lg); padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; overflow-x: auto; gap: 12px;">
+    <section class="prayer-times-banner" id="prayerTimesBanner">
       <div style="font-weight: 800; color: #38bdf8; font-size: 0.95rem; white-space: nowrap;">🕌 مواقيت الصلاة الحية بالقاهرة:</div>
       <div class="prayer-pill-item"><span style="color: #94a3b8;">الفجر:</span> <b id="ptFajr">--:--</b></div>
       <div class="prayer-pill-item"><span style="color: #94a3b8;">الشروق:</span> <b id="ptSunrise">--:--</b></div>
@@ -161,7 +185,7 @@
             <span class="card-badge" id="medQuizzesBadge">0 أسئلة مبرمجة</span>
           </div>
           <div class="skills-grid" id="medSpacedList">
-            <div class="empty-state">أرسل أي سؤال طبي مع إجابته للبوت (مثال: "سؤال كارديو CAD402: ايه اهم لقطة في علاج Heart Failure؟") وسيقوم بجدولته لك بالتكرار المتباعد!</div>
+            <div class="empty-state">أرسل أي سؤال طبي مع إجابته للبوت وسيقوم بجدولته لك بالتكرار المتباعد!</div>
           </div>
         </div>
 
