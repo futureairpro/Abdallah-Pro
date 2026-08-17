@@ -700,6 +700,9 @@ async function initDashboard() {
 
   initClockAndPrayers();
   initTabs();
+  checkSandboxModeState();
+  setInterval(checkSandboxModeState, 5000);
+
   await Promise.allSettled([
     renderAcademicSection(),
     renderEnglishSection(),
@@ -714,5 +717,178 @@ async function initDashboard() {
     renderFinanceSection()
   ]);
 }
+
+// ==============================================================================
+// 🧪 Sandbox Test Mode Engine (Backup Snapshot & Clean Restore)
+// ==============================================================================
+async function checkSandboxModeState() {
+  try {
+    const { data: row } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
+    const isSandbox = row?.data?.sandbox_active === true;
+
+    const banner = document.getElementById('sandbox-mode-banner');
+    const btn = document.getElementById('toggle-sandbox-btn');
+
+    if (banner) banner.style.display = isSandbox ? 'flex' : 'none';
+
+    if (btn) {
+      if (isSandbox) {
+        btn.innerHTML = '<span>🧪</span> <span class="btn-text">وضع التجربة (مفعّل 🟢)</span>';
+        btn.style.background = 'rgba(239, 68, 68, 0.2)';
+        btn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+        btn.style.color = '#ef4444';
+      } else {
+        btn.innerHTML = '<span>🧪</span> <span class="btn-text">تجربة البوت</span>';
+        btn.style.background = 'rgba(245, 158, 11, 0.15)';
+        btn.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+        btn.style.color = '#f59e0b';
+      }
+    }
+  } catch (e) {
+    console.warn('checkSandboxModeState error:', e.message);
+  }
+}
+
+async function toggleSandboxModeFromWeb() {
+  const { data: row } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
+  const isSandbox = row?.data?.sandbox_active === true;
+
+  if (isSandbox) {
+    disableSandboxModeAndRestore();
+  } else {
+    enableSandboxModeFromWeb();
+  }
+}
+
+async function enableSandboxModeFromWeb() {
+  if (!confirm('🧪 هل ترغب في تفعيل وضع تجربة واختبار البوت؟\n\nسيتم أخذ لقطة حفظ احتياطية كاملة لجميع أقسام المنظومة والموقع، ويمكنك تجربة أي رسائل وأوامر في البوت دون الخوف على بياناتك وسجلاتك الأصلية.')) return;
+
+  try {
+    const { data: row } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
+    const sessionData = row?.data || {};
+
+    const [
+      studies, habits, quran, engLogs, engCards, medQuizzes, acad, wellness, gym, content, work, tasks, thoughts, fin
+    ] = await Promise.all([
+      supabase.from('study_sessions').select('*'),
+      supabase.from('prayers_and_habits').select('*'),
+      supabase.from('quran_logs').select('*'),
+      supabase.from('english_logs').select('*'),
+      supabase.from('english_spaced_flashcards').select('*'),
+      supabase.from('medical_spaced_quizzes').select('*'),
+      supabase.from('academic_schedule').select('*'),
+      supabase.from('mental_wellness_logs').select('*'),
+      supabase.from('fitness_gym_logs').select('*'),
+      supabase.from('content_creation_logs').select('*'),
+      supabase.from('work_projects').select('*'),
+      supabase.from('daily_tasks').select('*'),
+      supabase.from('life_thoughts_and_rules').select('*'),
+      supabase.from('personal_finance').select('*')
+    ]);
+
+    sessionData.sandbox_snapshot = {
+      study_sessions: studies.data || [],
+      prayers_and_habits: habits.data || [],
+      quran_logs: quran.data || [],
+      english_logs: engLogs.data || [],
+      english_spaced_flashcards: engCards.data || [],
+      medical_spaced_quizzes: medQuizzes.data || [],
+      academic_schedule: acad.data || [],
+      mental_wellness_logs: wellness.data || [],
+      fitness_gym_logs: gym.data || [],
+      content_creation_logs: content.data || [],
+      work_projects: work.data || [],
+      daily_tasks: tasks.data || [],
+      life_thoughts_and_rules: thoughts.data || [],
+      personal_finance: fin.data || [],
+      liquidity: { ...(sessionData.liquidity || {}) },
+      created_at: new Date().toISOString()
+    };
+    sessionData.sandbox_active = true;
+
+    await supabase.from('bot_sessions').upsert({
+      chat_id: 999999,
+      state: 'global_state',
+      data: sessionData,
+      updated_at: new Date().toISOString()
+    });
+
+    alert('🧪 تم تفعيل وضع تجربة البوت بنجاح!\n\nيمكنك الآن إرسال أي رسائل أو أوامر تجريبية للبوت في تليجرام، وتجربة الموقع، وعند الانتهاء اضغط الزر الأحمر بالأعلى واستعادة كل شيء كما كان تماماً.');
+    await checkSandboxModeState();
+  } catch (e) {
+    alert('❌ فشل تفعيل وضع التجربة: ' + e.message);
+  }
+}
+
+async function disableSandboxModeAndRestore() {
+  if (!confirm('🔴 هل أنت متأكد من إنهاء وضع التجربة وإلغاء جميع الحركات التجريبية واستعادة البيانات الأصلية كما كانت بالضبط؟')) return;
+
+  try {
+    const { data: row } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
+    const sessionData = row?.data;
+
+    if (!sessionData || !sessionData.sandbox_active || !sessionData.sandbox_snapshot) {
+      alert('⚠️ وضع التجربة غير مفعل حالياً!');
+      return;
+    }
+
+    const snap = sessionData.sandbox_snapshot;
+
+    // 1. Clear tables
+    const tableNames = [
+      'study_sessions', 'prayers_and_habits', 'quran_logs', 'english_logs',
+      'english_spaced_flashcards', 'medical_spaced_quizzes', 'academic_schedule',
+      'mental_wellness_logs', 'fitness_gym_logs', 'content_creation_logs',
+      'work_projects', 'daily_tasks', 'life_thoughts_and_rules', 'personal_finance'
+    ];
+
+    for (const tbl of tableNames) {
+      if (tbl === 'prayers_and_habits') {
+        await supabase.from(tbl).delete().neq('date', '1970-01-01');
+      } else {
+        await supabase.from(tbl).delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      }
+    }
+
+    // 2. Restore snapshot data
+    if (snap.study_sessions?.length) await supabase.from('study_sessions').insert(snap.study_sessions);
+    if (snap.prayers_and_habits?.length) await supabase.from('prayers_and_habits').insert(snap.prayers_and_habits);
+    if (snap.quran_logs?.length) await supabase.from('quran_logs').insert(snap.quran_logs);
+    if (snap.english_logs?.length) await supabase.from('english_logs').insert(snap.english_logs);
+    if (snap.english_spaced_flashcards?.length) await supabase.from('english_spaced_flashcards').insert(snap.english_spaced_flashcards);
+    if (snap.medical_spaced_quizzes?.length) await supabase.from('medical_spaced_quizzes').insert(snap.medical_spaced_quizzes);
+    if (snap.academic_schedule?.length) await supabase.from('academic_schedule').insert(snap.academic_schedule);
+    if (snap.mental_wellness_logs?.length) await supabase.from('mental_wellness_logs').insert(snap.mental_wellness_logs);
+    if (snap.fitness_gym_logs?.length) await supabase.from('fitness_gym_logs').insert(snap.fitness_gym_logs);
+    if (snap.content_creation_logs?.length) await supabase.from('content_creation_logs').insert(snap.content_creation_logs);
+    if (snap.work_projects?.length) await supabase.from('work_projects').insert(snap.work_projects);
+    if (snap.daily_tasks?.length) await supabase.from('daily_tasks').insert(snap.daily_tasks);
+    if (snap.life_thoughts_and_rules?.length) await supabase.from('life_thoughts_and_rules').insert(snap.life_thoughts_and_rules);
+    if (snap.personal_finance?.length) await supabase.from('personal_finance').insert(snap.personal_finance);
+
+    sessionData.liquidity = { ...(snap.liquidity || {}) };
+    sessionData.sandbox_active = false;
+    delete sessionData.sandbox_snapshot;
+
+    await supabase.from('bot_sessions').upsert({
+      chat_id: 999999,
+      state: 'global_state',
+      data: sessionData,
+      updated_at: new Date().toISOString()
+    });
+
+    alert('✅ تم إنهاء وضع التجربة وإعادة كافة السجلات والموديولات والبيانات للحالة الأصلية بنجاح!');
+    await checkSandboxModeState();
+    window.location.reload();
+  } catch (e) {
+    alert('❌ فشل استعادة البيانات: ' + e.message);
+  }
+}
+
+// Global exposure
+window.checkSandboxModeState = checkSandboxModeState;
+window.toggleSandboxModeFromWeb = toggleSandboxModeFromWeb;
+window.enableSandboxModeFromWeb = enableSandboxModeFromWeb;
+window.disableSandboxModeAndRestore = disableSandboxModeAndRestore;
 
 window.addEventListener('DOMContentLoaded', initAuthGateway);

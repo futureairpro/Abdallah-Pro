@@ -431,8 +431,11 @@
   <!-- 🏢 Master Layout (Distinct Royal Emerald & Gold Theme) -->
   <div class="app-layout" id="mainAppContent" style="display: none;">
     
+    <!-- 📱 Mobile Sidebar Backdrop -->
+    <div id="sidebar-backdrop" class="sidebar-backdrop" onclick="toggleMobileSidebar(false)"></div>
+
     <!-- 📌 1. Right Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="appSidebar">
       <div class="sidebar-header">
         <div class="sidebar-brand">
           <div class="brand-icon-box">🩺</div>
@@ -441,60 +444,62 @@
             <span>Abdullah OS • الفرقة 4</span>
           </div>
         </div>
+        <!-- Close button for mobile drawer -->
+        <button id="mobile-menu-close" class="mobile-menu-close-btn" onclick="toggleMobileSidebar(false)">&times;</button>
       </div>
 
       <nav class="sidebar-nav">
-        <button class="nav-item active" data-tab="medical" data-title="لوحة المؤشرات | الطب والسكاشن">
+        <button class="nav-item active" data-tab="medical" data-title="لوحة المؤشرات | الطب والسكاشن" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">🩺</span>
           <span>الطب والسكاشن</span>
         </button>
 
-        <button class="nav-item" data-tab="english" data-title="فلاش كاردز الإنجليزية | Spaced Flashcards">
+        <button class="nav-item" data-tab="english" data-title="فلاش كاردز الإنجليزية | Spaced Flashcards" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">🗣️</span>
           <span>فلاش كاردز الإنجليزية</span>
         </button>
 
-        <button class="nav-item" data-tab="quran" data-title="المصحف وتثبيت الحفظ | Quran OS">
+        <button class="nav-item" data-tab="quran" data-title="المصحف وتثبيت الحفظ | Quran OS" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">📖</span>
           <span>المصحف والقرآن</span>
         </button>
 
-        <button class="nav-item" data-tab="fasting" data-title="الصيام والسنن والأذكار | Worship Logs">
+        <button class="nav-item" data-tab="fasting" data-title="الصيام والسنن والأذكار | Worship Logs" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">🌙</span>
           <span>الصيام والسنن والأذكار</span>
         </button>
 
-        <button class="nav-item" data-tab="wellness" data-title="الفضفضة والاتزان النفسي | Mental Wellness">
+        <button class="nav-item" data-tab="wellness" data-title="الفضفضة والاتزان النفسي | Mental Wellness" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">🧠</span>
           <span>الفضفضة والاتزان</span>
         </button>
 
-        <button class="nav-item" data-tab="gym" data-title="الجيم واللياقة البدنية | Body Engineering">
+        <button class="nav-item" data-tab="gym" data-title="الجيم واللياقة البدنية | Body Engineering" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">🏋️‍♂️</span>
           <span>الجيم واللياقة</span>
         </button>
 
-        <button class="nav-item" data-tab="content" data-title="صناعة المحتوى والميديا | Content Pipeline">
+        <button class="nav-item" data-tab="content" data-title="صناعة المحتوى والميديا | Content Pipeline" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">🎬</span>
           <span>صناعة المحتوى</span>
         </button>
 
-        <button class="nav-item" data-tab="work" data-title="الشغل وإدارة المشاريع | Business Hub">
+        <button class="nav-item" data-tab="work" data-title="الشغل وإدارة المشاريع | Business Hub" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">💼</span>
           <span>الشغل والبيزنس</span>
         </button>
 
-        <button class="nav-item" data-tab="tasks" data-title="المهام اليومية والمواعيد | Focus & Tasks">
+        <button class="nav-item" data-tab="tasks" data-title="المهام اليومية والمواعيد | Focus & Tasks" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">🎯</span>
           <span>المهام والمواعيد</span>
         </button>
 
-        <button class="nav-item" data-tab="thoughts" data-title="بنك الخواطر والانضباط | Wisdom Vault">
+        <button class="nav-item" data-tab="thoughts" data-title="بنك الخواطر والانضباط | Wisdom Vault" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">💡</span>
           <span>بنك الخواطر</span>
         </button>
 
-        <button class="nav-item" data-tab="finance" data-title="الخزنة والمصروفات المالية | Personal Finance">
+        <button class="nav-item" data-tab="finance" data-title="الخزنة والمصروفات المالية | Personal Finance" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">💵</span>
           <span>الخزنة والمالية</span>
         </button>
@@ -502,7 +507,7 @@
 
       <div class="sidebar-footer">
         <a href="https://t.me/abdallahprobot" target="_blank" class="sidebar-bot-btn">
-          <span>⚡ تجربة البوت: @abdallahprobot</span>
+          <span>⚡ بوت تليجرام: @abdallahprobot</span>
         </a>
       </div>
     </aside>
@@ -513,7 +518,18 @@
       <!-- Topbar Header -->
       <header class="topbar">
         <div class="topbar-right">
+          <!-- Mobile Menu Toggle Button -->
+          <button id="mobile-menu-toggle" class="mobile-menu-btn" onclick="toggleMobileSidebar(true)" title="القائمة">
+            ☰
+          </button>
           <h2 class="page-title" id="currentSectionTitle">لوحة المؤشرات | الطب والسكاشن</h2>
+        </div>
+
+        <!-- 🕒 Digital Clock & Date Widget -->
+        <div class="digital-clock-widget">
+          <span class="clock-time" id="digital-clock">--:--:-- --</span>
+          <span style="height: 12px; width: 1px; background: rgba(255,255,255,0.15);"></span>
+          <span class="clock-date" id="digital-date">--/--/----</span>
         </div>
 
         <div class="topbar-center">
@@ -525,24 +541,51 @@
             <span class="prayer-capsule-item">المغرب: <b id="ptMaghrib">19:36</b></span>
             <span class="prayer-capsule-item">العشاء: <b id="ptIsha">20:57</b></span>
           </div>
-
-          <div class="badge-live-dot">
-            <span class="live-dot"></span>
-            <span>الهدف: امتياز (450/450)</span>
-          </div>
         </div>
 
         <div class="topbar-left">
-          <div class="cairo-clock-badge" id="cairoClock">--:--:--</div>
+          <!-- Desktop / Mobile View Mode Toggle -->
+          <button type="button" id="toggle-desktop-mode-btn" class="btn-topbar-mode btn-desktop-toggle" onclick="toggleDesktopMode()" title="التبديل بين وضع الموبايل والكمبيوتر">
+            <span id="desktop-mode-icon">💻</span>
+            <span class="btn-text" id="desktop-mode-text">وضع الكمبيوتر</span>
+          </button>
+
+          <!-- Bot Sandbox Test Mode Button -->
+          <button type="button" id="toggle-sandbox-btn" class="btn-topbar-mode btn-sandbox-toggle" onclick="toggleSandboxModeFromWeb()" title="تفعيل أو إنهاء وضع تجربة البوت">
+            <span>🧪</span>
+            <span class="btn-text">تجربة البوت</span>
+          </button>
+
+          <!-- Live Bot Sync Indicator -->
+          <div class="bot-status-indicator">
+            <span class="pulse-dot-green"></span>
+            <span>مزامنة مباشرة مع البوت</span>
+          </div>
+
           <div class="user-profile-btn">
             <span class="user-mini-avatar">🩺</span>
             <span class="user-mini-name">د. عبدالله</span>
           </div>
+
           <button class="btn-lock-top" id="btnLockSystem" title="قفل الشاشة">
             🔒 قفل
           </button>
         </div>
       </header>
+
+      <!-- 🧪 SANDBOX TEST MODE BANNER BAR -->
+      <div id="sandbox-mode-banner" style="display: none; background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(234, 88, 12, 0.2)); border: 2px dashed #f59e0b; padding: 12px 20px; border-radius: 12px; margin: 15px 25px 0 25px; align-items: center; justify-content: space-between; gap: 15px; box-shadow: 0 0 20px rgba(245, 158, 11, 0.15); direction: rtl; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 1.8rem;">🧪</span>
+          <div>
+            <h4 style="margin: 0; color: #fbbf24; font-size: 1.05rem; font-weight: 800;">وضع تجربة واختبار البوت مفّعل حالياً! (Sandbox Mode)</h4>
+            <p style="margin: 3px 0 0; color: #fde68a; font-size: 0.85rem;">تم أخذ لقطة حفظ احتياطية كاملة لجميع أقسام المنظومة.. يمكنك تجربة أي رسائل وأوامر في البوت، ولإلغاء التجربة واستعادة كل شيء كما كان اضغط الزر الأحمر باليسار.</p>
+          </div>
+        </div>
+        <button type="button" onclick="disableSandboxModeAndRestore()" class="btn" style="background: var(--accent-rose); color: #fff; border: none; font-weight: 700; padding: 8px 18px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);">
+          🔴 إنهاء التجربة واستعادة البيانات الأصلية
+        </button>
+      </div>
 
       <!-- Main Body Container -->
       <main class="main-body">
@@ -994,13 +1037,57 @@
 
       // Clock
       const clockEl = document.getElementById('cairoClock');
-      function updateClock() {
+      // 🕒 Digital Live Clock & Date
+      function updateDigitalClock() {
         const now = new Date();
-        const timeStr = now.toLocaleTimeString('en-GB', { timeZone: 'Africa/Cairo', hour12: true });
-        if (clockEl) clockEl.textContent = `القاهرة: ${timeStr}`;
+        const clockEl = document.getElementById('digital-clock');
+        const dateEl = document.getElementById('digital-date');
+
+        if (clockEl) {
+          const timeStr = now.toLocaleTimeString('ar-EG', { timeZone: 'Africa/Cairo', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+          clockEl.textContent = timeStr;
+        }
+
+        if (dateEl) {
+          const dateStr = now.toLocaleDateString('ar-EG', { timeZone: 'Africa/Cairo', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+          dateEl.textContent = dateStr;
+        }
       }
-      updateClock();
-      setInterval(updateClock, 1000);
+      updateDigitalClock();
+      setInterval(updateDigitalClock, 1000);
+
+      // 📱 Mobile Sidebar Drawer Controller
+      window.toggleMobileSidebar = function(isOpen) {
+        const sidebar = document.getElementById('appSidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (!sidebar) return;
+
+        if (isOpen) {
+          sidebar.classList.add('mobile-open');
+          if (backdrop) backdrop.classList.add('active');
+        } else {
+          sidebar.classList.remove('mobile-open');
+          if (backdrop) backdrop.classList.remove('active');
+        }
+      };
+
+      // 💻 Desktop / Mobile View Mode Toggle
+      window.toggleDesktopMode = function() {
+        const isDesktop = document.body.classList.toggle('force-desktop-mode');
+        const btnText = document.getElementById('desktop-mode-text');
+        const btnIcon = document.getElementById('desktop-mode-icon');
+        const viewportMeta = document.querySelector('meta[name="viewport"]');
+
+        if (isDesktop) {
+          if (btnText) btnText.textContent = 'وضع الموبايل';
+          if (btnIcon) btnIcon.textContent = '📱';
+          if (viewportMeta) viewportMeta.setAttribute('content', 'width=1280, initial-scale=0.3, maximum-scale=2.0, user-scalable=yes');
+        } else {
+          if (btnText) btnText.textContent = 'وضع الكمبيوتر';
+          if (btnIcon) btnIcon.textContent = '💻';
+          if (viewportMeta) viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0');
+        }
+      };
 
       // Eye toggle
       const toggleEye = document.getElementById('togglePasscodeEye');
