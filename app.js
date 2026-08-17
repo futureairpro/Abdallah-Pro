@@ -1896,17 +1896,6 @@ window.toggleSandboxModeFromWeb = toggleSandboxModeFromWeb;
 window.enableSandboxModeFromWeb = enableSandboxModeFromWeb;
 window.disableSandboxModeAndRestore = disableSandboxModeAndRestore;
 
-// Bind event listeners
-document.addEventListener('DOMContentLoaded', () => {
-  const sandboxBtn = document.getElementById('toggle-sandbox-btn');
-  if (sandboxBtn) {
-    sandboxBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      toggleSandboxModeFromWeb();
-    });
-  }
-});
-
 // Immediate initialization if already authenticated
 if (typeof localStorage !== 'undefined' && localStorage.getItem('abdallah_journey_auth_token') === 'authenticated_dr_abdallah_secure_key_2026') {
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
