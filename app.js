@@ -148,8 +148,9 @@ function initClockAndPrayers() {
 }
 
 function initTabs() {
-  const tabs = document.querySelectorAll('.nav-tab');
+  const tabs = document.querySelectorAll('.nav-item, .nav-tab');
   const panes = document.querySelectorAll('.tab-pane');
+  const titleEl = document.getElementById('currentSectionTitle');
 
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
@@ -160,6 +161,9 @@ function initTabs() {
       const targetId = `tab-${tab.dataset.tab}`;
       const targetPane = document.getElementById(targetId);
       if (targetPane) targetPane.classList.add('active');
+      if (titleEl && tab.dataset.title) {
+        titleEl.textContent = tab.dataset.title;
+      }
     });
   });
 }

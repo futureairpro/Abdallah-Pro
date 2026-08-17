@@ -10,91 +10,85 @@
   <link rel="stylesheet" href="style.css">
   <style>
     :root {
-      --bg-base: #090d16;
-      --bg-surface: #0f172a;
-      --bg-card: rgba(15, 23, 42, 0.75);
-      --bg-glass: rgba(30, 41, 59, 0.45);
-      --border-card: rgba(51, 65, 85, 0.55);
-      --border-glow: rgba(56, 189, 248, 0.35);
-      --accent-cyan: #38bdf8;
+      --bg-app: #070d18;
+      --bg-sidebar: #0b1322;
+      --bg-topbar: #0b1322;
+      --bg-card: #0e172a;
+      --bg-card-hover: #121e36;
+      --bg-card-inner: #080f1c;
+      --border-color: rgba(255, 255, 255, 0.07);
+      --border-glow: rgba(14, 165, 233, 0.35);
+      --accent-cyan: #00a2e8;
+      --accent-cyan-hover: #0ea5e9;
       --accent-blue: #2563eb;
-      --accent-gold: #fbbf24;
-      --accent-emerald: #34d399;
-      --accent-purple: #a855f7;
-      --accent-rose: #f43f5e;
+      --accent-emerald: #10b981;
+      --accent-gold: #f59e0b;
+      --accent-rose: #ef4444;
       --text-primary: #f8fafc;
       --text-secondary: #94a3b8;
       --text-muted: #64748b;
       --font-ar: 'Cairo', system-ui, -apple-system, sans-serif;
       --font-en: 'Inter', system-ui, -apple-system, sans-serif;
       --radius-sm: 8px;
-      --radius-md: 14px;
-      --radius-lg: 20px;
-      --radius-xl: 26px;
-      --shadow-glow: 0 0 25px rgba(56, 189, 248, 0.12);
-      --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 22px;
+      --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+      --shadow-active: 0 4px 20px rgba(0, 162, 232, 0.35);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: var(--bg-base);
-      background-image: 
-        radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.12) 0%, transparent 40%),
-        radial-gradient(circle at 90% 80%, rgba(56, 189, 248, 0.1) 0%, transparent 40%);
+      background-color: var(--bg-app);
       color: var(--text-primary);
       font-family: var(--font-ar);
       line-height: 1.6;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
-    /* 🔒 Auth Lock Screen Overlay */
     .auth-lock-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(9, 13, 22, 0.96);
+      background: rgba(7, 13, 24, 0.97);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      z-index: 99999;
+      z-index: 999999;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
     }
     .auth-card {
-      background: var(--bg-surface);
+      background: var(--bg-card);
       border: 1.5px solid var(--border-glow);
       border-radius: var(--radius-xl);
-      padding: 42px 34px;
-      max-width: 450px;
+      padding: 40px 32px;
+      max-width: 440px;
       width: 100%;
       text-align: center;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 45px rgba(56, 189, 248, 0.25);
-      animation: fadeInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    @keyframes fadeInDown {
-      from { opacity: 0; transform: translateY(-20px) scale(0.96); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 162, 232, 0.2);
     }
     .auth-avatar { font-size: 3.5rem; margin-bottom: 12px; }
-    .auth-title { font-size: 1.75rem; font-weight: 900; color: #fff; margin-bottom: 6px; }
-    .auth-subtitle { color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 24px; }
+    .auth-title { font-size: 1.7rem; font-weight: 900; color: #fff; margin-bottom: 6px; }
+    .auth-subtitle { color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 24px; }
     .auth-form { display: flex; flex-direction: column; gap: 16px; text-align: right; }
     .input-group label { display: block; font-size: 0.88rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; }
     .input-wrapper { position: relative; display: flex; align-items: center; }
     .input-wrapper input {
       width: 100%;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1.5px solid var(--border-card);
+      background: var(--bg-card-inner);
+      border: 1.5px solid var(--border-color);
       border-radius: var(--radius-md);
       padding: 14px 44px 14px 16px;
       color: #fff;
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-family: inherit;
       outline: none;
       transition: all 0.2s ease;
     }
     .input-wrapper input:focus {
       border-color: var(--accent-cyan);
-      box-shadow: 0 0 18px rgba(56, 189, 248, 0.35);
+      box-shadow: 0 0 16px rgba(0, 162, 232, 0.35);
     }
     .toggle-eye-btn {
       position: absolute;
@@ -104,311 +98,304 @@
       color: var(--text-secondary);
       font-size: 1.2rem;
       cursor: pointer;
-      padding: 4px;
     }
     .btn-auth-submit {
-      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      background: linear-gradient(135deg, var(--accent-cyan), #0284c7);
       color: #fff;
       border: none;
       border-radius: var(--radius-md);
       padding: 14px 20px;
-      font-size: 1.08rem;
+      font-size: 1.05rem;
       font-weight: 800;
       font-family: inherit;
       cursor: pointer;
       transition: all 0.2s ease;
-      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+      box-shadow: var(--shadow-active);
     }
     .btn-auth-submit:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(56, 189, 248, 0.5);
+      box-shadow: 0 8px 25px rgba(0, 162, 232, 0.5);
     }
     .auth-error-msg {
       color: var(--accent-rose);
       font-size: 0.88rem;
       font-weight: 700;
-      min-height: 22px;
+      min-height: 20px;
       text-align: center;
     }
-    .auth-footer-note { margin-top: 24px; color: var(--text-muted); font-size: 0.78rem; }
-    .btn-lock-system {
-      background: rgba(244, 63, 94, 0.15);
-      border: 1px solid rgba(244, 63, 94, 0.35);
-      color: #f87171;
-      padding: 6px 14px;
-      border-radius: var(--radius-sm);
-      font-family: inherit;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s ease;
+    .auth-footer-note { margin-top: 20px; color: var(--text-muted); font-size: 0.75rem; }
+
+    /* App Layout */
+    .app-layout { display: flex; min-height: 100vh; width: 100%; }
+    .sidebar {
+      width: 280px;
+      min-width: 280px;
+      background: var(--bg-sidebar);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      z-index: 1000;
     }
-    .btn-lock-system:hover { background: rgba(244, 63, 94, 0.3); color: #fff; }
-    .app-container { max-width: 1480px; margin: 0 auto; padding: 24px 20px 60px; }
-    .app-header {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-card);
-      border-radius: var(--radius-xl);
-      padding: 16px 24px;
+    .sidebar-header {
+      padding: 22px 20px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow-card);
+      border-bottom: 1px solid var(--border-color);
     }
-    .header-right { display: flex; align-items: center; gap: 14px; }
-    .user-avatar {
-      font-size: 2.2rem;
-      background: rgba(56, 189, 248, 0.1);
-      border: 1.5px solid var(--border-glow);
-      width: 54px;
-      height: 54px;
+    .sidebar-brand { display: flex; align-items: center; gap: 12px; }
+    .brand-icon-box {
+      width: 44px;
+      height: 44px;
+      background: rgba(0, 162, 232, 0.12);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-md);
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 50%;
+      font-size: 1.5rem;
     }
-    .user-name { font-size: 1.25rem; font-weight: 800; color: #fff; }
-    .user-subtitle { font-size: 0.82rem; color: var(--text-secondary); }
-    .header-center { display: flex; gap: 12px; flex-wrap: wrap; }
-    .kpi-pill {
-      padding: 6px 14px;
+    .brand-text h1 { font-size: 1.15rem; font-weight: 900; color: #fff; line-height: 1.2; }
+    .brand-text span { font-size: 0.75rem; color: var(--accent-cyan); font-weight: 700; }
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      background: transparent;
+      border: none;
+      font-family: var(--font-ar);
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: right;
+      width: 100%;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .nav-item:hover { background: rgba(255, 255, 255, 0.04); color: #fff; }
+    .nav-item .nav-icon { font-size: 1.25rem; width: 24px; text-align: center; }
+    .nav-item.active {
+      background: var(--accent-cyan);
+      color: #fff;
+      font-weight: 800;
+      box-shadow: var(--shadow-active);
+    }
+    .sidebar-footer { padding: 16px; border-top: 1px solid var(--border-color); }
+    .sidebar-bot-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: rgba(0, 162, 232, 0.1);
+      border: 1px solid rgba(0, 162, 232, 0.3);
+      color: var(--accent-cyan);
+      padding: 10px;
       border-radius: var(--radius-md);
       font-size: 0.82rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .target-pill {
-      background: rgba(52, 211, 153, 0.12);
-      border: 1px solid rgba(52, 211, 153, 0.3);
-      color: var(--accent-emerald);
-    }
-    .semester-pill {
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      color: var(--accent-cyan);
-    }
-    .pill-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--accent-emerald);
-      box-shadow: 0 0 8px var(--accent-emerald);
-    }
-    .header-left { display: flex; align-items: center; gap: 12px; }
-    .cairo-clock {
-      font-family: var(--font-en);
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: #cbd5e1;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid var(--border-card);
-      padding: 6px 14px;
-      border-radius: var(--radius-sm);
-    }
-    .bot-badge {
-      background: rgba(56, 189, 248, 0.15);
-      border: 1px solid var(--accent-cyan);
-      color: var(--accent-cyan);
-      padding: 6px 14px;
-      border-radius: var(--radius-sm);
+      font-weight: 800;
       text-decoration: none;
-      font-size: 0.82rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
       transition: all 0.2s ease;
     }
-    .bot-badge:hover { background: var(--accent-cyan); color: #000; }
-    .bot-status-dot { width: 8px; height: 8px; background: #38bdf8; border-radius: 50%; box-shadow: 0 0 8px #38bdf8; }
-    .prayer-times-banner {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-card);
-      border-radius: var(--radius-lg);
-      padding: 14px 20px;
-      margin-bottom: 20px;
+    .sidebar-bot-btn:hover { background: var(--accent-cyan); color: #fff; }
+
+    /* Main Wrapper */
+    .main-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--bg-app); }
+    .topbar {
+      background: var(--bg-topbar);
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 28px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      overflow-x: auto;
-      gap: 12px;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 999;
     }
-    .prayer-pill-item {
-      background: rgba(30, 41, 59, 0.5);
-      border: 1px solid var(--border-card);
-      padding: 6px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 0.85rem;
-      white-space: nowrap;
-    }
-    .prayer-pill-item b { color: #38bdf8; font-family: var(--font-en); }
-    .main-nav {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 6px;
-      margin-bottom: 24px;
-      scrollbar-width: thin;
-    }
-    .nav-tab {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-card);
-      color: var(--text-secondary);
-      padding: 10px 18px;
-      border-radius: var(--radius-md);
-      cursor: pointer;
+    .topbar-right { display: flex; align-items: center; gap: 14px; }
+    .page-title { font-size: 1.3rem; font-weight: 900; color: #fff; }
+    .topbar-center { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .prayer-capsule-bar {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 0.9rem;
+      background: var(--bg-card-inner);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px;
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+    }
+    .prayer-capsule-item { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; }
+    .prayer-capsule-item b { color: var(--accent-cyan); font-family: var(--font-en); }
+    .badge-live-dot {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      font-size: 0.8rem;
+      font-weight: 800;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--accent-emerald);
+    }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-emerald); box-shadow: 0 0 8px var(--accent-emerald); }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .cairo-clock-badge {
+      font-family: var(--font-en);
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #cbd5e1;
+      background: var(--bg-card-inner);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px;
+      border-radius: var(--radius-md);
+    }
+    .user-profile-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-card-inner);
+      border: 1px solid var(--border-color);
+      padding: 5px 12px;
+      border-radius: var(--radius-md);
+    }
+    .user-mini-avatar { font-size: 1.3rem; }
+    .user-mini-name { font-size: 0.85rem; font-weight: 800; color: #fff; }
+    .btn-lock-top {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 0.82rem;
       font-weight: 700;
-      font-family: var(--font-ar);
-      white-space: nowrap;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
-    .nav-tab:hover {
-      background: rgba(56, 189, 248, 0.08);
-      color: var(--text-primary);
-      border-color: var(--border-glow);
-    }
-    .nav-tab.active {
-      background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(56, 189, 248, 0.2));
-      border-color: var(--accent-cyan);
-      color: #fff;
-      box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
-    }
-    .stats-overview {
+    .btn-lock-top:hover { background: rgba(239, 68, 68, 0.3); color: #fff; }
+
+    /* KPI Metrics Cards */
+    .main-body { padding: 24px 28px 60px; flex: 1; }
+    .kpi-metrics-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 16px;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
-    .stat-card {
+    .kpi-card {
       background: var(--bg-card);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid var(--border-card);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       padding: 20px;
       display: flex;
       align-items: center;
-      gap: 16px;
+      justify-content: space-between;
       box-shadow: var(--shadow-card);
       transition: all 0.2s ease;
     }
-    .stat-card:hover { transform: translateY(-3px); border-color: var(--border-glow); }
-    .stat-icon { font-size: 2.4rem; }
-    .stat-label { font-size: 0.82rem; color: var(--text-secondary); font-weight: 600; }
-    .stat-value { font-size: 1.6rem; font-weight: 900; color: #fff; }
-    .stat-unit { font-size: 0.85rem; color: var(--accent-cyan); font-weight: 600; }
-    .stat-meta { font-size: 0.78rem; color: var(--text-muted); }
-    .tab-pane { display: none; animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    .kpi-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-glow);
+      transform: translateY(-2px);
+    }
+    .kpi-body { display: flex; flex-direction: column; }
+    .kpi-label { font-size: 0.82rem; color: var(--text-secondary); font-weight: 700; margin-bottom: 4px; }
+    .kpi-value { font-size: 1.6rem; font-weight: 900; color: #fff; line-height: 1.2; }
+    .kpi-unit { font-size: 0.85rem; color: var(--accent-cyan); font-weight: 700; }
+    .kpi-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+    .kpi-icon-box {
+      width: 48px;
+      height: 48px;
+      background: rgba(0, 162, 232, 0.1);
+      border: 1px solid rgba(0, 162, 232, 0.2);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+    }
+
+    /* Tab Panes */
+    .tab-pane { display: none; animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
     .tab-pane.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .section-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
-    .section-title-row h2 { font-size: 1.3rem; font-weight: 800; color: #fff; }
-    .badge-total-marks {
-      background: rgba(251, 191, 36, 0.12);
-      border: 1px solid rgba(251, 191, 36, 0.35);
-      color: var(--accent-gold);
-      padding: 6px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 0.82rem;
-      font-weight: 700;
-    }
-    .badge-accent {
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.35);
-      color: var(--accent-cyan);
-      padding: 6px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 0.82rem;
-      font-weight: 700;
-    }
-    .courses-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; margin-bottom: 24px; }
-    .course-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-card);
-      border-radius: var(--radius-lg);
-      padding: 20px;
-      box-shadow: var(--shadow-card);
-      transition: all 0.2s ease;
-    }
-    .course-card:hover { border-color: var(--accent-cyan); box-shadow: var(--shadow-glow); }
+    .section-title-row h2 { font-size: 1.25rem; font-weight: 900; color: #fff; }
+    .badge-gold { background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: var(--accent-gold); padding: 6px 14px; border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 800; }
+    .badge-cyan { background: rgba(0, 162, 232, 0.12); border: 1px solid rgba(0, 162, 232, 0.35); color: var(--accent-cyan); padding: 6px 14px; border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 800; }
+    .courses-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .course-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-card); transition: all 0.2s ease; }
+    .course-card:hover { border-color: var(--accent-cyan); box-shadow: 0 0 20px rgba(0, 162, 232, 0.15); }
     .course-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .course-code {
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--accent-cyan);
-      padding: 4px 10px;
-      border-radius: var(--radius-sm);
-      font-weight: 800;
-      font-size: 0.85rem;
-    }
+    .course-code { background: rgba(0, 162, 232, 0.15); color: var(--accent-cyan); padding: 4px 10px; border-radius: var(--radius-sm); font-weight: 800; font-size: 0.85rem; }
     .course-credits { font-size: 0.8rem; color: var(--text-secondary); }
     .course-title { font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 12px; }
     .marks-breakdown-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-bottom: 14px; }
-    .marks-breakdown-table th { color: var(--text-secondary); text-align: center; padding: 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
-    .marks-breakdown-table td { text-align: center; padding: 6px 4px; font-weight: 700; color: #e2e8f0; }
-    .course-total-badge {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid var(--border-card);
-      padding: 8px 12px;
-      border-radius: var(--radius-sm);
-    }
+    .marks-breakdown-table th { color: var(--text-secondary); text-align: center; padding: 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+    .marks-breakdown-table td { text-align: center; padding: 8px 6px; font-weight: 800; color: #e2e8f0; }
+    .course-total-badge { display: flex; justify-content: space-between; align-items: center; background: var(--bg-card-inner); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: var(--radius-sm); }
     .course-total-label { font-size: 0.82rem; color: var(--text-secondary); }
-    .course-total-val { font-size: 1rem; font-weight: 800; color: var(--accent-emerald); }
+    .course-total-val { font-size: 1rem; font-weight: 900; color: var(--accent-emerald); }
     .content-split-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 20px; }
     .full-width-card { width: 100%; }
-    .split-card { background: var(--bg-surface); border: 1px solid var(--border-card); border-radius: var(--radius-lg); padding: 22px; box-shadow: var(--shadow-card); }
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px; }
+    .split-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 22px; box-shadow: var(--shadow-card); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 12px; }
     .card-header h3 { font-size: 1.05rem; font-weight: 800; color: #fff; }
-    .card-badge { background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: var(--accent-cyan); font-size: 0.78rem; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm); }
-    .schedule-list, .attendance-list, .sessions-list, .cases-list, .tasks-list, .appointments-list, .quran-list, .fasting-list { display: flex; flex-direction: column; gap: 12px; }
-    .session-item, .task-item, .case-item, .appt-item, .quran-item, .chat-item { background: rgba(30, 41, 59, 0.4); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px; transition: all 0.2s ease; }
-    .session-item:hover, .task-item:hover, .case-item:hover, .appt-item:hover { background: rgba(30, 41, 59, 0.7); border-color: var(--border-glow); }
+    .card-badge { background: rgba(0, 162, 232, 0.12); border: 1px solid rgba(0, 162, 232, 0.3); color: var(--accent-cyan); font-size: 0.78rem; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm); }
+    .schedule-list, .attendance-list, .sessions-list, .cases-list, .tasks-list, .appointments-list, .quran-list, .fasting-list { display: flex; flex-direction: column; gap: 10px; }
+    .session-item, .task-item, .case-item, .appt-item, .quran-item, .chat-item, .skill-card { background: var(--bg-card-inner); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; transition: all 0.2s ease; }
+    .session-item:hover, .task-item:hover, .case-item:hover, .appt-item:hover, .skill-card:hover { background: rgba(255, 255, 255, 0.03); border-color: var(--border-glow); }
     .item-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
     .item-title { font-weight: 800; font-size: 0.95rem; color: #fff; }
     .item-date { font-size: 0.78rem; color: var(--text-muted); }
     .item-desc { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; }
-    .task-status-badge { font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
-    .status-done { background: rgba(52, 211, 153, 0.15); color: var(--accent-emerald); border: 1px solid rgba(52, 211, 153, 0.3); }
-    .status-pending { background: rgba(251, 191, 36, 0.15); color: var(--accent-gold); border: 1px solid rgba(251, 191, 36, 0.3); }
-    .thoughts-grid, .skills-grid, .wallets-grid, .gym-stats-grid, .content-pipeline-grid, .work-projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
-    .thought-card { background: var(--bg-surface); border: 1px solid var(--border-card); border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-card); }
-    .thought-content { font-family: 'Amiri', serif; font-size: 1.15rem; color: #f1f5f9; line-height: 1.7; margin-bottom: 14px; }
-    .thought-footer { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 10px; }
-    .thought-cat { color: var(--accent-cyan); font-weight: 700; }
-    .skill-card { background: var(--bg-surface); border: 1px solid var(--border-card); border-radius: var(--radius-lg); padding: 18px; }
+    .task-status-badge { font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; }
+    .status-done { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-pending { background: rgba(245, 158, 11, 0.15); color: var(--accent-gold); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .skills-grid, .thoughts-grid, .wallets-grid, .gym-stats-grid, .content-pipeline-grid, .work-projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
     .skill-title { font-weight: 800; color: #fff; font-size: 1rem; margin-bottom: 6px; }
     .skill-meta { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px; }
-    .skill-takeaways { font-size: 0.85rem; color: #cbd5e1; background: rgba(15, 23, 42, 0.6); border-radius: var(--radius-sm); padding: 10px; }
-    .wallet-card { background: var(--bg-surface); border: 1px solid var(--border-card); border-radius: var(--radius-lg); padding: 20px; text-align: center; box-shadow: var(--shadow-card); }
-    .wallet-icon { font-size: 2rem; margin-bottom: 6px; }
-    .wallet-name { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px; }
-    .wallet-amount { font-size: 1.5rem; font-weight: 900; color: var(--accent-emerald); }
+    .skill-takeaways { font-size: 0.85rem; color: #cbd5e1; background: rgba(0, 0, 0, 0.3); border-radius: var(--radius-sm); padding: 10px; }
+    .thought-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-card); }
+    .thought-content { font-family: 'Amiri', serif; font-size: 1.15rem; color: #f1f5f9; line-height: 1.7; margin-bottom: 14px; }
+    .thought-footer { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 10px; }
+    .thought-cat { color: var(--accent-cyan); font-weight: 700; }
+    .wallet-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 22px; text-align: center; box-shadow: var(--shadow-card); }
+    .wallet-icon { font-size: 2.2rem; margin-bottom: 6px; }
+    .wallet-name { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px; font-weight: 700; }
+    .wallet-amount { font-size: 1.6rem; font-weight: 900; color: var(--accent-emerald); }
     .transactions-table-container { overflow-x: auto; }
     .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    .data-table th { background: rgba(30, 41, 59, 0.5); color: var(--text-secondary); padding: 10px 14px; text-align: right; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+    .data-table th { background: var(--bg-card-inner); color: var(--text-secondary); padding: 12px 14px; text-align: right; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
     .data-table td { padding: 12px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
-    .badge-expense { background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); padding: 3px 8px; border-radius: 4px; font-weight: 700; }
-    .badge-income { background: rgba(52, 211, 153, 0.15); color: var(--accent-emerald); padding: 3px 8px; border-radius: 4px; font-weight: 700; }
+    .badge-expense { background: rgba(239, 68, 68, 0.15); color: var(--accent-rose); padding: 3px 8px; border-radius: 4px; font-weight: 700; }
+    .badge-income { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); padding: 3px 8px; border-radius: 4px; font-weight: 700; }
     .prayers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 16px; }
-    .prayer-card { background: var(--bg-surface); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px; text-align: center; }
+    .prayer-card { background: var(--bg-card-inner); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; text-align: center; }
     .prayer-time { font-weight: 800; font-size: 0.95rem; color: #fff; margin-bottom: 4px; }
     .prayer-status { font-size: 0.8rem; color: var(--text-secondary); }
     .habits-secondary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-    .habit-metric-box { background: rgba(30, 41, 59, 0.35); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px; }
+    .habit-metric-box { background: var(--bg-card-inner); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; }
     .habit-metric-title { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px; }
     .habit-metric-val { font-size: 1.1rem; font-weight: 800; color: var(--accent-cyan); }
     .empty-state { color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 24px 12px; }
-    .app-footer { margin-top: 40px; text-align: center; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 20px; }
+    .app-footer { margin-top: 40px; text-align: center; font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 20px; }
   </style>
 </head>
 <body>
@@ -437,453 +424,471 @@
     </div>
   </div>
 
-  <div class="app-container" id="mainAppContent" style="display: none;">
+  <!-- 🏢 Future Air Style Master Layout -->
+  <div class="app-layout" id="mainAppContent" style="display: none;">
     
-    <!-- Top Header -->
-    <header class="app-header">
-      <div class="header-right">
-        <div class="user-avatar">🩺</div>
-        <div class="user-meta">
-          <div class="user-name">د. عبدالله</div>
-          <div class="user-subtitle">طالب طب بشري | الفرقة الرابعة (الفصل الدراسي السابع)</div>
+    <!-- 📌 1. Right Sidebar (Future Air Style) -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <div class="brand-icon-box">🩺</div>
+          <div class="brand-text">
+            <h1>منظومة د. عبدالله</h1>
+            <span>Abdullah OS • الفرقة 4</span>
+          </div>
         </div>
       </div>
 
-      <div class="header-center">
-        <div class="kpi-pill target-pill">
-          <span class="pill-dot"></span>
-          <span>الهدف الأكاديمي: امتياز (450/450)</span>
-        </div>
-        <div class="kpi-pill semester-pill">
-          <span>الترم السابع: 20 ساعة معتمدة</span>
-        </div>
-      </div>
-
-      <div class="header-left">
-        <div class="cairo-clock" id="cairoClock">--:--:--</div>
-        <a href="https://t.me/abdallahprobot" target="_blank" class="bot-badge">
-          <span class="bot-status-dot"></span>
-          <span>البوت: @abdallahprobot</span>
-        </a>
-        <button class="btn-lock-system" id="btnLockSystem" title="قفل الشاشة">
-          🔒 قفل
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="medical" data-title="لوحة المؤشرات | الطب والسكاشن">
+          <span class="nav-icon">🩺</span>
+          <span>الطب والسكاشن</span>
         </button>
+
+        <button class="nav-item" data-tab="english" data-title="فلاش كاردز الإنجليزية | Spaced Flashcards">
+          <span class="nav-icon">🗣️</span>
+          <span>فلاش كاردز الإنجليزية</span>
+        </button>
+
+        <button class="nav-item" data-tab="quran" data-title="المصحف وتثبيت الحفظ | Quran OS">
+          <span class="nav-icon">📖</span>
+          <span>المصحف والقرآن</span>
+        </button>
+
+        <button class="nav-item" data-tab="fasting" data-title="الصيام والسنن والأذكار | Worship Logs">
+          <span class="nav-icon">🌙</span>
+          <span>الصيام والسنن والأذكار</span>
+        </button>
+
+        <button class="nav-item" data-tab="wellness" data-title="الفضفضة والاتزان النفسي | Mental Wellness">
+          <span class="nav-icon">🧠</span>
+          <span>الفضفضة والاتزان</span>
+        </button>
+
+        <button class="nav-item" data-tab="gym" data-title="الجيم واللياقة البدنية | Body Engineering">
+          <span class="nav-icon">🏋️‍♂️</span>
+          <span>الجيم واللياقة</span>
+        </button>
+
+        <button class="nav-item" data-tab="content" data-title="صناعة المحتوى والميديا | Content Pipeline">
+          <span class="nav-icon">🎬</span>
+          <span>صناعة المحتوى</span>
+        </button>
+
+        <button class="nav-item" data-tab="work" data-title="الشغل وإدارة المشاريع | Business Hub">
+          <span class="nav-icon">💼</span>
+          <span>الشغل والبيزنس</span>
+        </button>
+
+        <button class="nav-item" data-tab="tasks" data-title="المهام اليومية والمواعيد | Focus & Tasks">
+          <span class="nav-icon">🎯</span>
+          <span>المهام والمواعيد</span>
+        </button>
+
+        <button class="nav-item" data-tab="thoughts" data-title="بنك الخواطر والانضباط | Wisdom Vault">
+          <span class="nav-icon">💡</span>
+          <span>بنك الخواطر</span>
+        </button>
+
+        <button class="nav-item" data-tab="finance" data-title="الخزنة والمصروفات المالية | Personal Finance">
+          <span class="nav-icon">💵</span>
+          <span>الخزنة والمالية</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="https://t.me/abdallahprobot" target="_blank" class="sidebar-bot-btn">
+          <span>⚡ تجربة البوت: @abdallahprobot</span>
+        </a>
       </div>
-    </header>
+    </aside>
 
-    <!-- Cairo Live Prayer Times Banner -->
-    <section class="prayer-times-banner" id="prayerTimesBanner">
-      <div style="font-weight: 800; color: #38bdf8; font-size: 0.95rem; white-space: nowrap;">🕌 مواقيت الصلاة الحية بالقاهرة:</div>
-      <div class="prayer-pill-item"><span style="color: #94a3b8;">الفجر:</span> <b id="ptFajr">--:--</b></div>
-      <div class="prayer-pill-item"><span style="color: #94a3b8;">الشروق:</span> <b id="ptSunrise">--:--</b></div>
-      <div class="prayer-pill-item"><span style="color: #94a3b8;">الظهر:</span> <b id="ptDhuhr">--:--</b></div>
-      <div class="prayer-pill-item"><span style="color: #94a3b8;">العصر:</span> <b id="ptAsr">--:--</b></div>
-      <div class="prayer-pill-item"><span style="color: #94a3b8;">المغرب:</span> <b id="ptMaghrib">--:--</b></div>
-      <div class="prayer-pill-item"><span style="color: #94a3b8;">العشاء:</span> <b id="ptIsha">--:--</b></div>
-    </section>
-
-    <!-- Main Navigation Bar -->
-    <nav class="main-nav">
-      <button class="nav-tab active" data-tab="medical">
-        <span class="tab-icon">🩺</span>
-        <span>الطب والسكاشن</span>
-      </button>
-      <button class="nav-tab" data-tab="quran">
-        <span class="tab-icon">📖</span>
-        <span>المصحف والقرآن</span>
-      </button>
-      <button class="nav-tab" data-tab="fasting">
-        <span class="tab-icon">🌙</span>
-        <span>الصيام والسنن</span>
-      </button>
-      <button class="nav-tab" data-tab="english">
-        <span class="tab-icon">🗣️</span>
-        <span>فلاش كاردز الإنجليزية</span>
-      </button>
-      <button class="nav-tab" data-tab="wellness">
-        <span class="tab-icon">🧠</span>
-        <span>الفضفضة والاتزان</span>
-      </button>
-      <button class="nav-tab" data-tab="gym">
-        <span class="tab-icon">🏋️‍♂️</span>
-        <span>الجيم واللياقة</span>
-      </button>
-      <button class="nav-tab" data-tab="content">
-        <span class="tab-icon">🎬</span>
-        <span>صناعة المحتوى</span>
-      </button>
-      <button class="nav-tab" data-tab="work">
-        <span class="tab-icon">💼</span>
-        <span>الشغل والبيزنس</span>
-      </button>
-      <button class="nav-tab" data-tab="tasks">
-        <span class="tab-icon">🎯</span>
-        <span>المهام والمواعيد</span>
-      </button>
-      <button class="nav-tab" data-tab="thoughts">
-        <span class="tab-icon">💡</span>
-        <span>بنك الخواطر</span>
-      </button>
-      <button class="nav-tab" data-tab="finance">
-        <span class="tab-icon">💵</span>
-        <span>الخزنة والمالية</span>
-      </button>
-    </nav>
-
-    <!-- Hero Stats Row -->
-    <section class="stats-overview">
-      <div class="stat-card stat-study">
-        <div class="stat-icon">📚</div>
-        <div class="stat-body">
-          <div class="stat-label">ساعات المذاكرة والتحصيل</div>
-          <div class="stat-value" id="totalStudyHours">0 <span class="stat-unit">ساعة</span></div>
-          <div class="stat-meta" id="totalPagesCovered">0 صفحة منجزة</div>
+    <!-- 🖥️ 2. Main Wrapper -->
+    <div class="main-wrapper">
+      
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-right">
+          <h2 class="page-title" id="currentSectionTitle">لوحة المؤشرات | الطب والسكاشن</h2>
         </div>
-      </div>
 
-      <div class="stat-card stat-quran">
-        <div class="stat-icon">📖</div>
-        <div class="stat-body">
-          <div class="stat-label">جلسات القرآن وتثبيت الحفظ</div>
-          <div class="stat-value" id="totalQuranSessions">0 <span class="stat-unit">جلسة</span></div>
-          <div class="stat-meta" id="totalQuranPages">0 صفحة تمت مراجعتها</div>
-        </div>
-      </div>
+        <div class="topbar-center">
+          <div class="prayer-capsule-bar">
+            <span class="prayer-capsule-item">الفجر: <b id="ptFajr">--:--</b></span>
+            <span class="prayer-capsule-item">الشروق: <b id="ptSunrise">--:--</b></span>
+            <span class="prayer-capsule-item">الظهر: <b id="ptDhuhr">--:--</b></span>
+            <span class="prayer-capsule-item">العصر: <b id="ptAsr">--:--</b></span>
+            <span class="prayer-capsule-item">المغرب: <b id="ptMaghrib">--:--</b></span>
+            <span class="prayer-capsule-item">العشاء: <b id="ptIsha">--:--</b></span>
+          </div>
 
-      <div class="stat-card stat-prayers">
-        <div class="stat-icon">🗣️</div>
-        <div class="stat-body">
-          <div class="stat-label">فلاش كاردز الإنجليزية (Spaced)</div>
-          <div class="stat-value" id="totalEngCards">0 <span class="stat-unit">كلمات</span></div>
-          <div class="stat-meta" id="masteredEngCards">0 كلمات متقنة بالكامل</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-english">
-        <div class="stat-icon">🩺</div>
-        <div class="stat-body">
-          <div class="stat-label">كويزات الطب بالتكرار المتباعد</div>
-          <div class="stat-value" id="totalMedQuizzes">0 <span class="stat-unit">أسئلة</span></div>
-          <div class="stat-meta" id="masteredMedQuizzes">تثبيت موديولات الترم السابع</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Tab Contents -->
-    <main class="tab-container">
-
-      <!-- 🩺 TAB 1: Medical & Semester 7 -->
-      <section class="tab-pane active" id="tab-medical">
-        <div class="section-title-row">
-          <h2>🩺 موديولات الفرقة الرابعة — الفصل الدراسي السابع (450 درجة)</h2>
-          <div class="actions-group">
-            <span class="badge-total-marks">إجمالي المجموع: 450 درجة | 20 Credit Hours</span>
+          <div class="badge-live-dot">
+            <span class="live-dot"></span>
+            <span>الهدف: امتياز (450/450)</span>
           </div>
         </div>
 
-        <div class="courses-grid" id="semester7Courses"></div>
-
-        <!-- Medical Spaced Quizzes Vault -->
-        <div class="split-card full-width-card" style="margin-bottom: 24px;">
-          <div class="card-header">
-            <h3>🩺 بنك كويزات الموديولات بالتكرار المتباعد (Medical Spaced Retention Engine)</h3>
-            <span class="card-badge" id="medQuizzesBadge">0 أسئلة مبرمجة</span>
+        <div class="topbar-left">
+          <div class="cairo-clock-badge" id="cairoClock">--:--:--</div>
+          <div class="user-profile-btn">
+            <span class="user-mini-avatar">🩺</span>
+            <span class="user-mini-name">د. عبدالله</span>
           </div>
-          <div class="skills-grid" id="medSpacedList">
-            <div class="empty-state">أرسل أي سؤال طبي مع إجابته للبوت وسيقوم بجدولته لك بالتكرار المتباعد!</div>
-          </div>
+          <button class="btn-lock-top" id="btnLockSystem" title="قفل الشاشة">
+            🔒 قفل
+          </button>
         </div>
+      </header>
 
-        <!-- Weekly Schedule & Attendance -->
-        <div class="content-split-grid" style="margin-bottom: 24px;">
-          <div class="split-card">
+      <!-- Main Body Container -->
+      <main class="main-body">
+        
+        <!-- Future Air Style KPI Metrics Grid -->
+        <section class="kpi-metrics-grid">
+          <div class="kpi-card">
+            <div class="kpi-body">
+              <span class="kpi-label">ساعات المذاكرة والتحصيل</span>
+              <div class="kpi-value" id="totalStudyHours">0.0 <span class="kpi-unit">ساعة</span></div>
+              <span class="kpi-meta" id="totalPagesCovered">0 صفحة منجزة</span>
+            </div>
+            <div class="kpi-icon-box">📚</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-body">
+              <span class="kpi-label">جلسات القرآن وتثبيت الحفظ</span>
+              <div class="kpi-value" id="totalQuranSessions">0 <span class="kpi-unit">جلسة</span></div>
+              <span class="kpi-meta" id="totalQuranPages">0 صفحة مراجعة</span>
+            </div>
+            <div class="kpi-icon-box">📖</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-body">
+              <span class="kpi-label">فلاش كاردز الإنجليزية (Spaced)</span>
+              <div class="kpi-value" id="totalEngCards">0 <span class="kpi-unit">كلمات</span></div>
+              <span class="kpi-meta" id="masteredEngCards">0 متقنة بالكامل</span>
+            </div>
+            <div class="kpi-icon-box">🗣️</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-body">
+              <span class="kpi-label">كويزات الطب بالتكرار المتباعد</span>
+              <div class="kpi-value" id="totalMedQuizzes">0 <span class="kpi-unit">أسئلة</span></div>
+              <span class="kpi-meta" id="masteredMedQuizzes">تثبيت موديولات الترم السابع</span>
+            </div>
+            <div class="kpi-icon-box">🩺</div>
+          </div>
+        </section>
+
+        <!-- 🩺 TAB 1: Medical & Semester 7 -->
+        <section class="tab-pane active" id="tab-medical">
+          <div class="section-title-row">
+            <h2>🩺 موديولات الفرقة الرابعة — الفصل الدراسي السابع (450 درجة)</h2>
+            <div class="actions-group">
+              <span class="badge-gold">إجمالي المجموع: 450 درجة | 20 Credit Hours</span>
+            </div>
+          </div>
+
+          <div class="courses-grid" id="semester7Courses"></div>
+
+          <!-- Medical Spaced Quizzes Vault -->
+          <div class="split-card full-width-card" style="margin-bottom: 24px;">
             <div class="card-header">
-              <h3>📅 جدول السكاشن والمحاضرات الأسبوعي والتنبيهات</h3>
+              <h3>🩺 بنك كويزات الموديولات بالتكرار المتباعد (Medical Spaced Retention Engine)</h3>
+              <span class="card-badge" id="medQuizzesBadge">0 أسئلة مبرمجة</span>
             </div>
-            <div class="schedule-list" id="academicScheduleList"></div>
-          </div>
-
-          <div class="split-card">
-            <div class="card-header">
-              <h3>📝 سجل الحضور والغياب والخطط البديلة</h3>
-              <span class="card-badge" id="attendanceRate">حضور: 100%</span>
-            </div>
-            <div class="attendance-list" id="attendanceLogsList">
-              <div class="empty-state">لا توجد سجلات غياب. سجل حضورك أو غيابك عبر الفويس مباشرة!</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Clinical Cases & Study Sessions -->
-        <div class="content-split-grid">
-          <div class="split-card">
-            <div class="card-header">
-              <h3>🩺 الحالات الإكلينيكية وراوندات المستشفى</h3>
-              <span class="card-badge" id="casesCount">0 حالات</span>
-            </div>
-            <div class="cases-list" id="clinicalCasesList">
-              <div class="empty-state">لا توجد حالات سريرية مسجلة بعد.</div>
+            <div class="skills-grid" id="medSpacedList">
+              <div class="empty-state">أرسل أي سؤال طبي مع إجابته للبوت وسيقوم بجدولته لك بالتكرار المتباعد!</div>
             </div>
           </div>
 
-          <div class="split-card">
-            <div class="card-header">
-              <h3>📝 سجل جلسات المذاكرة والخطط المؤجلة</h3>
-              <span class="card-badge" id="sessionsCount">0 جلسات</span>
-            </div>
-            <div class="sessions-list" id="studySessionsList">
-              <div class="empty-state">لا توجد جلسات مذاكرة مسجلة اليوم.</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 🗣️ TAB 2: English Spaced Flashcards Hub -->
-      <section class="tab-pane" id="tab-english">
-        <div class="section-title-row">
-          <h2>🗣️ بنك الكلمات والجمل الإنجليزية بالتكرار المتباعد (Spaced Flashcards)</h2>
-          <div class="actions-group">
-            <span class="badge-accent">Scientific Spaced Repetition (Anki / SM-2)</span>
-          </div>
-        </div>
-
-        <div class="skills-grid" id="englishFlashcardsGrid">
-          <div class="empty-state full-width-card">
-            ✨ أرسل أي كلمة أو جملة إنجليزية للبوت (مثال: <i>"احفظ كلمة Dyspnea on exertion"</i> أو <i>"احفظ جملة Out of the blue"</i>)<br>
-            سيترجمها فوراً للعامية المصرية ويجدولها على فترات علمية (12h ➔ 1d ➔ 3d ➔ 7d ➔ 14d ➔ 30d) حتى الحفظ المتقن 100%!
-          </div>
-        </div>
-      </section>
-
-      <!-- 📖 TAB 3: Quran Tracker -->
-      <section class="tab-pane" id="tab-quran">
-        <div class="section-title-row">
-          <h2>📖 سجل وتثبيت القرآن الكريم (Spaced Repetition Engine)</h2>
-          <div class="actions-group">
-            <span class="badge-accent">خطة الختمة وتثبيت المتشابهات</span>
-          </div>
-        </div>
-
-        <div class="quran-dashboard-grid">
-          <div class="split-card">
-            <div class="card-header">
-              <h3>🕌 جلسات الحفظ والمراجعة الأخيرة</h3>
-            </div>
-            <div class="quran-list" id="quranLogsList">
-              <div class="empty-state">لم يتم تسجيل ورد قرآني بعد.</div>
-            </div>
-          </div>
-
-          <div class="split-card">
-            <div class="card-header">
-              <h3>✨ إرشادات وتوجيهات الحفظ والتثبيت المتقن</h3>
-            </div>
-            <div class="quran-guide-card">
-              <div class="guide-item">
-                <span class="guide-num">1</span>
-                <div>
-                  <strong>الورد اليومي الثابت:</strong>
-                  <p>حفظ ربعين جديدين + مراجعة جزء كامل يومياً لتثبيت الختمة كل شهر.</p>
-                </div>
+          <!-- Weekly Schedule & Attendance -->
+          <div class="content-split-grid" style="margin-bottom: 24px;">
+            <div class="split-card">
+              <div class="card-header">
+                <h3>📅 جدول السكاشن والمحاضرات الأسبوعي والتنبيهات</h3>
               </div>
-              <div class="guide-item">
-                <span class="guide-num">2</span>
-                <div>
-                  <strong>نظام التثبيت الذكي:</strong>
-                  <p>أي سورة تسجلها بـ "يحتاج تثبيت عاجل"، يقوم النظام بوضعها في أولوية المراجعة القصيرة.</p>
-                </div>
+              <div class="schedule-list" id="academicScheduleList"></div>
+            </div>
+
+            <div class="split-card">
+              <div class="card-header">
+                <h3>📝 سجل الحضور والغياب والخطط البديلة</h3>
+                <span class="card-badge" id="attendanceRate">حضور: 100%</span>
+              </div>
+              <div class="attendance-list" id="attendanceLogsList">
+                <div class="empty-state">لا توجد سجلات غياب. سجل حضورك أو غيابك عبر الفويس مباشرة!</div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      <!-- 🌙 TAB 4: Fasting, Sunnah & Adhkar -->
-      <section class="tab-pane" id="tab-fasting">
-        <div class="section-title-row">
-          <h2>🌙 سجل الصيام والسنن الرواتب والأذكار</h2>
-          <div class="actions-group">
-            <span class="badge-accent" id="fastingTodayDate">اليوم</span>
+          <!-- Clinical Cases & Study Sessions -->
+          <div class="content-split-grid">
+            <div class="split-card">
+              <div class="card-header">
+                <h3>🩺 الحالات الإكلينيكية وراوندات المستشفى</h3>
+                <span class="card-badge" id="casesCount">0 حالات</span>
+              </div>
+              <div class="cases-list" id="clinicalCasesList">
+                <div class="empty-state">لا توجد حالات سريرية مسجلة بعد.</div>
+              </div>
+            </div>
+
+            <div class="split-card">
+              <div class="card-header">
+                <h3>📝 سجل جلسات المذاكرة والخطط المؤجلة</h3>
+                <span class="card-badge" id="sessionsCount">0 جلسات</span>
+              </div>
+              <div class="sessions-list" id="studySessionsList">
+                <div class="empty-state">لا توجد جلسات مذاكرة مسجلة اليوم.</div>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
 
-        <div class="prayers-container" style="margin-bottom: 24px;">
-          <div class="prayers-grid" id="prayersGrid">
-            <div class="prayer-card"><div class="prayer-time">الفجر 🌅</div><div class="prayer-status" id="fajrStatus">لم يُسجل ⚪</div></div>
-            <div class="prayer-card"><div class="prayer-time">الظهر ☀️</div><div class="prayer-status" id="dhuhrStatus">لم يُسجل ⚪</div></div>
-            <div class="prayer-card"><div class="prayer-time">العصر 🌤️</div><div class="prayer-status" id="asrStatus">لم يُسجل ⚪</div></div>
-            <div class="prayer-card"><div class="prayer-time">المغرب 🌇</div><div class="prayer-status" id="maghribStatus">لم يُسجل ⚪</div></div>
-            <div class="prayer-card"><div class="prayer-time">العشاء 🌌</div><div class="prayer-status" id="ishaStatus">لم يُسجل ⚪</div></div>
+        <!-- 🗣️ TAB 2: English Spaced Flashcards Hub -->
+        <section class="tab-pane" id="tab-english">
+          <div class="section-title-row">
+            <h2>🗣️ بنك الكلمات والجمل الإنجليزية بالتكرار المتباعد (Spaced Flashcards)</h2>
+            <div class="actions-group">
+              <span class="badge-cyan">Scientific Spaced Repetition (Anki / SM-2)</span>
+            </div>
           </div>
 
-          <div class="habits-secondary-grid">
-            <div class="habit-metric-box"><div class="habit-metric-title">🕌 السنن الرواتب</div><div class="habit-metric-val" id="sunanBoxVal">0 / 12 ركعة</div></div>
-            <div class="habit-metric-box"><div class="habit-metric-title">📿 أذكار الصباح والمساء</div><div class="habit-metric-val" id="adhkarBoxVal">صباح ⚪ | مساء ⚪</div></div>
-            <div class="habit-metric-box"><div class="habit-metric-title">☀️ صلاة الضحى</div><div class="habit-metric-val" id="duhaBoxVal">لم تسجل ⚪</div></div>
-            <div class="habit-metric-box"><div class="habit-metric-title">🌙 قيام الليل والوتر</div><div class="habit-metric-val" id="qiyamBoxVal">لم تسجل ⚪</div></div>
+          <div class="skills-grid" id="englishFlashcardsGrid">
+            <div class="empty-state full-width-card">
+              ✨ أرسل أي كلمة أو جملة إنجليزية للبوت (مثال: <i>"احفظ كلمة Dyspnea on exertion"</i> أو <i>"احفظ جملة Out of the blue"</i>)<br>
+              سيترجمها فوراً للعامية المصرية ويجدولها على فترات علمية (12h ➔ 1d ➔ 3d ➔ 7d ➔ 14d ➔ 30d) حتى الحفظ المتقن 100%!
+            </div>
           </div>
-        </div>
+        </section>
 
-        <div class="split-card full-width-card">
-          <div class="card-header">
-            <h3>🥣 سجل أيام الصيام والسنن الأخيرة</h3>
+        <!-- 📖 TAB 3: Quran Tracker -->
+        <section class="tab-pane" id="tab-quran">
+          <div class="section-title-row">
+            <h2>📖 سجل وتثبيت القرآن الكريم (Spaced Repetition Engine)</h2>
+            <div class="actions-group">
+              <span class="badge-cyan">خطة الختمة وتثبيت المتشابهات</span>
+            </div>
           </div>
-          <div class="fasting-list" id="fastingLogsList">
-            <div class="empty-state">البوت يرسل لك تذكيراً تلقائياً ليلة الإثنين والأربعاء وقبل أذان الفجر بساعة!</div>
+
+          <div class="content-split-grid">
+            <div class="split-card">
+              <div class="card-header">
+                <h3>🕌 جلسات الحفظ والمراجعة الأخيرة</h3>
+              </div>
+              <div class="quran-list" id="quranLogsList">
+                <div class="empty-state">لم يتم تسجيل ورد قرآني بعد.</div>
+              </div>
+            </div>
+
+            <div class="split-card">
+              <div class="card-header">
+                <h3>✨ إرشادات وتوجيهات الحفظ والتثبيت المتقن</h3>
+              </div>
+              <div class="schedule-list">
+                <div class="session-item">
+                  <div class="item-title">1. الورد اليومي الثابت:</div>
+                  <div class="item-desc">حفظ ربعين جديدين + مراجعة جزء كامل يومياً لتثبيت الختمة كل شهر.</div>
+                </div>
+                <div class="session-item">
+                  <div class="item-title">2. نظام التثبيت الذكي:</div>
+                  <div class="item-desc">أي سورة تسجلها بـ "يحتاج تثبيت عاجل"، يقوم النظام بوضعها في أولوية المراجعة القصيرة.</div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- 🧠 TAB 5: Mental Wellness & Venting -->
-      <section class="tab-pane" id="tab-wellness">
-        <div class="section-title-row">
-          <h2>🧠 سجل الفضفضة، تفريغ المشاعر، والاتزان النفسي (Mental Wellness)</h2>
-          <div class="actions-group">
-            <span class="badge-accent">Resilience & Mindset Mastery</span>
+        <!-- 🌙 TAB 4: Fasting, Sunnah & Adhkar -->
+        <section class="tab-pane" id="tab-fasting">
+          <div class="section-title-row">
+            <h2>🌙 سجل الصيام والسنن الرواتب والأذكار</h2>
+            <div class="actions-group">
+              <span class="badge-cyan" id="fastingTodayDate">اليوم</span>
+            </div>
           </div>
-        </div>
 
-        <div class="thoughts-grid" id="wellnessGrid">
-          <div class="empty-state full-width-card">
-            ✨ عندما تشعر بضغط أو رغبة في تفريغ ما بداخلك، سجل فويس وابدأ بـ <i>"دردشة عامة / فضفضة: حاسس بـ..."</i>
+          <div class="prayers-container" style="margin-bottom: 24px;">
+            <div class="prayers-grid" id="prayersGrid">
+              <div class="prayer-card"><div class="prayer-time">الفجر 🌅</div><div class="prayer-status" id="fajrStatus">لم يُسجل ⚪</div></div>
+              <div class="prayer-card"><div class="prayer-time">الظهر ☀️</div><div class="prayer-status" id="dhuhrStatus">لم يُسجل ⚪</div></div>
+              <div class="prayer-card"><div class="prayer-time">العصر 🌤️</div><div class="prayer-status" id="asrStatus">لم يُسجل ⚪</div></div>
+              <div class="prayer-card"><div class="prayer-time">المغرب 🌇</div><div class="prayer-status" id="maghribStatus">لم يُسجل ⚪</div></div>
+              <div class="prayer-card"><div class="prayer-time">العشاء 🌌</div><div class="prayer-status" id="ishaStatus">لم يُسجل ⚪</div></div>
+            </div>
+
+            <div class="habits-secondary-grid">
+              <div class="habit-metric-box"><div class="habit-metric-title">🕌 السنن الرواتب</div><div class="habit-metric-val" id="sunanBoxVal">0 / 12 ركعة</div></div>
+              <div class="habit-metric-box"><div class="habit-metric-title">📿 أذكار الصباح والمساء</div><div class="habit-metric-val" id="adhkarBoxVal">صباح ⚪ | مساء ⚪</div></div>
+              <div class="habit-metric-box"><div class="habit-metric-title">☀️ صلاة الضحى</div><div class="habit-metric-val" id="duhaBoxVal">لم تسجل ⚪</div></div>
+              <div class="habit-metric-box"><div class="habit-metric-title">🌙 قيام الليل والوتر</div><div class="habit-metric-val" id="qiyamBoxVal">لم تسجل ⚪</div></div>
+            </div>
           </div>
-        </div>
-      </section>
 
-      <!-- 🏋️‍♂️ TAB 6: Gym & Fitness -->
-      <section class="tab-pane" id="tab-gym">
-        <div class="section-title-row">
-          <h2>🏋️‍♂️ الجيم، اللياقة البدنية، والتغذية (Body Engineering)</h2>
-          <div class="actions-group">
-            <span class="badge-accent">Peak Physical Conditioning</span>
-          </div>
-        </div>
-
-        <div class="gym-stats-grid" id="gymLogsList">
-          <div class="empty-state full-width-card">لا توجد تمارين مسجلة بعد.</div>
-        </div>
-      </section>
-
-      <!-- 🎬 TAB 7: Content Creation -->
-      <section class="tab-pane" id="tab-content">
-        <div class="section-title-row">
-          <h2>🎬 صناعة المحتوى والمونتاج والميديا (Content Pipeline)</h2>
-          <div class="actions-group">
-            <span class="badge-accent">YouTube • TikTok • DaVinci Resolve</span>
-          </div>
-        </div>
-
-        <div class="content-pipeline-grid" id="contentPipelineList">
-          <div class="empty-state full-width-card">لا توجد مشاريع محتوى مسجلة بعد.</div>
-        </div>
-      </section>
-
-      <!-- 💼 TAB 8: Work & Projects -->
-      <section class="tab-pane" id="tab-work">
-        <div class="section-title-row">
-          <h2>💼 الشغل وإدارة المشاريع والبيزنس (Business Hub)</h2>
-          <div class="actions-group">
-            <span class="badge-accent">Future Air & Ventures</span>
-          </div>
-        </div>
-
-        <div class="work-projects-grid" id="workProjectsList">
-          <div class="empty-state full-width-card">لا توجد مهام عمل مسجلة بعد.</div>
-        </div>
-      </section>
-
-      <!-- 🎯 TAB 9: Tasks & Appointments -->
-      <section class="tab-pane" id="tab-tasks">
-        <div class="section-title-row">
-          <h2>🎯 المهام اليومية، أهداف المذاكرة، والمواعيد الذكية</h2>
-          <div class="actions-group">
-            <span class="badge-accent">Deep Work & Accountability</span>
-          </div>
-        </div>
-
-        <div class="content-split-grid">
-          <div class="split-card">
+          <div class="split-card full-width-card">
             <div class="card-header">
-              <h3>📋 المهام اليومية وأهداف التركيز</h3>
-              <span class="card-badge" id="tasksBadge">0 مهام</span>
+              <h3>🥣 سجل أيام الصيام والسنن الأخيرة</h3>
             </div>
-            <div class="tasks-list" id="tasksList">
-              <div class="empty-state">لا توجد مهام مسجلة اليوم.</div>
+            <div class="fasting-list" id="fastingLogsList">
+              <div class="empty-state">البوت يرسل لك تذكيراً تلقائياً ليلة الإثنين والأربعاء وقبل أذان الفجر بساعة!</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 🧠 TAB 5: Mental Wellness & Venting -->
+        <section class="tab-pane" id="tab-wellness">
+          <div class="section-title-row">
+            <h2>🧠 سجل الفضفضة، تفريغ المشاعر، والاتزان النفسي (Mental Wellness)</h2>
+            <div class="actions-group">
+              <span class="badge-cyan">Resilience & Mindset Mastery</span>
             </div>
           </div>
 
-          <div class="split-card">
+          <div class="thoughts-grid" id="wellnessGrid">
+            <div class="empty-state full-width-card">
+              ✨ عندما تشعر بضغط أو رغبة في تفريغ ما بداخلك، سجل فويس وابدأ بـ <i>"دردشة عامة / فضفضة: حاسس بـ..."</i>
+            </div>
+          </div>
+        </section>
+
+        <!-- 🏋️‍♂️ TAB 6: Gym & Fitness -->
+        <section class="tab-pane" id="tab-gym">
+          <div class="section-title-row">
+            <h2>🏋️‍♂️ الجيم، اللياقة البدنية، والتغذية (Body Engineering)</h2>
+            <div class="actions-group">
+              <span class="badge-cyan">Peak Physical Conditioning</span>
+            </div>
+          </div>
+
+          <div class="gym-stats-grid" id="gymLogsList">
+            <div class="empty-state full-width-card">لا توجد تمارين مسجلة بعد.</div>
+          </div>
+        </section>
+
+        <!-- 🎬 TAB 7: Content Creation -->
+        <section class="tab-pane" id="tab-content">
+          <div class="section-title-row">
+            <h2>🎬 صناعة المحتوى والمونتاج والميديا (Content Pipeline)</h2>
+            <div class="actions-group">
+              <span class="badge-cyan">YouTube • TikTok • DaVinci Resolve</span>
+            </div>
+          </div>
+
+          <div class="content-pipeline-grid" id="contentPipelineList">
+            <div class="empty-state full-width-card">لا توجد مشاريع محتوى مسجلة بعد.</div>
+          </div>
+        </section>
+
+        <!-- 💼 TAB 8: Work & Projects -->
+        <section class="tab-pane" id="tab-work">
+          <div class="section-title-row">
+            <h2>💼 الشغل وإدارة المشاريع والبيزنس (Business Hub)</h2>
+            <div class="actions-group">
+              <span class="badge-cyan">Future Air & Ventures</span>
+            </div>
+          </div>
+
+          <div class="work-projects-grid" id="workProjectsList">
+            <div class="empty-state full-width-card">لا توجد مهام عمل مسجلة بعد.</div>
+          </div>
+        </section>
+
+        <!-- 🎯 TAB 9: Tasks & Appointments -->
+        <section class="tab-pane" id="tab-tasks">
+          <div class="section-title-row">
+            <h2>🎯 المهام اليومية، أهداف المذاكرة، والمواعيد الذكية</h2>
+            <div class="actions-group">
+              <span class="badge-cyan">Deep Work & Accountability</span>
+            </div>
+          </div>
+
+          <div class="content-split-grid">
+            <div class="split-card">
+              <div class="card-header">
+                <h3>📋 المهام اليومية وأهداف التركيز</h3>
+                <span class="card-badge" id="tasksBadge">0 مهام</span>
+              </div>
+              <div class="tasks-list" id="tasksList">
+                <div class="empty-state">لا توجد مهام مسجلة اليوم.</div>
+              </div>
+            </div>
+
+            <div class="split-card">
+              <div class="card-header">
+                <h3>⏰ المواعيد والتنبيهات المجدولة</h3>
+                <span class="card-badge" id="apptsBadge">0 مواعيد</span>
+              </div>
+              <div class="appointments-list" id="appointmentsList">
+                <div class="empty-state">لا توجد مواعيد مجدولة.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 💡 TAB 10: Thoughts & Wisdom Vault -->
+        <section class="tab-pane" id="tab-thoughts">
+          <div class="section-title-row">
+            <h2>💡 بنك الخواطر، الأفكار العميقة، وقواعد الانضباط</h2>
+            <div class="actions-group">
+              <span class="badge-cyan">Wisdom & Discipline</span>
+            </div>
+          </div>
+
+          <div class="thoughts-grid" id="thoughtsGrid">
+            <div class="empty-state full-width-card">لا توجد خواطر مسجلة بعد.</div>
+          </div>
+        </section>
+
+        <!-- 💵 TAB 11: Personal Finance -->
+        <section class="tab-pane" id="tab-finance">
+          <div class="section-title-row">
+            <h2>💵 الخزنة والمصروفات الشخصية والسيولة (Personal Finance)</h2>
+            <div class="actions-group">
+              <span class="badge-cyan">إدارة مالية دقيقة وفائقة</span>
+            </div>
+          </div>
+
+          <div class="wallets-grid" id="walletsGrid">
+            <div class="wallet-card"><div class="wallet-icon">💵</div><div class="wallet-name">خزنة شخصية (كاش)</div><div class="wallet-amount" id="balCash">0 ج.م</div></div>
+            <div class="wallet-card"><div class="wallet-icon">📱</div><div class="wallet-name">فودافون كاش</div><div class="wallet-amount" id="balVodafone">0 ج.م</div></div>
+            <div class="wallet-card"><div class="wallet-icon">⚡</div><div class="wallet-name">إنستا باي (InstaPay)</div><div class="wallet-amount" id="balInstapay">0 ج.م</div></div>
+            <div class="wallet-card"><div class="wallet-icon">🏦</div><div class="wallet-name">بنك مصر</div><div class="wallet-amount" id="balBank">0 ج.م</div></div>
+          </div>
+
+          <div class="split-card full-width-card" style="margin-top: 20px;">
             <div class="card-header">
-              <h3>⏰ المواعيد والتنبيهات المجدولة</h3>
-              <span class="card-badge" id="apptsBadge">0 مواعيد</span>
+              <h3>📑 سجل الحركات والمصروفات الأخيرة</h3>
             </div>
-            <div class="appointments-list" id="appointmentsList">
-              <div class="empty-state">لا توجد مواعيد مجدولة.</div>
+            <div class="transactions-table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>التاريخ</th>
+                    <th>النوع</th>
+                    <th>المبلغ</th>
+                    <th>البيان</th>
+                    <th>الوسيلة</th>
+                    <th>التصنيف</th>
+                  </tr>
+                </thead>
+                <tbody id="financeTableBody">
+                  <tr><td colspan="6" class="text-center">لا توجد حركات مالية مسجلة بعد.</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- 💡 TAB 10: Thoughts & Wisdom Vault -->
-      <section class="tab-pane" id="tab-thoughts">
-        <div class="section-title-row">
-          <h2>💡 بنك الخواطر، الأفكار العميقة، وقواعد الانضباط</h2>
-          <div class="actions-group">
-            <span class="badge-accent">Wisdom & Discipline</span>
-          </div>
-        </div>
+        <!-- Footer -->
+        <footer class="app-footer">
+          <div>منظومة رحلة عبدالله © 2026 | تصميم فيوتشر إير التنفيذي الفاخر (Future Air Executive Theme)</div>
+        </footer>
 
-        <div class="thoughts-grid" id="thoughtsGrid">
-          <div class="empty-state full-width-card">لا توجد خواطر مسجلة بعد.</div>
-        </div>
-      </section>
-
-      <!-- 💵 TAB 11: Personal Finance -->
-      <section class="tab-pane" id="tab-finance">
-        <div class="section-title-row">
-          <h2>💵 الخزنة والمصروفات الشخصية والسيولة (Personal Finance)</h2>
-          <div class="actions-group">
-            <span class="badge-accent">إدارة مالية دقيقة وفائقة</span>
-          </div>
-        </div>
-
-        <div class="wallets-grid" id="walletsGrid">
-          <div class="wallet-card"><div class="wallet-icon">💵</div><div class="wallet-name">خزنة شخصية (كاش)</div><div class="wallet-amount" id="balCash">0 ج.م</div></div>
-          <div class="wallet-card"><div class="wallet-icon">📱</div><div class="wallet-name">فودافون كاش</div><div class="wallet-amount" id="balVodafone">0 ج.م</div></div>
-          <div class="wallet-card"><div class="wallet-icon">⚡</div><div class="wallet-name">إنستا باي (InstaPay)</div><div class="wallet-amount" id="balInstapay">0 ج.م</div></div>
-          <div class="wallet-card"><div class="wallet-icon">🏦</div><div class="wallet-name">بنك مصر</div><div class="wallet-amount" id="balBank">0 ج.م</div></div>
-        </div>
-
-        <div class="split-card full-width-card">
-          <div class="card-header">
-            <h3>📑 سجل الحركات والمصروفات الأخيرة</h3>
-          </div>
-          <div class="transactions-table-container">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>التاريخ</th>
-                  <th>النوع</th>
-                  <th>المبلغ</th>
-                  <th>البيان</th>
-                  <th>الوسيلة</th>
-                  <th>التصنيف</th>
-                </tr>
-              </thead>
-              <tbody id="financeTableBody">
-                <tr><td colspan="6" class="text-center">لا توجد حركات مالية مسجلة بعد.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="app-footer">
-      <div>منظومة رحلة عبدالله © 2026 | مدعومة بالذكاء الاصطناعي الفائق (Google Gemini 3.x & Supabase Cloud)</div>
-    </footer>
+      </main>
+    </div>
 
   </div>
 
