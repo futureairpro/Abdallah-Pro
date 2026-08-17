@@ -517,13 +517,103 @@ async function renderHomeOverview(period = activeHomePeriod) {
     // 💡 Motivational Message Generation
     const motivTextEl = document.getElementById('auditMotivText');
     if (motivTextEl) {
-      if (scorePct >= 80) {
-        motivTextEl.innerHTML = `"أداء استثنائي يا د. عبدالله! انضباطك اليوم هو البرهان العملي على استحقاقك للامتياز (450/450).. استمر بهذه القوة ولا تدع أي شيء يشتتك." 🩺👑`;
-      } else if (scorePct >= 50) {
-        motivTextEl.innerHTML = `"بداية طيبة ومبشرة! باقٍ خطوات بسيطة على إتمام أهداف اليوم.. ابدأ بجلسة مذاكرة سريعة أو ورد القرآن وستصل لنسبة 100% فوراً." 🚀💪`;
-      } else {
-        motivTextEl.innerHTML = `"حين يخفت الشغف يتقدم الانضباط ليصنع الفارق.. لا تنتظر المزاج أو الحماس، اضغط على زر بدء جلسة المذاكرة الآن واصنع يومك بيدك!" 🩺🔥`;
+    // 13. Advanced Retention Intelligence & Spaced Stats
+    let masteredCount = 0;
+    let learningCount = 0;
+    const totalFlashcardsAndQuizzes = totalMedCount + totalEngCount;
+    (medQuizzes || []).forEach(q => {
+      if ((q.repetitions_count || 0) >= 3) masteredCount++;
+      else learningCount++;
+    });
+    (engCards || []).forEach(c => {
+      if ((c.repetitions_count || 0) >= 3) masteredCount++;
+      else learningCount++;
+    });
+
+    const masteredEl = document.getElementById('masteredItemsCount');
+    const learningEl = document.getElementById('learningItemsCount');
+    const dueEl = document.getElementById('dueItemsCount');
+    const masteredFill = document.getElementById('masteredProgressFill');
+    const dueFill = document.getElementById('dueProgressFill');
+    const totalDue = medDueCount + engDueCount;
+
+    if (masteredEl) masteredEl.textContent = masteredCount;
+    if (learningEl) learningEl.textContent = learningCount;
+    if (dueEl) dueEl.textContent = totalDue;
+
+    if (totalFlashcardsAndQuizzes > 0) {
+      if (masteredFill) masteredFill.style.width = `${Math.round((masteredCount / totalFlashcardsAndQuizzes) * 100)}%`;
+      if (dueFill) dueFill.style.width = `${Math.round((totalDue / totalFlashcardsAndQuizzes) * 100)}%`;
+    }
+
+    // 14. Expense Categorization Breakdown
+    let catMed = 0;
+    let catGym = 0;
+    let catTransport = 0;
+    let catBusiness = 0;
+
+    (finRows || []).forEach(tr => {
+      if (tr.type === 'expense' || tr.type === 'مصروف') {
+        const cat = (tr.category || '').toLowerCase();
+        const amt = Number(tr.amount) || 0;
+        if (cat.includes('طب') || cat.includes('دراس') || cat.includes('كتب') || cat.includes('medical') || cat.includes('study')) {
+          catMed += amt;
+        } else if (cat.includes('جيم') || cat.includes('تغذ') || cat.includes('gym') || cat.includes('food') || cat.includes('diet')) {
+          catGym += amt;
+        } else if (cat.includes('مواصل') || cat.includes('بنزين') || cat.includes('نقل') || cat.includes('uber') || cat.includes('transport')) {
+          catTransport += amt;
+        } else {
+          catBusiness += amt;
+        }
       }
+    });
+
+    const expMedEl = document.getElementById('expCatMedical');
+    const expGymEl = document.getElementById('expCatGym');
+    const expTransEl = document.getElementById('expCatTransport');
+    const expBizEl = document.getElementById('expCatBusiness');
+
+    if (expMedEl) expMedEl.textContent = `${catMed.toLocaleString('en-US', { minimumFractionDigits: 2 })} ج.م`;
+    if (expGymEl) expGymEl.textContent = `${catGym.toLocaleString('en-US', { minimumFractionDigits: 2 })} ج.م`;
+    if (expTransEl) expTransEl.textContent = `${catTransport.toLocaleString('en-US', { minimumFractionDigits: 2 })} ج.م`;
+    if (expBizEl) expBizEl.textContent = `${catBusiness.toLocaleString('en-US', { minimumFractionDigits: 2 })} ج.م`;
+
+    // 15. Live Realtime Activity Stream
+    const activityFeedEl = document.getElementById('homeRecentActivities');
+    const { data: recentSessions } = await supabase.from('study_sessions').select('*').order('created_at', { ascending: false }).limit(3);
+    const { data: recentFlashcards } = await supabase.from('english_spaced_flashcards').select('*').order('created_at', { ascending: false }).limit(2);
+    
+    let activityHtml = '';
+    if (recentSessions && recentSessions.length > 0) {
+      recentSessions.forEach(s => {
+        activityHtml += `
+          <div class="session-item">
+            <div class="item-top-row">
+              <span class="item-title">📚 جلسة مذاكرة: [${s.course_code || 'طب'}]</span>
+              <span class="item-date">⏱️ ${s.duration_minutes || 0} دقيقة</span>
+            </div>
+            <div class="item-desc">${s.topic_title || 'مراجعة الموديول'} | 📅 ${s.date || 'اليوم'}</div>
+          </div>
+        `;
+      });
+    }
+
+    if (recentFlashcards && recentFlashcards.length > 0) {
+      recentFlashcards.forEach(f => {
+        activityHtml += `
+          <div class="session-item">
+            <div class="item-top-row">
+              <span class="item-title">🗣️ فلاش كارد: <b>${f.english_word}</b></span>
+              <span class="task-status-badge status-done">تكرار متباعد</span>
+            </div>
+            <div class="item-desc">💡 ${f.arabic_meaning}</div>
+          </div>
+        `;
+      });
+    }
+
+    if (activityHtml && activityFeedEl) {
+      activityFeedEl.innerHTML = activityHtml;
     }
 
   } catch (err) {
