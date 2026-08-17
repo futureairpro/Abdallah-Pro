@@ -3,9 +3,35 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.4';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 import { getCairoPrayerTimes } from './lib/prayer_times.js';
 
-const MASTER_PASSCODE = 'Bodyyy010019168@';
 const AUTH_STORAGE_KEY = 'abdallah_journey_auth_token';
 const AUTH_TOKEN_VAL = 'authenticated_dr_abdallah_secure_key_2026';
+
+// Multi-variant passcode check with Arabic-Indic digit normalization
+function normalizePasscode(str) {
+  if (!str) return '';
+  return str
+    .trim()
+    .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)) // Convert Arabic numbers to English
+    .replace(/\s+/g, '');
+}
+
+function isValidMasterPasscode(inputStr) {
+  const norm = normalizePasscode(inputStr);
+  const normLower = norm.toLowerCase();
+
+  const validVariants = [
+    'bodyyy010019168@',
+    'bodyyy010019168',
+    'bodyy010019168@',
+    'bodyy010019168',
+    '010019168@',
+    '010019168',
+    'bodyyy@',
+    'bodyyy'
+  ];
+
+  return validVariants.includes(normLower);
+}
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -25,6 +51,7 @@ function initAuthGateway() {
   const input = document.getElementById('passcodeInput');
   const errorMsg = document.getElementById('authErrorMsg');
   const lockBtn = document.getElementById('btnLockSystem');
+  const toggleEye = document.getElementById('togglePasscodeEye');
 
   const isAuthenticated = localStorage.getItem(AUTH_STORAGE_KEY) === AUTH_TOKEN_VAL;
 
@@ -38,21 +65,29 @@ function initAuthGateway() {
     if (input) input.focus();
   }
 
+  // Toggle Password Visibility
+  if (toggleEye && input) {
+    toggleEye.addEventListener('click', () => {
+      const isPass = input.type === 'password';
+      input.type = isPass ? 'text' : 'password';
+      toggleEye.textContent = isPass ? '🙈' : '👁️';
+    });
+  }
+
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const entered = (input?.value || '').trim();
+      const entered = input?.value || '';
 
-      if (entered === MASTER_PASSCODE) {
+      if (isValidMasterPasscode(entered)) {
         localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
         if (overlay) overlay.style.display = 'none';
         if (mainContent) mainContent.style.display = 'block';
         if (errorMsg) errorMsg.textContent = '';
         initDashboard();
       } else {
-        if (errorMsg) errorMsg.textContent = '⛔ كلمة المرور غير صحيحة، الوصول مصرح حصرياً لـ د. عبدالله.';
+        if (errorMsg) errorMsg.textContent = '⛔ كلمة المرور غير صحيحة، يرجى كتابة الرمز بشكل صحيح.';
         if (input) {
-          input.value = '';
           input.focus();
         }
       }
@@ -641,7 +676,7 @@ async function renderFinanceSection() {
   }
 }
 
-// 🚀 Dashboard Init (Only triggered when authenticated)
+// 🚀 Dashboard Init
 let dashboardInitialized = false;
 async function initDashboard() {
   if (dashboardInitialized) return;
