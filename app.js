@@ -138,19 +138,30 @@ function initClockAndPrayers() {
   updateClock();
   setInterval(updateClock, 1000);
 
-  // Render Cairo Live Prayer Times
+  // Render Cairo Live Prayer Times (12-Hour Format)
   try {
     const prayers = getCairoPrayerTimes();
     const setPt = (id, val) => {
       const el = document.getElementById(id);
       if (el) el.textContent = val;
     };
-    setPt('ptFajr', prayers.times.fajr);
-    setPt('ptSunrise', prayers.times.sunrise);
-    setPt('ptDhuhr', prayers.times.dhuhr);
-    setPt('ptAsr', prayers.times.asr);
-    setPt('ptMaghrib', prayers.times.maghrib);
-    setPt('ptIsha', prayers.times.isha);
+    const formatPt = (timeStr) => {
+      if (!timeStr) return '';
+      const [hStr, mStr] = timeStr.split(':');
+      let h = parseInt(hStr, 10);
+      const m = mStr || '00';
+      const suffix = h >= 12 ? 'م' : 'ص';
+      h = h % 12;
+      if (h === 0) h = 12;
+      return `${String(h).padStart(2, '0')}:${m} ${suffix}`;
+    };
+
+    setPt('ptFajr', formatPt(prayers.times.fajr));
+    setPt('ptSunrise', formatPt(prayers.times.sunrise));
+    setPt('ptDhuhr', formatPt(prayers.times.dhuhr));
+    setPt('ptAsr', formatPt(prayers.times.asr));
+    setPt('ptMaghrib', formatPt(prayers.times.maghrib));
+    setPt('ptIsha', formatPt(prayers.times.isha));
   } catch (e) {
     console.warn('Prayer times init error:', e);
   }
