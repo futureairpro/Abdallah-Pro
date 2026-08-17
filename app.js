@@ -6,31 +6,43 @@ import { getCairoPrayerTimes } from './lib/prayer_times.js';
 const AUTH_STORAGE_KEY = 'abdallah_journey_auth_token';
 const AUTH_TOKEN_VAL = 'authenticated_dr_abdallah_secure_key_2026';
 
-// Multi-variant passcode check with Arabic-Indic digit normalization
 function normalizePasscode(str) {
   if (!str) return '';
   return str
     .trim()
-    .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)) // Convert Arabic numbers to English
-    .replace(/\s+/g, '');
+    .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)) // Convert Arabic numbers
+    .replace(/\s+/g, '')
+    .toLowerCase();
 }
 
 function isValidMasterPasscode(inputStr) {
   const norm = normalizePasscode(inputStr);
-  const normLower = norm.toLowerCase();
 
   const validVariants = [
+    '@bodyyy0100192168',
+    'bodyyy0100192168@',
+    'bodyyy0100192168',
+    '@bodyyy010019168',
     'bodyyy010019168@',
     'bodyyy010019168',
+    '@bodyy0100192168',
+    'bodyy0100192168@',
+    'bodyy0100192168',
+    '@bodyy010019168',
     'bodyy010019168@',
     'bodyy010019168',
-    '010019168@',
+    '0100192168',
     '010019168',
-    'bodyyy@',
-    'bodyyy'
+    'bodyyy',
+    'bodyy'
   ];
 
-  return validVariants.includes(normLower);
+  if (validVariants.includes(norm)) return true;
+  // Also pass if it contains both 'body' and ('0100' or '192' or '191')
+  if (norm.includes('body') && (norm.includes('0100') || norm.includes('192') || norm.includes('191') || norm.includes('168'))) {
+    return true;
+  }
+  return false;
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
