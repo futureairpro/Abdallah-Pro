@@ -2,18 +2,19 @@
 const SUPABASE_URL = 'https://iluvbcadeteawbyrlqmo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlsdXZiY2FkZXRlYXdieXJscW1vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NzYzMjAsImV4cCI6MjEwMjU1MjMyMH0.sMZqoW6697HLOCNb5CJFO47ZQzjCBRw7KBIxLfvtI6g';
 
-function getSupabaseClient() {
-  if (window._supabaseInstance) return window._supabaseInstance;
-  if (window.supabase && typeof window.supabase.createClient === 'function') {
-    window._supabaseInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    return window._supabaseInstance;
+let _dbInstance = null;
+function getDb() {
+  if (_dbInstance) return _dbInstance;
+  if (typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function') {
+    _dbInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    return _dbInstance;
   }
   return null;
 }
 
-const supabase = new Proxy({}, {
+const db = new Proxy({}, {
   get(target, prop) {
-    const client = getSupabaseClient();
+    const client = getDb();
     if (client && typeof client[prop] === 'function') {
       return client[prop].bind(client);
     }
@@ -458,7 +459,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
     }
 
     // 1. Study Sessions in Period
-    let studyQuery = supabase.from('study_sessions').select('*');
+    let studyQuery = db.from('study_sessions').select('*');
     if (period === 'today') {
       studyQuery = studyQuery.eq('date', todayStr);
     } else {
@@ -481,7 +482,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
     if (homeKpiStudySubEl) homeKpiStudySubEl.textContent = `الهدف: ${targetStudyHours} ساعات`;
 
     // 2. Medical Spaced Quizzes & Due Overdue Backlog
-    const { data: medQuizzes } = await supabase.from('medical_spaced_quizzes').select('*');
+    const { data: medQuizzes } = await db.from('medical_spaced_quizzes').select('*');
     const totalMedCount = medQuizzes?.length || 0;
     let medDueCount = 0;
     const nowIso = new Date().toISOString();
@@ -492,7 +493,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
     });
 
     // 3. English Spaced Flashcards & Due Backlog
-    const { data: engCards } = await supabase.from('english_spaced_flashcards').select('*');
+    const { data: engCards } = await db.from('english_spaced_flashcards').select('*');
     const totalEngCount = engCards?.length || 0;
     let engDueCount = 0;
     (engCards || []).forEach(c => {
@@ -508,7 +509,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
     if (homeKpiEngSubEl) homeKpiEngSubEl.textContent = engDueCount > 0 ? `${engDueCount} مستحق للمراجعة` : `تكرار متباعد ذكي`;
 
     // 4. Quran Sessions in Period
-    let quranQuery = supabase.from('quran_logs').select('*');
+    let quranQuery = db.from('quran_logs').select('*');
     if (period === 'today') quranQuery = quranQuery.eq('date', todayStr);
     else quranQuery = quranQuery.gte('date', dateFilterStart);
     const { data: quranRows } = await quranQuery;
@@ -526,7 +527,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
     if (homeKpiQuranSubEl) homeKpiQuranSubEl.textContent = `${quranRows?.length || 0} جلسات مسجلة`;
 
     // 5. Fasting and Worship in Period
-    let fastQuery = supabase.from('fasting_and_worship_logs').select('*');
+    let fastQuery = db.from('fasting_and_worship_logs').select('*');
     if (period === 'today') fastQuery = fastQuery.eq('date', todayStr);
     else fastQuery = fastQuery.gte('date', dateFilterStart);
     const { data: fastRows } = await fastQuery;
@@ -540,7 +541,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
     });
 
     // 6. Gym Sessions in Period
-    let gymQuery = supabase.from('fitness_gym_logs').select('*');
+    let gymQuery = db.from('fitness_gym_logs').select('*');
     if (period === 'today') gymQuery = gymQuery.eq('date', todayStr);
     else gymQuery = gymQuery.gte('date', dateFilterStart);
     const { data: gymRows } = await gymQuery;
@@ -557,16 +558,16 @@ async function renderHomeOverview(period = activeHomePeriod) {
     if (homeKpiGymSubEl) homeKpiGymSubEl.textContent = `${gymSessionsCount} تمارين مسجلة`;
 
     // 7. Content Creation in Period
-    let contentQuery = supabase.from('content_creation').select('*');
+    let contentQuery = db.from('content_creation').select('*');
     if (period === 'today') contentQuery = contentQuery.eq('date', todayStr);
     else contentQuery = contentQuery.gte('date', dateFilterStart);
     const { data: contentRows } = await contentQuery;
 
     // 8. Business & Work Projects in Period
-    const { data: projRows } = await supabase.from('work_projects').select('*');
+    const { data: projRows } = await db.from('work_projects').select('*');
 
     // 9. Financial Expenses & Health in Period
-    let finQuery = supabase.from('personal_finance').select('*');
+    let finQuery = db.from('personal_finance').select('*');
     if (period === 'today') finQuery = finQuery.eq('date', todayStr);
     else finQuery = finQuery.gte('date', dateFilterStart);
     const { data: finRows } = await finQuery;
@@ -578,7 +579,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
       else if (tr.type === 'income' || tr.type === 'دخل' || tr.type === 'إيراد') periodIncome += amt;
     });
 
-    const { data: sessLiq } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
+    const { data: sessLiq } = await db.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
     const liqObj = sessLiq?.data?.liquidity || {};
     let totalBal = (Number(liqObj['خزنة شخصية'] || 0) + Number(liqObj['فودافون كاش'] || 0) + Number(liqObj['إنستا باي'] || 0) + Number(liqObj['بنك مصر'] || 0));
 
@@ -780,18 +781,18 @@ async function renderHomeOverview(period = activeHomePeriod) {
         { data: recentThoughts },
         { data: recentAttendance }
       ] = await Promise.all([
-        supabase.from('study_sessions').select('*').order('created_at', { ascending: false }).limit(10),
-        supabase.from('personal_finance').select('*').order('created_at', { ascending: false }).limit(10),
-        supabase.from('quran_logs').select('*').order('created_at', { ascending: false }).limit(10),
-        supabase.from('fitness_gym_logs').select('*').order('created_at', { ascending: false }).limit(8),
-        supabase.from('english_spaced_flashcards').select('*').order('created_at', { ascending: false }).limit(8),
-        supabase.from('daily_tasks').select('*').order('created_at', { ascending: false }).limit(8),
-        supabase.from('appointments_and_reminders').select('*').order('created_at', { ascending: false }).limit(6),
-        supabase.from('mental_wellness_logs').select('*').order('created_at', { ascending: false }).limit(6),
-        supabase.from('work_projects').select('*').order('created_at', { ascending: false }).limit(6),
-        supabase.from('content_creation').select('*').order('created_at', { ascending: false }).limit(6),
-        supabase.from('thoughts_and_wisdom').select('*').order('created_at', { ascending: false }).limit(6),
-        supabase.from('attendance_logs').select('*').order('created_at', { ascending: false }).limit(6)
+        db.from('study_sessions').select('*').order('created_at', { ascending: false }).limit(10),
+        db.from('personal_finance').select('*').order('created_at', { ascending: false }).limit(10),
+        db.from('quran_logs').select('*').order('created_at', { ascending: false }).limit(10),
+        db.from('fitness_gym_logs').select('*').order('created_at', { ascending: false }).limit(8),
+        db.from('english_spaced_flashcards').select('*').order('created_at', { ascending: false }).limit(8),
+        db.from('daily_tasks').select('*').order('created_at', { ascending: false }).limit(8),
+        db.from('appointments_and_reminders').select('*').order('created_at', { ascending: false }).limit(6),
+        db.from('mental_wellness_logs').select('*').order('created_at', { ascending: false }).limit(6),
+        db.from('work_projects').select('*').order('created_at', { ascending: false }).limit(6),
+        db.from('content_creation').select('*').order('created_at', { ascending: false }).limit(6),
+        db.from('thoughts_and_wisdom').select('*').order('created_at', { ascending: false }).limit(6),
+        db.from('attendance_logs').select('*').order('created_at', { ascending: false }).limit(6)
       ]);
 
       const allEvents = [];
@@ -1031,7 +1032,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
     // Dynamic Modules Tracker on Home
     const homeModulesContainer = document.getElementById('homeModulesProgressGrid');
     if (homeModulesContainer) {
-      const { data: allStudyRows } = await supabase.from('study_sessions').select('*');
+      const { data: allStudyRows } = await db.from('study_sessions').select('*');
       const moduleStats = {
         'CAD402': { name: 'Cardiac Disorders (أمراض القلب)', icon: '🫀', hours: 0, count: 0, lastTopic: '', lastDate: '' },
         'PED401': { name: 'Pediatric 1 (طب الأطفال 1)', icon: '👶', hours: 0, count: 0, lastTopic: '', lastDate: '' },
@@ -1120,7 +1121,7 @@ async function renderAcademicSection() {
 
   try {
     // 1. Fetch all study sessions
-    const { data: sessions } = await supabase.from('study_sessions').select('*').order('created_at', { ascending: false });
+    const { data: sessions } = await db.from('study_sessions').select('*').order('created_at', { ascending: false });
     
     // Group study time by module
     const moduleStats = {
@@ -1207,7 +1208,7 @@ async function renderAcademicSection() {
     }
 
     // 3. Clinical Cases
-    const { data: cases } = await supabase.from('clinical_cases').select('*').order('date', { ascending: false }).limit(8);
+    const { data: cases } = await db.from('clinical_cases').select('*').order('date', { ascending: false }).limit(8);
     if (cases && cases.length > 0) {
       if (casesCountEl) casesCountEl.textContent = `${cases.length} حالات`;
       let cHtml = '';
@@ -1227,7 +1228,7 @@ async function renderAcademicSection() {
     }
 
     // 4. Attendance Logs
-    const { data: attList } = await supabase.from('attendance_logs').select('*').order('date', { ascending: false }).limit(8);
+    const { data: attList } = await db.from('attendance_logs').select('*').order('date', { ascending: false }).limit(8);
     if (attList && attList.length > 0 && attEl) {
       let aHtml = '';
       let presentCount = 0;
@@ -1252,7 +1253,7 @@ async function renderAcademicSection() {
     }
 
     // 5. Medical Spaced Quizzes
-    const { data: quizzes } = await supabase.from('medical_spaced_quizzes').select('*').order('created_at', { ascending: false });
+    const { data: quizzes } = await db.from('medical_spaced_quizzes').select('*').order('created_at', { ascending: false });
     if (quizzes && quizzes.length > 0) {
       if (totalMedQuizzes) totalMedQuizzes.innerHTML = `${quizzes.length} <span class="stat-unit">سؤال</span>`;
       if (medQuizzesBadge) medQuizzesBadge.textContent = `${quizzes.length} أسئلة مبرمجة`;
@@ -1279,7 +1280,7 @@ async function renderAcademicSection() {
     }
 
     // 6. Academic Schedule
-    const { data: schedule } = await supabase.from('academic_schedule').select('*').eq('is_active', true);
+    const { data: schedule } = await db.from('academic_schedule').select('*').eq('is_active', true);
     if (schedule && schedule.length > 0 && schedEl) {
       let sHtml = '';
       schedule.forEach(s => {
@@ -1308,7 +1309,7 @@ async function renderEnglishSection() {
   const masteredCardsEl = document.getElementById('masteredEngCards');
 
   try {
-    const { data: cards } = await supabase.from('english_spaced_flashcards').select('*').order('created_at', { ascending: false });
+    const { data: cards } = await db.from('english_spaced_flashcards').select('*').order('created_at', { ascending: false });
     if (cards && cards.length > 0) {
       let masteredCount = cards.filter(c => c.is_mastered).length;
       if (totalCardsEl) totalCardsEl.innerHTML = `${cards.length} <span class="stat-unit">كلمات</span>`;
@@ -1348,7 +1349,7 @@ async function renderQuranSection() {
   const totalQuranPagesEl = document.getElementById('totalQuranPages');
 
   try {
-    const { data: logs } = await supabase.from('quran_logs').select('*').order('created_at', { ascending: false }).limit(10);
+    const { data: logs } = await db.from('quran_logs').select('*').order('created_at', { ascending: false }).limit(10);
     let totalPages = 0;
     if (logs && logs.length > 0) {
       logs.forEach(l => totalPages += Number(l.pages_count || 1));
@@ -1385,7 +1386,7 @@ async function renderFastingAndSunnah() {
 
   try {
     // 5 Prayers Status
-    const { data: p } = await supabase.from('prayers_and_habits').select('*').eq('date', today).maybeSingle();
+    const { data: p } = await db.from('prayers_and_habits').select('*').eq('date', today).maybeSingle();
     if (p) {
       const setStatus = (id, val) => {
         const el = document.getElementById(id);
@@ -1399,7 +1400,7 @@ async function renderFastingAndSunnah() {
     }
 
     // Fasting & Sunnah Logs
-    const { data: fwToday } = await supabase.from('fasting_and_worship_logs').select('*').eq('date', today).maybeSingle();
+    const { data: fwToday } = await db.from('fasting_and_worship_logs').select('*').eq('date', today).maybeSingle();
     if (fwToday) {
       if (sunanBoxVal) sunanBoxVal.textContent = `${fwToday.sunan_rawatib_count || 0} / 12 ركعة`;
       if (adhkarBoxVal) adhkarBoxVal.textContent = `صباح: ${fwToday.adhkar_morning ? '✅' : '⚪'} | مساء: ${fwToday.adhkar_evening ? '✅' : '⚪'}`;
@@ -1407,7 +1408,7 @@ async function renderFastingAndSunnah() {
       if (qiyamBoxVal) qiyamBoxVal.textContent = fwToday.witr_prayer_done ? '✅ صليت الوتر والقيام' : 'لم تسجل ⚪';
     }
 
-    const { data: fwHistory } = await supabase.from('fasting_and_worship_logs').select('*').order('date', { ascending: false }).limit(6);
+    const { data: fwHistory } = await db.from('fasting_and_worship_logs').select('*').order('date', { ascending: false }).limit(6);
     if (fwHistory && fwHistory.length > 0 && listEl) {
       let html = '';
       fwHistory.forEach(f => {
@@ -1435,7 +1436,7 @@ async function renderMentalWellness() {
   const grid = document.getElementById('wellnessGrid');
 
   try {
-    const { data: logs } = await supabase.from('mental_wellness_logs').select('*').order('created_at', { ascending: false }).limit(6);
+    const { data: logs } = await db.from('mental_wellness_logs').select('*').order('created_at', { ascending: false }).limit(6);
     if (logs && logs.length > 0 && grid) {
       let html = '';
       logs.forEach(l => {
@@ -1465,7 +1466,7 @@ async function renderMentalWellness() {
 async function renderGymSection() {
   const container = document.getElementById('gymLogsList');
   try {
-    const { data: logs } = await supabase.from('fitness_gym_logs').select('*').order('date', { ascending: false }).limit(6);
+    const { data: logs } = await db.from('fitness_gym_logs').select('*').order('date', { ascending: false }).limit(6);
     if (logs && logs.length > 0 && container) {
       let html = '';
       logs.forEach(g => {
@@ -1491,7 +1492,7 @@ async function renderGymSection() {
 async function renderContentSection() {
   const container = document.getElementById('contentPipelineList');
   try {
-    const { data: rows } = await supabase.from('content_creation').select('*').order('created_at', { ascending: false }).limit(6);
+    const { data: rows } = await db.from('content_creation').select('*').order('created_at', { ascending: false }).limit(6);
     if (rows && rows.length > 0 && container) {
       let html = '';
       rows.forEach(c => {
@@ -1517,7 +1518,7 @@ async function renderContentSection() {
 async function renderWorkSection() {
   const container = document.getElementById('workProjectsList');
   try {
-    const { data: rows } = await supabase.from('work_projects').select('*').order('created_at', { ascending: false }).limit(6);
+    const { data: rows } = await db.from('work_projects').select('*').order('created_at', { ascending: false }).limit(6);
     if (rows && rows.length > 0 && container) {
       let html = '';
       rows.forEach(w => {
@@ -1548,7 +1549,7 @@ async function renderTasksAndAppointments() {
   const today = getCairoToday();
 
   try {
-    const { data: tasks } = await supabase.from('daily_tasks').select('*').eq('date', today).order('created_at', { ascending: false });
+    const { data: tasks } = await db.from('daily_tasks').select('*').eq('date', today).order('created_at', { ascending: false });
     if (tasks && tasks.length > 0) {
       if (tasksBadge) tasksBadge.textContent = `${tasks.length} مهام`;
       let tHtml = '';
@@ -1567,7 +1568,7 @@ async function renderTasksAndAppointments() {
       if (tasksEl) tasksEl.innerHTML = tHtml;
     }
 
-    const { data: appts } = await supabase.from('appointments_and_reminders').select('*').order('due_datetime', { ascending: true }).limit(8);
+    const { data: appts } = await db.from('appointments_and_reminders').select('*').order('due_datetime', { ascending: true }).limit(8);
     if (appts && appts.length > 0) {
       if (apptsBadge) apptsBadge.textContent = `${appts.length} مواعيد`;
       let aHtml = '';
@@ -1590,7 +1591,7 @@ async function renderTasksAndAppointments() {
 async function renderThoughtsSection() {
   const grid = document.getElementById('thoughtsGrid');
   try {
-    const { data: thoughts } = await supabase.from('thoughts_and_wisdom').select('*').order('created_at', { ascending: false }).limit(9);
+    const { data: thoughts } = await db.from('thoughts_and_wisdom').select('*').order('created_at', { ascending: false }).limit(9);
     if (thoughts && thoughts.length > 0 && grid) {
       let html = '';
       thoughts.forEach(th => {
@@ -1617,14 +1618,14 @@ async function renderFinanceSection() {
   const balBank = document.getElementById('balBank');
 
   try {
-    const { data: sess } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
+    const { data: sess } = await db.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
     const liq = sess?.data?.liquidity || {};
     if (balCash) balCash.textContent = formatEgp(liq['خزنة شخصية'] || 0);
     if (balVodafone) balVodafone.textContent = formatEgp(liq['فودافون كاش'] || 0);
     if (balInstapay) balInstapay.textContent = formatEgp(liq['إنستا باي'] || 0);
     if (balBank) balBank.textContent = formatEgp(liq['بنك مصر'] || 0);
 
-    const { data: rows } = await supabase.from('personal_finance').select('*').order('created_at', { ascending: false }).limit(25);
+    const { data: rows } = await db.from('personal_finance').select('*').order('created_at', { ascending: false }).limit(25);
     if (tableBody) {
       if (rows && rows.length > 0) {
         let html = '';
@@ -1708,7 +1709,7 @@ const SNAPSHOT_TABLES = [
 
 async function checkSandboxModeState() {
   try {
-    const { data: row } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
+    const { data: row } = await db.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
     const isSandbox = row?.data?.sandbox_active === true;
 
     const banner = document.getElementById('sandbox-mode-banner');
@@ -1745,7 +1746,7 @@ async function toggleSandboxModeFromWeb() {
   }
 
   try {
-    const { data: row } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
+    const { data: row } = await db.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
     const isSandbox = row?.data?.sandbox_active === true;
 
     if (btn) btn.disabled = false;
@@ -1780,12 +1781,12 @@ async function enableSandboxModeFromWeb() {
   }
 
   try {
-    const { data: row } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
+    const { data: row } = await db.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
     const sessionData = row?.data || {};
 
     // Take snapshot of all tables in parallel
     const snapshotPromises = SNAPSHOT_TABLES.map(async (tbl) => {
-      const { data } = await supabase.from(tbl).select('*');
+      const { data } = await db.from(tbl).select('*');
       return { tbl, rows: data || [] };
     });
 
@@ -1802,7 +1803,7 @@ async function enableSandboxModeFromWeb() {
     sessionData.sandbox_snapshot = snapshotObj;
     sessionData.sandbox_active = true;
 
-    const { error: upsertErr } = await supabase.from('bot_sessions').upsert({
+    const { error: upsertErr } = await db.from('bot_sessions').upsert({
       chat_id: 999999,
       state: 'global_state',
       data: sessionData,
@@ -1839,7 +1840,7 @@ async function disableSandboxModeAndRestore() {
   }
 
   try {
-    const { data: row } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
+    const { data: row } = await db.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
     const sessionData = row?.data;
 
     if (!sessionData || !sessionData.sandbox_active || !sessionData.sandbox_snapshot) {
@@ -1852,7 +1853,7 @@ async function disableSandboxModeAndRestore() {
 
     // 1. Clear current tables
     for (const tbl of SNAPSHOT_TABLES) {
-      await supabase.from(tbl).delete().not('id', 'is', null);
+      await db.from(tbl).delete().not('id', 'is', null);
     }
 
     // 2. Restore snapshot data
@@ -1861,7 +1862,7 @@ async function disableSandboxModeAndRestore() {
       if (rows && rows.length > 0) {
         for (let i = 0; i < rows.length; i += 100) {
           const chunk = rows.slice(i, i + 100);
-          await supabase.from(tbl).insert(chunk);
+          await db.from(tbl).insert(chunk);
         }
       }
     }
@@ -1871,7 +1872,7 @@ async function disableSandboxModeAndRestore() {
     sessionData.sandbox_active = false;
     delete sessionData.sandbox_snapshot;
 
-    await supabase.from('bot_sessions').upsert({
+    await db.from('bot_sessions').upsert({
       chat_id: 999999,
       state: 'global_state',
       data: sessionData,
@@ -1906,4 +1907,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-window.addEventListener('DOMContentLoaded', initAuthGateway);
+// Immediate initialization if already authenticated
+if (typeof localStorage !== 'undefined' && localStorage.getItem('abdallah_journey_auth_token') === 'authenticated_dr_abdallah_secure_key_2026') {
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initDashboard();
+  } else {
+    document.addEventListener('DOMContentLoaded', () => initDashboard());
+  }
+}
