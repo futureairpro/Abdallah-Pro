@@ -1351,13 +1351,41 @@ body {
 .wallet-name { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px; font-weight: 700; }
 .wallet-amount { font-size: 1.6rem; font-weight: 900; color: var(--accent-primary); }
 
-.transactions-table-container { overflow-x: auto; }
-.data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-.data-table th { background: var(--bg-card-inner); color: var(--text-secondary); padding: 12px 14px; text-align: right; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
-.data-table td { padding: 12px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
+.transactions-table-container { 
+  overflow-x: auto; 
+  border-radius: var(--radius-md);
+}
+.data-table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  font-size: 0.88rem; 
+  direction: rtl;
+}
+.data-table th { 
+  background: rgba(255, 255, 255, 0.03); 
+  color: var(--text-secondary); 
+  padding: 14px 16px; 
+  text-align: right; 
+  font-weight: 800;
+  font-size: 0.82rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08); 
+  white-space: nowrap;
+}
+.data-table tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.data-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.data-table td { 
+  padding: 14px 16px; 
+  vertical-align: middle;
+}
 
-.badge-expense { background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); padding: 3px 8px; border-radius: 4px; font-weight: 700; }
-.badge-income { background: rgba(16, 185, 129, 0.15); color: var(--accent-primary); padding: 3px 8px; border-radius: 4px; font-weight: 700; }
+.badge-expense { background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); border: 1px solid rgba(244, 63, 94, 0.3); padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 0.8rem; display: inline-block; }
+.badge-income { background: rgba(16, 185, 129, 0.15); color: var(--accent-primary); border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 0.8rem; display: inline-block; }
 
 .prayers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 16px; }
 .prayer-card { background: var(--bg-card-inner); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px; text-align: center; }

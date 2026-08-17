@@ -204,7 +204,7 @@
         <!-- 🏠 TAB 0: Executive Command Hub & Global Analytics (الصفحة الرئيسية) -->
         <section class="tab-pane active" id="tab-home">
           
-          <!-- 👑 Executive Welcome & Time Period Filter -->
+          <!-- 👑 Executive Welcome Banner -->
           <div class="executive-banner-card">
             <div class="exec-banner-content">
               <div class="exec-top-pills">
@@ -218,7 +218,7 @@
                 </div>
               </div>
               <h1 class="exec-title">مرحباً بك يا د. عبدالله 🩺✨</h1>
-              <p class="exec-desc">تقرير "الزتونة" الشامل — رصد تحليلي دقيق لمستوى أدائك، صعودك وهبوطك، ما أنجزته وما تأخرت فيه، ومعدل إنفاقك مع توجيه ذكي للحفاظ على شعلة الانضباط.</p>
+              <p class="exec-desc">تقرير "الزتونة" الشامل — رصد تحليلي دقيق لمستوى أدائك اليومي، صعودك وهبوطك، ما أنجزته وما تأخرت فيه، والسيولة النقدية مع توجيه ذكي للحفاظ على شعلة الانضباط.</p>
               
               <!-- 📅 Time Period Filter Tabs -->
               <div class="time-filter-controls">
@@ -238,7 +238,118 @@
             </div>
           </div>
 
-          <!-- 🔍 Executive Strategic AI Audit & Diagnosis ("الزتونة والتحليل الشامل") -->
+          <!-- 📊 1. Top KPI Metrics Row (مربعات مؤشرات المنظومة فوق السجل) -->
+          <div class="kpi-metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            
+            <!-- Card 1: Study -->
+            <div class="kpi-card" onclick="switchTabDirect('medical')">
+              <div class="kpi-body">
+                <span class="kpi-label">🩺 ساعات المذاكرة اليومية</span>
+                <div class="kpi-value" id="homeKpiStudyHours">0.0 <span class="kpi-unit">ساعة</span></div>
+                <div class="kpi-trend-pill" id="homeKpiStudySub">الهدف: 6 ساعات</div>
+              </div>
+              <div class="kpi-icon-box" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-primary);">📚</div>
+            </div>
+
+            <!-- Card 2: Quran -->
+            <div class="kpi-card" onclick="switchTabDirect('quran')">
+              <div class="kpi-body">
+                <span class="kpi-label">📖 ورد القرآن الكريم</span>
+                <div class="kpi-value" id="homeKpiQuranPages">0 <span class="kpi-unit">صفحة</span></div>
+                <div class="kpi-trend-pill" id="homeKpiQuranSub">تثبيت الختمة</div>
+              </div>
+              <div class="kpi-icon-box" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-primary);">🕌</div>
+            </div>
+
+            <!-- Card 3: Gym -->
+            <div class="kpi-card" onclick="switchTabDirect('gym')">
+              <div class="kpi-body">
+                <span class="kpi-label">🏋️‍♂️ الجيم واللياقة البدنية</span>
+                <div class="kpi-value" id="homeKpiGymMins">0 <span class="kpi-unit">دقيقة</span></div>
+                <div class="kpi-trend-pill" id="homeKpiGymSub">حديد ومقاومة</div>
+              </div>
+              <div class="kpi-icon-box" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">💪</div>
+            </div>
+
+            <!-- Card 4: English Flashcards -->
+            <div class="kpi-card" onclick="switchTabDirect('english')">
+              <div class="kpi-body">
+                <span class="kpi-label">🗣️ مفردات الإنجليزية (Anki)</span>
+                <div class="kpi-value" id="homeKpiEngCards">0 <span class="kpi-unit">كلمة</span></div>
+                <div class="kpi-trend-pill" id="homeKpiEngSub">تكرار متباعد</div>
+              </div>
+              <div class="kpi-icon-box" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-gold);">🌟</div>
+            </div>
+
+            <!-- Card 5: Finance & Liquidity -->
+            <div class="kpi-card" onclick="switchTabDirect('finance')">
+              <div class="kpi-body">
+                <span class="kpi-label">💵 السيولة والخزائن المالية</span>
+                <div class="kpi-value" id="homeKpiTotalLiquidity">0 <span class="kpi-unit">ج.م</span></div>
+                <div class="kpi-trend-pill" id="homeKpiLiquiditySub">خزنة • بنك • محافظ</div>
+              </div>
+              <div class="kpi-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">💰</div>
+            </div>
+
+          </div>
+
+          <!-- 🔔 2. Master Unified Activity Ledger & Table (سجل النشاطات والعمليات الأخيرة) -->
+          <div class="split-card full-width-card" style="margin-bottom: 28px;">
+            <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.4rem;">🔔</span>
+                <div>
+                  <h3 style="font-size: 1.15rem; font-weight: 900; color: #fff; margin: 0;">سجل النشاطات والعمليات الأخيرة</h3>
+                  <p style="margin: 2px 0 0; color: var(--text-secondary); font-size: 0.8rem;">توثيق فوري مباشر لكل ما تسجله عبر التيليجرام أو الموقع</p>
+                </div>
+              </div>
+              
+              <!-- Filter Tabs: [كل الأيام] [اليوم] [الأمس] [قبل أمس] [عرض بالكامل] -->
+              <div class="time-filter-controls" style="margin: 0;">
+                <span style="font-size: 0.82rem; color: var(--text-secondary); margin-left: 4px;">تاريخ النشاط:</span>
+                <button type="button" class="time-filter-btn active" id="btnActAll" onclick="filterHomeActivities('all')">🌐 كل الأيام</button>
+                <button type="button" class="time-filter-btn" id="btnActToday" onclick="filterHomeActivities('today')">اليوم</button>
+                <button type="button" class="time-filter-btn" id="btnActYesterday" onclick="filterHomeActivities('yesterday')">الأمس</button>
+                <button type="button" class="time-filter-btn" id="btnActBeforeYesterday" onclick="filterHomeActivities('before_yesterday')">قبل أمس</button>
+                <button type="button" class="time-filter-btn" id="btnActFull" onclick="filterHomeActivities('all')">📜 عرض بالكامل</button>
+              </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="transactions-table-container">
+              <table class="data-table" style="width: 100%;">
+                <thead>
+                  <tr>
+                    <th style="width: 15%;">القسم</th>
+                    <th style="width: 16%;">الحركة / النوع</th>
+                    <th style="width: 38%;">التفاصيل والبيان</th>
+                    <th style="width: 16%;">القيمة / المدة</th>
+                    <th style="width: 15%;">الوقت والتاريخ</th>
+                  </tr>
+                </thead>
+                <tbody id="homeActivityTableBody">
+                  <tr><td colspan="5" class="text-center" style="padding: 24px; color: var(--text-muted);">جاري تحميل سجل النشاطات الحية...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 🩺 3. Semester 7 Medical Modules Dynamic Tracker -->
+          <div class="split-card full-width-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h3>🩺 ساعات التحصيل لموديولات الفرقة الرابعة — الفصل الدراسي السابع</h3>
+              <div class="actions-group">
+                <span class="badge-gold" id="homeModulesSummaryBadge">📊 متابعة المذاكرة الحية</span>
+              </div>
+            </div>
+
+            <!-- Dynamic Medical Modules Grid -->
+            <div class="courses-grid" id="homeModulesProgressGrid">
+              <!-- Dynamically populated by app.js with real hours and last session info -->
+            </div>
+          </div>
+
+          <!-- 🔍 4. Executive Strategic AI Audit & Diagnosis ("الزتونة والتحليل الشامل") -->
           <div class="audit-summary-card">
             <div class="audit-header">
               <div class="audit-title-box">
@@ -310,200 +421,7 @@
             </div>
           </div>
 
-          <!-- 📊 Domain Performance Cards Grid (Dynamic Trend Matrix) -->
-          <div class="section-title-row" style="margin-top: 28px;">
-            <h2>📊 تفاصيل أداء الأقسام ومعدلات الصعود والهبوط (<span id="matrixPeriodLabel">اليوم</span>)</h2>
-            <span class="badge-emerald">مؤشرات حية متكاملة</span>
-          </div>
-
-          <div class="kpi-metrics-grid">
-            
-            <!-- 1. Study -->
-            <div class="kpi-card" onclick="switchTabDirect('medical')">
-              <div class="kpi-body">
-                <span class="kpi-label">المذاكرة والتحصيل الأكاديمي</span>
-                <div class="kpi-value" id="homeStudyHours">0.0 <span class="kpi-unit">ساعة</span></div>
-                <div class="kpi-trend-pill" id="studyTrendPill">🎯 المستهدف: <b id="studyTargetLabel">3 ساعات</b></div>
-              </div>
-              <div class="kpi-icon-box">📚</div>
-            </div>
-
-            <!-- 2. Medical Spaced Quizzes -->
-            <div class="kpi-card" onclick="switchTabDirect('medical')">
-              <div class="kpi-body">
-                <span class="kpi-label">كويزات الطب بالتكرار المتباعد</span>
-                <div class="kpi-value" id="homeMedQuizzes">0 <span class="kpi-unit">سؤال</span></div>
-                <div class="kpi-trend-pill" id="medQuizzesDuePill">🩺 <b id="medDueCount">0</b> مستحق للمراجعة</div>
-              </div>
-              <div class="kpi-icon-box">🩺</div>
-            </div>
-
-            <!-- 3. English Cards -->
-            <div class="kpi-card" onclick="switchTabDirect('english')">
-              <div class="kpi-body">
-                <span class="kpi-label">فلاش كاردز الإنجليزية (Spaced)</span>
-                <div class="kpi-value" id="homeEngCards">0 <span class="kpi-unit">كلمات</span></div>
-                <div class="kpi-trend-pill" id="engDuePill">🗣️ <b id="engDueCount">0</b> كلمات مستحقة</div>
-              </div>
-              <div class="kpi-icon-box">🗣️</div>
-            </div>
-
-            <!-- 4. Quran & Worship -->
-            <div class="kpi-card" onclick="switchTabDirect('quran')">
-              <div class="kpi-body">
-                <span class="kpi-label">جلسات القرآن والتدبر</span>
-                <div class="kpi-value" id="homeQuranSessions">0 <span class="kpi-unit">جلسة</span></div>
-                <div class="kpi-trend-pill">📖 المستهدف: 30 دقيقة ورد</div>
-              </div>
-              <div class="kpi-icon-box">📖</div>
-            </div>
-
-            <!-- 5. Fasting & Sunnah -->
-            <div class="kpi-card" onclick="switchTabDirect('fasting')">
-              <div class="kpi-body">
-                <span class="kpi-label">الصيام وسنن الأذكار</span>
-                <div class="kpi-value" id="homeFastingCount">0 <span class="kpi-unit">يوم</span></div>
-                <div class="kpi-trend-pill">🌙 أذكار الفجر والعصر</div>
-              </div>
-              <div class="kpi-icon-box">🌙</div>
-            </div>
-
-            <!-- 6. Gym & Fitness -->
-            <div class="kpi-card" onclick="switchTabDirect('gym')">
-              <div class="kpi-body">
-                <span class="kpi-label">الجيم واللياقة البدنية</span>
-                <div class="kpi-value" id="homeGymDays">0 <span class="kpi-unit">تمارين</span></div>
-                <div class="kpi-trend-pill">🏋️‍♂️ يومياً ما عدا الراحة</div>
-              </div>
-              <div class="kpi-icon-box">🏋️‍♂️</div>
-            </div>
-
-            <!-- 7. Content Pipeline -->
-            <div class="kpi-card" onclick="switchTabDirect('content')">
-              <div class="kpi-body">
-                <span class="kpi-label">صناعة المحتوى والميديا</span>
-                <div class="kpi-value" id="homeContentCount">0 <span class="kpi-unit">مشاريع</span></div>
-                <div class="kpi-trend-pill">🎬 الإنتاج والمونتاج</div>
-              </div>
-              <div class="kpi-icon-box">🎬</div>
-            </div>
-
-            <!-- 8. Business & Work -->
-            <div class="kpi-card" onclick="switchTabDirect('work')">
-              <div class="kpi-body">
-                <span class="kpi-label">الشغل وإدارة المشاريع</span>
-                <div class="kpi-value" id="homeProjectsCount">0 <span class="kpi-unit">مهام</span></div>
-                <div class="kpi-trend-pill">💼 الصفقات والتطوير</div>
-              </div>
-              <div class="kpi-icon-box">💼</div>
-            </div>
-
-            <!-- 9. Finance & Expenses -->
-            <div class="kpi-card" onclick="switchTabDirect('finance')">
-              <div class="kpi-body">
-                <span class="kpi-label">مصروفات الفترة والسيولة</span>
-                <div class="kpi-value" id="homeExpenseAmount">0.00 <span class="kpi-unit">ج.م</span></div>
-                <div class="kpi-trend-pill" id="homeBalancePill">💵 إجمالي الخزنة: <b id="homeTotalBalance">0.00</b> ج.م</div>
-              </div>
-              <div class="kpi-icon-box">💵</div>
-            </div>
-
-          </div>
-
-          <!-- 📋 Actionable Performance Checklist (ما تم وما لم يتم إنجازه) -->
-          <div class="split-card full-width-card" style="margin-top: 24px;">
-            <div class="card-header">
-              <h3>📋 جدول فحص الثوابت والإنجاز الفعلي (<span id="checklistPeriodLabel">اليوم</span>)</h3>
-              <span class="card-badge" id="checklistDoneBadge">0 / 6 مكتمل</span>
-            </div>
-            
-            <div class="checklist-grid" id="homeChecklistGrid">
-              <!-- Dynamically populated by app.js -->
-            </div>
-          </div>
-
-          <!-- 📈 1. Advanced Life Analytics & Deep Work Statistics (إحصائيات متقدمة وتحليلات عميقة) -->
-          <div class="section-title-row" style="margin-top: 32px;">
-            <h2>📈 التحليلات المتقدمة ومؤشرات الذاكرة وتوزيع الإنفاق (Deep Life Analytics)</h2>
-            <span class="badge-emerald">تقارير تراكمية دقيقة</span>
-          </div>
-
-          <div class="content-split-grid" style="margin-bottom: 24px;">
-            
-            <!-- 🧠 Spaced Repetition & Memory Retention Curve -->
-            <div class="split-card">
-              <div class="card-header">
-                <h3>🧠 كفاءة الذاكرة والتكرار المتباعد (Retention Index)</h3>
-                <span class="card-badge" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.1);">SuperMemo-2 Algorithm</span>
-              </div>
-              <div class="retention-stats-box">
-                <div class="retention-score-row">
-                  <div class="retention-rate">
-                    <span class="rate-val" id="retentionRateVal" style="color: #94a3b8;">0%</span>
-                    <span class="rate-label">معدل تثبيت المعلومات الطبي</span>
-                  </div>
-                  <div class="retention-mini-bars">
-                    <div class="mini-bar-item">
-                      <div class="mini-bar-label"><span>🟢 كلمات وكويزات متقنة (Mastered):</span> <b id="masteredItemsCount">0</b></div>
-                      <div class="progress-bar-bg"><div class="progress-bar-fill" id="masteredProgressFill" style="width: 0%;"></div></div>
-                    </div>
-                    <div class="mini-bar-item">
-                      <div class="mini-bar-label"><span>🟡 في مرحلة التثبيت (Learning):</span> <b id="learningItemsCount">0</b></div>
-                      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 0%; background: var(--accent-gold);"></div></div>
-                    </div>
-                    <div class="mini-bar-item">
-                      <div class="mini-bar-label"><span>🔴 مستحق للمراجعة العاجلة (Due):</span> <b id="dueItemsCount">0</b></div>
-                      <div class="progress-bar-bg"><div class="progress-bar-fill" id="dueProgressFill" style="width: 0%; background: var(--accent-rose);"></div></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 💵 Expense Categorization & Budget Intelligence -->
-            <div class="split-card">
-              <div class="card-header">
-                <h3>💵 التحليل المالي وتوزيع النفقات (Budget Breakdown)</h3>
-                <span class="card-badge" style="color: #4ade80; border-color: rgba(74, 222, 128, 0.4); background: rgba(74, 222, 128, 0.1);">ذكاء السيولة والخزنة</span>
-              </div>
-              <div class="spending-breakdown-list">
-                <div class="spending-cat-row">
-                  <div class="cat-info"><span class="cat-dot" style="background: #3b82f6;"></span><span>🩺 مستلزمات طبية وكتب دراسية:</span></div>
-                  <strong class="cat-val" id="expCatMedical">0.00 ج.م</strong>
-                </div>
-                <div class="spending-cat-row">
-                  <div class="cat-info"><span class="cat-dot" style="background: #10b981;"></span><span>🥩 تغذية صحية ومكملات جيم:</span></div>
-                  <strong class="cat-val" id="expCatGym">0.00 ج.م</strong>
-                </div>
-                <div class="spending-cat-row">
-                  <div class="cat-info"><span class="cat-dot" style="background: #f59e0b;"></span><span>🚗 مواصلات وتنقلات شخصية:</span></div>
-                  <strong class="cat-val" id="expCatTransport">0.00 ج.م</strong>
-                </div>
-                <div class="spending-cat-row">
-                  <div class="cat-info"><span class="cat-dot" style="background: #a855f7;"></span><span>💼 التزامات بيزنس ومشاريع:</span></div>
-                  <strong class="cat-val" id="expCatBusiness">0.00 ج.م</strong>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- 🩺 2. Semester 7 Medical Modules Dynamic Tracker -->
-          <div class="split-card full-width-card" style="margin-bottom: 24px;">
-            <div class="card-header">
-              <h3>🩺 ساعات التحصيل لموديولات الفرقة الرابعة — الفصل الدراسي السابع</h3>
-              <div class="actions-group">
-                <span class="badge-gold" id="homeModulesSummaryBadge">📊 متابعة المذاكرة الحية</span>
-              </div>
-            </div>
-
-            <!-- Dynamic Medical Modules Grid -->
-            <div class="courses-grid" id="homeModulesProgressGrid">
-              <!-- Dynamically populated by app.js with real hours and last session info -->
-            </div>
-          </div>
-
-          <!-- 📊 3. Habit Consistency & Discipline Trend Analytics (تحليل الانضباط وتكرار العادات) -->
+          <!-- 📊 5. Habit Consistency & Discipline Trend Analytics (تحليل الانضباط وتكرار العادات) -->
           <div class="split-card full-width-card" style="margin-bottom: 24px;">
             <div class="card-header">
               <h3>📊 مؤشرات الانضباط ومعدلات الالتزام بالعادات (Discipline & Habit Analytics)</h3>
@@ -575,24 +493,45 @@
             </div>
           </div>
 
-          <!-- ⚡ 4. Master Unified Live Activity Stream (سجل الأحداث والأنشطة الشامل) -->
+          <!-- 📋 6. Actionable Performance Checklist (جدول فحص الثوابت) -->
           <div class="split-card full-width-card" style="margin-bottom: 24px;">
             <div class="card-header">
-              <h3>⚡ سجل الأحداث والأنشطة الشامل (سجل كل حدث وحصل إمتى لحظياً)</h3>
-              <span class="card-badge" id="liveActivityCount" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-primary); border: 1px solid rgba(16, 185, 129, 0.3);">🟢 مزامنة حية مباشرة</span>
+              <h3>📋 جدول فحص الثوابت والإنجاز الفعلي (<span id="checklistPeriodLabel">اليوم</span>)</h3>
+              <span class="card-badge" id="checklistDoneBadge">0 / 6 مكتمل</span>
             </div>
-            <div class="sessions-list" id="homeRecentActivities">
-              <div class="session-item">
-                <div class="item-top-row">
-                  <span class="item-title">🩺 مرحباً بك في المنظومة يا د. عبدالله!</span>
-                  <span class="item-date">اليوم</span>
-                </div>
-                <div class="item-desc">أرسل أي فويس أو رسالة في البوت وسيقوم بتوثيق كل إنجازاتك ووقت حدوثها لحظياً هنا!</div>
+            
+            <div class="checklist-grid" id="homeChecklistGrid">
+              <!-- Dynamically populated by app.js -->
+            </div>
+          </div>
+
+          <!-- 💵 7. Expense Categorization & Budget Intelligence -->
+          <div class="split-card full-width-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h3>💵 التحليل المالي وتوزيع النفقات (Budget Breakdown)</h3>
+              <span class="card-badge" style="color: #4ade80; border-color: rgba(74, 222, 128, 0.4); background: rgba(74, 222, 128, 0.1);">ذكاء السيولة والخزنة</span>
+            </div>
+            <div class="spending-breakdown-list">
+              <div class="spending-cat-row">
+                <div class="cat-info"><span class="cat-dot" style="background: #3b82f6;"></span><span>🩺 مستلزمات طبية وكتب دراسية:</span></div>
+                <strong class="cat-val" id="expCatMedical">0.00 ج.م</strong>
+              </div>
+              <div class="spending-cat-row">
+                <div class="cat-info"><span class="cat-dot" style="background: #10b981;"></span><span>🥩 تغذية صحية ومكملات جيم:</span></div>
+                <strong class="cat-val" id="expCatGym">0.00 ج.م</strong>
+              </div>
+              <div class="spending-cat-row">
+                <div class="cat-info"><span class="cat-dot" style="background: #f59e0b;"></span><span>🚗 مواصلات وتنقلات شخصية:</span></div>
+                <strong class="cat-val" id="expCatTransport">0.00 ج.م</strong>
+              </div>
+              <div class="spending-cat-row">
+                <div class="cat-info"><span class="cat-dot" style="background: #a855f7;"></span><span>💼 التزامات بيزنس ومشاريع:</span></div>
+                <strong class="cat-val" id="expCatBusiness">0.00 ج.م</strong>
               </div>
             </div>
           </div>
 
-          <!-- 💡 5. Mindset & Wisdom Anchor (كبسولة الحكمة وقاعدة الانضباط) -->
+          <!-- 💡 8. Mindset & Wisdom Anchor (كبسولة الحكمة وقاعدة الانضباط) -->
           <div class="split-card full-width-card" style="background: linear-gradient(135deg, rgba(12, 28, 43, 0.9), rgba(6, 13, 19, 0.95)); border: 1.5px solid var(--border-glow);">
             <div class="card-header" style="border: none; padding-bottom: 0;">
               <h3>💡 قاعدة الانضباط وصناعة المستقبل:</h3>
@@ -715,7 +654,7 @@
             </div>
           </div>
 
-          <div class="split-card full-width-card">
+          <div class="split-card full-width-card" style="margin-bottom: 24px;">
             <div class="card-header">
               <h3>🕌 سجل جلسات التلاوة وتثبيت الحفظ المباشر</h3>
               <span class="card-badge" id="quranTotalSessionsBadge">0 جلسات</span>
@@ -724,15 +663,19 @@
               <div class="empty-state">لم يتم تسجيل ورد قرآني بعد. أرسل فويس بالورد اليومي لتوثيقه فوراً!</div>
             </div>
           </div>
-        </section>
-                <div class="session-item">
-                  <div class="item-title">1. الورد اليومي الثابت:</div>
-                  <div class="item-desc">حفظ ربعين جديدين + مراجعة جزء كامل يومياً لتثبيت الختمة كل شهر.</div>
-                </div>
-                <div class="session-item">
-                  <div class="item-title">2. نظام التثبيت الذكي:</div>
-                  <div class="item-desc">أي سورة تسجلها بـ "يحتاج تثبيت عاجل"، يقوم النظام بوضعها في أولوية المراجعة القصيرة.</div>
-                </div>
+
+          <div class="split-card full-width-card">
+            <div class="card-header">
+              <h3>💡 خطة ورد القرآن والتثبيت الذكي</h3>
+            </div>
+            <div class="sessions-list">
+              <div class="session-item">
+                <div class="item-title">1. الورد اليومي الثابت:</div>
+                <div class="item-desc">حفظ ربعين جديدين + مراجعة جزء كامل يومياً لتثبيت الختمة كل شهر.</div>
+              </div>
+              <div class="session-item">
+                <div class="item-title">2. نظام التثبيت الذكي:</div>
+                <div class="item-desc">أي سورة تسجلها بـ "يحتاج تثبيت عاجل"، يقوم النظام بوضعها في أولوية المراجعة القصيرة.</div>
               </div>
             </div>
           </div>

@@ -338,6 +338,107 @@ window.setTimePeriodFilter = function(period) {
   renderHomeOverview(period);
 };
 
+// 🔔 Unified Activity Feed State & Filter Engine (Matching Image 5)
+window._cachedAllEvents = [];
+window._currentActivityFilter = 'all';
+
+window.filterHomeActivities = function(filterType) {
+  window._currentActivityFilter = filterType;
+
+  // Update UI Button active states
+  const btnAll = document.getElementById('btnActAll');
+  const btnToday = document.getElementById('btnActToday');
+  const btnYesterday = document.getElementById('btnActYesterday');
+  const btnBefore = document.getElementById('btnActBeforeYesterday');
+  const btnFull = document.getElementById('btnActFull');
+
+  if (btnAll) btnAll.classList.toggle('active', filterType === 'all');
+  if (btnToday) btnToday.classList.toggle('active', filterType === 'today');
+  if (btnYesterday) btnYesterday.classList.toggle('active', filterType === 'yesterday');
+  if (btnBefore) btnBefore.classList.toggle('active', filterType === 'before_yesterday');
+  if (btnFull) btnFull.classList.toggle('active', filterType === 'all');
+
+  renderHomeActivityTable(filterType);
+};
+
+function renderHomeActivityTable(filterType = window._currentActivityFilter || 'all') {
+  const tableBody = document.getElementById('homeActivityTableBody');
+  if (!tableBody) return;
+
+  const todayStr = getCairoToday();
+  const dToday = new Date(todayStr);
+
+  const past1 = new Date(dToday);
+  past1.setDate(dToday.getDate() - 1);
+  const yesterdayStr = past1.toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
+
+  const past2 = new Date(dToday);
+  past2.setDate(dToday.getDate() - 2);
+  const beforeYesterdayStr = past2.toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
+
+  let filtered = (window._cachedAllEvents || []).filter(ev => {
+    let evDate = ev.dateStr;
+    if (!evDate && ev.createdAt) {
+      try {
+        evDate = new Date(ev.createdAt).toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
+      } catch (e) {}
+    }
+
+    if (filterType === 'today') {
+      return evDate === todayStr;
+    } else if (filterType === 'yesterday') {
+      return evDate === yesterdayStr;
+    } else if (filterType === 'before_yesterday') {
+      return evDate === beforeYesterdayStr;
+    }
+    return true; // 'all'
+  });
+
+  if (!filtered || filtered.length === 0) {
+    let emptyMsg = 'لا توجد نشاطات مسجلة في هذه الفترة.';
+    if (filterType === 'today') emptyMsg = 'لا توجد نشاطات مسجلة اليوم حتى الآن. أرسل أي فويس أو رسالة في البوت لتوثيقها فوراً!';
+    else if (filterType === 'yesterday') emptyMsg = 'لا توجد نشاطات مسجلة بالأمس.';
+    else if (filterType === 'before_yesterday') emptyMsg = 'لا توجد نشاطات مسجلة قبل أمس.';
+
+    tableBody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding: 28px; color: var(--text-muted); font-size: 0.95rem;">${emptyMsg}</td></tr>`;
+    return;
+  }
+
+  let html = '';
+  filtered.forEach(ev => {
+    html += `
+      <tr style="transition: all 0.2s ease;">
+        <td>
+          <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 0.82rem; background: ${ev.catBg || 'rgba(16,185,129,0.12)'}; color: ${ev.catColor || '#10b981'}; border: 1px solid ${ev.catBorder || 'rgba(16,185,129,0.3)'};">
+            <span>${ev.icon}</span> <span>${ev.category}</span>
+          </span>
+        </td>
+        <td>
+          <span style="display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; background: rgba(255,255,255,0.05); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.08);">
+            ${ev.actionType || ev.category}
+          </span>
+        </td>
+        <td>
+          <div style="font-weight: 800; color: #fff; font-size: 0.92rem; margin-bottom: 2px;">${ev.title}</div>
+          ${ev.subtext ? `<div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">${ev.subtext}</div>` : ''}
+        </td>
+        <td>
+          <b style="color: ${ev.valColor || 'var(--accent-primary)'}; font-family: var(--font-en); font-size: 0.95rem; font-weight: 800; direction: ltr; display: inline-block;">
+            ${ev.valOrDuration || '—'}
+          </b>
+        </td>
+        <td>
+          <span style="font-size: 0.82rem; color: #94a3b8; font-weight: 700; white-space: nowrap;">
+            🕒 ${ev.formattedTime}
+          </span>
+        </td>
+      </tr>
+    `;
+  });
+
+  tableBody.innerHTML = html;
+}
+
 // 🏠 0. Executive Home Overview & Strategic AI Performance Audit
 async function renderHomeOverview(period = activeHomePeriod) {
   try {
@@ -372,10 +473,12 @@ async function renderHomeOverview(period = activeHomePeriod) {
     });
     const studyHours = (totalStudyMins / 60).toFixed(1);
     const targetStudyHours = period === 'today' ? 3 : (period === 'week' ? 21 : 90);
-    const studyTargetEl = document.getElementById('studyTargetLabel');
-    if (studyTargetEl) studyTargetEl.textContent = `${targetStudyHours} ساعات`;
-    const homeStudyEl = document.getElementById('homeStudyHours');
-    if (homeStudyEl) homeStudyEl.innerHTML = `${studyHours} <span class="kpi-unit">ساعة</span>`;
+    
+    // Update Home Top KPI Card 1
+    const homeKpiStudyHoursEl = document.getElementById('homeKpiStudyHours');
+    const homeKpiStudySubEl = document.getElementById('homeKpiStudySub');
+    if (homeKpiStudyHoursEl) homeKpiStudyHoursEl.innerHTML = `${studyHours} <span class="kpi-unit">ساعة</span>`;
+    if (homeKpiStudySubEl) homeKpiStudySubEl.textContent = `الهدف: ${targetStudyHours} ساعات`;
 
     // 2. Medical Spaced Quizzes & Due Overdue Backlog
     const { data: medQuizzes } = await supabase.from('medical_spaced_quizzes').select('*');
@@ -387,10 +490,6 @@ async function renderHomeOverview(period = activeHomePeriod) {
         medDueCount++;
       }
     });
-    const homeMedEl = document.getElementById('homeMedQuizzes');
-    if (homeMedEl) homeMedEl.innerHTML = `${totalMedCount} <span class="kpi-unit">سؤال</span>`;
-    const medDueEl = document.getElementById('medDueCount');
-    if (medDueEl) medDueEl.textContent = medDueCount;
 
     // 3. English Spaced Flashcards & Due Backlog
     const { data: engCards } = await supabase.from('english_spaced_flashcards').select('*');
@@ -401,10 +500,12 @@ async function renderHomeOverview(period = activeHomePeriod) {
         engDueCount++;
       }
     });
-    const homeEngEl = document.getElementById('homeEngCards');
-    if (homeEngEl) homeEngEl.innerHTML = `${totalEngCount} <span class="kpi-unit">كلمة</span>`;
-    const engDueEl = document.getElementById('engDueCount');
-    if (engDueEl) engDueEl.textContent = engDueCount;
+    
+    // Update Home Top KPI Card 4
+    const homeKpiEngCardsEl = document.getElementById('homeKpiEngCards');
+    const homeKpiEngSubEl = document.getElementById('homeKpiEngSub');
+    if (homeKpiEngCardsEl) homeKpiEngCardsEl.innerHTML = `${totalEngCount} <span class="kpi-unit">كلمة</span>`;
+    if (homeKpiEngSubEl) homeKpiEngSubEl.textContent = engDueCount > 0 ? `${engDueCount} مستحق للمراجعة` : `تكرار متباعد ذكي`;
 
     // 4. Quran Sessions in Period
     let quranQuery = supabase.from('quran_logs').select('*');
@@ -412,9 +513,17 @@ async function renderHomeOverview(period = activeHomePeriod) {
     else quranQuery = quranQuery.gte('date', dateFilterStart);
     const { data: quranRows } = await quranQuery;
     let totalQuranMins = 0;
-    (quranRows || []).forEach(q => totalQuranMins += (Number(q.duration_minutes) || 0));
-    const homeQuranEl = document.getElementById('homeQuranSessions');
-    if (homeQuranEl) homeQuranEl.innerHTML = `${quranRows?.length || 0} <span class="kpi-unit">جلسة</span>`;
+    let totalQuranPages = 0;
+    (quranRows || []).forEach(q => {
+      totalQuranMins += (Number(q.duration_minutes) || 0);
+      totalQuranPages += (Number(q.pages_count) || 0);
+    });
+
+    // Update Home Top KPI Card 2
+    const homeKpiQuranPagesEl = document.getElementById('homeKpiQuranPages');
+    const homeKpiQuranSubEl = document.getElementById('homeKpiQuranSub');
+    if (homeKpiQuranPagesEl) homeKpiQuranPagesEl.innerHTML = `${totalQuranPages || totalQuranMins || 0} <span class="kpi-unit">${totalQuranPages > 0 ? 'صفحة' : 'دقيقة'}</span>`;
+    if (homeKpiQuranSubEl) homeKpiQuranSubEl.textContent = `${quranRows?.length || 0} جلسات مسجلة`;
 
     // 5. Fasting and Worship in Period
     let fastQuery = supabase.from('fasting_and_worship_logs').select('*');
@@ -429,8 +538,6 @@ async function renderHomeOverview(period = activeHomePeriod) {
       if (f.morning_adhkar) adhkarFajrDone = true;
       if (f.evening_adhkar) adhkarAsrDone = true;
     });
-    const homeFastingEl = document.getElementById('homeFastingCount');
-    if (homeFastingEl) homeFastingEl.innerHTML = `${fastDoneCount} <span class="kpi-unit">يوم صيام</span>`;
 
     // 6. Gym Sessions in Period
     let gymQuery = supabase.from('fitness_gym_logs').select('*');
@@ -438,21 +545,25 @@ async function renderHomeOverview(period = activeHomePeriod) {
     else gymQuery = gymQuery.gte('date', dateFilterStart);
     const { data: gymRows } = await gymQuery;
     const gymSessionsCount = gymRows?.length || 0;
-    const homeGymEl = document.getElementById('homeGymDays');
-    if (homeGymEl) homeGymEl.innerHTML = `${gymSessionsCount} <span class="kpi-unit">تمارين</span>`;
+    let totalGymMins = 0;
+    (gymRows || []).forEach(g => {
+      totalGymMins += (Number(g.duration_minutes) || 45);
+    });
+
+    // Update Home Top KPI Card 3
+    const homeKpiGymMinsEl = document.getElementById('homeKpiGymMins');
+    const homeKpiGymSubEl = document.getElementById('homeKpiGymSub');
+    if (homeKpiGymMinsEl) homeKpiGymMinsEl.innerHTML = `${totalGymMins || (gymSessionsCount * 45)} <span class="kpi-unit">دقيقة</span>`;
+    if (homeKpiGymSubEl) homeKpiGymSubEl.textContent = `${gymSessionsCount} تمارين مسجلة`;
 
     // 7. Content Creation in Period
     let contentQuery = supabase.from('content_creation').select('*');
     if (period === 'today') contentQuery = contentQuery.eq('date', todayStr);
     else contentQuery = contentQuery.gte('date', dateFilterStart);
     const { data: contentRows } = await contentQuery;
-    const homeContentEl = document.getElementById('homeContentCount');
-    if (homeContentEl) homeContentEl.innerHTML = `${contentRows?.length || 0} <span class="kpi-unit">مشاريع</span>`;
 
     // 8. Business & Work Projects in Period
     const { data: projRows } = await supabase.from('work_projects').select('*');
-    const homeProjectsEl = document.getElementById('homeProjectsCount');
-    if (homeProjectsEl) homeProjectsEl.innerHTML = `${projRows?.length || 0} <span class="kpi-unit">مهام</span>`;
 
     // 9. Financial Expenses & Health in Period
     let finQuery = supabase.from('personal_finance').select('*');
@@ -467,14 +578,15 @@ async function renderHomeOverview(period = activeHomePeriod) {
       else if (tr.type === 'income' || tr.type === 'دخل' || tr.type === 'إيراد') periodIncome += amt;
     });
 
-    const homeExpenseEl = document.getElementById('homeExpenseAmount');
-    if (homeExpenseEl) homeExpenseEl.innerHTML = `${periodExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })} <span class="kpi-unit">ج.م</span>`;
-
     const { data: sessLiq } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
     const liqObj = sessLiq?.data?.liquidity || {};
     let totalBal = (Number(liqObj['خزنة شخصية'] || 0) + Number(liqObj['فودافون كاش'] || 0) + Number(liqObj['إنستا باي'] || 0) + Number(liqObj['بنك مصر'] || 0));
-    const homeTotalBalEl = document.getElementById('homeTotalBalance');
-    if (homeTotalBalEl) homeTotalBalEl.textContent = totalBal.toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+    // Update Home Top KPI Card 5
+    const homeKpiTotalLiquidityEl = document.getElementById('homeKpiTotalLiquidity');
+    const homeKpiLiquiditySubEl = document.getElementById('homeKpiLiquiditySub');
+    if (homeKpiTotalLiquidityEl) homeKpiTotalLiquidityEl.innerHTML = `${totalBal.toLocaleString('en-US', { minimumFractionDigits: 0 })} <span class="kpi-unit">ج.م</span>`;
+    if (homeKpiLiquiditySubEl) homeKpiLiquiditySubEl.textContent = `خزنة • بنك • محافظ`;
 
     // 10. Daily Non-Negotiable Checklist Evaluation
     const checkStudy = Number(studyHours) >= (period === 'today' ? 3 : (period === 'week' ? 21 : 90));
@@ -549,7 +661,6 @@ async function renderHomeOverview(period = activeHomePeriod) {
     }
 
     // 12. Synthesize AI Audit Diagnostics
-    // 🏆 Strengths
     const strengthsEl = document.getElementById('auditStrengthsList');
     const strengths = [];
     if (checkStudy) strengths.push(`📚 إنجاز المذاكرة المستهدفة (${studyHours} ساعة)`);
@@ -620,33 +731,6 @@ async function renderHomeOverview(period = activeHomePeriod) {
         motivTextEl.textContent = '🔥 "حين يخفت الشغف يتقدم الانضباط ليصنع الفارق.. لا تنتظر المزاج أو الحماس، ابدأ أول خطوة الآن واصنع مجدك بيدك!" 🩺';
       }
     }
-    let masteredCount = 0;
-    let learningCount = 0;
-    const totalFlashcardsAndQuizzes = totalMedCount + totalEngCount;
-    (medQuizzes || []).forEach(q => {
-      if ((q.repetitions_count || 0) >= 3) masteredCount++;
-      else learningCount++;
-    });
-    (engCards || []).forEach(c => {
-      if ((c.repetitions_count || 0) >= 3) masteredCount++;
-      else learningCount++;
-    });
-
-    const masteredEl = document.getElementById('masteredItemsCount');
-    const learningEl = document.getElementById('learningItemsCount');
-    const dueEl = document.getElementById('dueItemsCount');
-    const masteredFill = document.getElementById('masteredProgressFill');
-    const dueFill = document.getElementById('dueProgressFill');
-    const totalDue = medDueCount + engDueCount;
-
-    if (masteredEl) masteredEl.textContent = masteredCount;
-    if (learningEl) learningEl.textContent = learningCount;
-    if (dueEl) dueEl.textContent = totalDue;
-
-    if (totalFlashcardsAndQuizzes > 0) {
-      if (masteredFill) masteredFill.style.width = `${Math.round((masteredCount / totalFlashcardsAndQuizzes) * 100)}%`;
-      if (dueFill) dueFill.style.width = `${Math.round((totalDue / totalFlashcardsAndQuizzes) * 100)}%`;
-    }
 
     // 14. Expense Categorization Breakdown
     let catMed = 0;
@@ -680,8 +764,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
     if (expTransEl) expTransEl.textContent = `${catTransport.toLocaleString('en-US', { minimumFractionDigits: 2 })} ج.م`;
     if (expBizEl) expBizEl.textContent = `${catBusiness.toLocaleString('en-US', { minimumFractionDigits: 2 })} ج.م`;
 
-    // 15. Comprehensive Unified Realtime Activity Ledger & Event Stream on Home
-    const activityFeedEl = document.getElementById('homeRecentActivities');
+    // 15. Master Unified Realtime Activity Ledger & Table (سجل النشاطات والعمليات الأخيرة)
     try {
       const [
         { data: recentStudy },
@@ -697,33 +780,39 @@ async function renderHomeOverview(period = activeHomePeriod) {
         { data: recentThoughts },
         { data: recentAttendance }
       ] = await Promise.all([
-        supabase.from('study_sessions').select('*').order('created_at', { ascending: false }).limit(6),
-        supabase.from('personal_finance').select('*').order('created_at', { ascending: false }).limit(6),
-        supabase.from('quran_logs').select('*').order('created_at', { ascending: false }).limit(6),
-        supabase.from('fitness_gym_logs').select('*').order('created_at', { ascending: false }).limit(5),
-        supabase.from('english_spaced_flashcards').select('*').order('created_at', { ascending: false }).limit(5),
-        supabase.from('daily_tasks').select('*').order('created_at', { ascending: false }).limit(5),
-        supabase.from('appointments_and_reminders').select('*').order('created_at', { ascending: false }).limit(5),
-        supabase.from('mental_wellness_logs').select('*').order('created_at', { ascending: false }).limit(4),
-        supabase.from('work_projects').select('*').order('created_at', { ascending: false }).limit(4),
-        supabase.from('content_creation').select('*').order('created_at', { ascending: false }).limit(4),
-        supabase.from('thoughts_and_wisdom').select('*').order('created_at', { ascending: false }).limit(4),
-        supabase.from('attendance_logs').select('*').order('created_at', { ascending: false }).limit(4)
+        supabase.from('study_sessions').select('*').order('created_at', { ascending: false }).limit(10),
+        supabase.from('personal_finance').select('*').order('created_at', { ascending: false }).limit(10),
+        supabase.from('quran_logs').select('*').order('created_at', { ascending: false }).limit(10),
+        supabase.from('fitness_gym_logs').select('*').order('created_at', { ascending: false }).limit(8),
+        supabase.from('english_spaced_flashcards').select('*').order('created_at', { ascending: false }).limit(8),
+        supabase.from('daily_tasks').select('*').order('created_at', { ascending: false }).limit(8),
+        supabase.from('appointments_and_reminders').select('*').order('created_at', { ascending: false }).limit(6),
+        supabase.from('mental_wellness_logs').select('*').order('created_at', { ascending: false }).limit(6),
+        supabase.from('work_projects').select('*').order('created_at', { ascending: false }).limit(6),
+        supabase.from('content_creation').select('*').order('created_at', { ascending: false }).limit(6),
+        supabase.from('thoughts_and_wisdom').select('*').order('created_at', { ascending: false }).limit(6),
+        supabase.from('attendance_logs').select('*').order('created_at', { ascending: false }).limit(6)
       ]);
 
       const allEvents = [];
 
       (recentStudy || []).forEach(s => {
         const durMins = Number(s.duration_minutes || 0);
-        const durText = durMins >= 60 ? `${(durMins / 60).toFixed(1).replace('.0', '')} ${durMins === 60 ? 'ساعة' : durMins === 120 ? 'ساعتين' : durMins >= 180 && durMins <= 600 ? 'ساعات' : 'ساعة'} (${durMins} دقيقة)` : `${durMins} دقيقة`;
+        const durText = durMins >= 60 ? `${(durMins / 60).toFixed(1).replace('.0', '')} ${durMins === 60 ? 'ساعة' : durMins === 120 ? 'ساعتين' : durMins >= 180 && durMins <= 600 ? 'ساعات' : 'ساعة'}` : `${durMins} دقيقة`;
         allEvents.push({
           icon: '🩺',
-          category: 'مذاكرة طبية',
+          category: 'الطب والسكاشن',
+          catBg: 'rgba(16, 185, 129, 0.15)',
+          catColor: 'var(--accent-primary)',
+          catBorder: 'rgba(16, 185, 129, 0.35)',
+          actionType: 'مذاكرة طبية',
           title: `[${s.course_code || 'CAD402'}] ${s.topic || 'جلسة مذاكرة'}`,
-          subtext: `⏱️ <b>المدة:</b> ${durText}${s.pages_covered ? ` | 📄 <b>${s.pages_covered} صفحة</b>` : ''}${s.comprehension_rating ? ` | 🧠 استيعاب: ${'⭐'.repeat(s.comprehension_rating)}` : ''}`,
+          subtext: `${s.pages_covered ? `📄 <b>${s.pages_covered} صفحة</b> | ` : ''}${s.comprehension_rating ? `🧠 استيعاب: ${'⭐'.repeat(s.comprehension_rating)}` : 'جلسة تحصيل إكلينيكي'}`,
+          valOrDuration: durText,
+          valColor: 'var(--accent-primary)',
           dateStr: s.date,
           createdAt: s.created_at,
-          borderAccent: 'var(--accent-primary)'
+          formattedTime: formatRelativeDate(s.date, s.created_at)
         });
       });
 
@@ -731,108 +820,162 @@ async function renderHomeOverview(period = activeHomePeriod) {
         const isIncome = f.type === 'دخل' || f.type === 'إيراد' || f.type === 'income';
         allEvents.push({
           icon: isIncome ? '💰' : '💵',
-          category: isIncome ? 'إيراد مالي' : 'مصروف شخصي',
-          title: `${isIncome ? 'إيراد' : 'مصروف'}: ${formatEgp(f.amount)} (${f.description || f.category || 'عام'})`,
-          subtext: `💳 <b>الوسيلة:</b> ${f.payment_method || 'خزنة شخصية'} | 🏷️ <b>التصنيف:</b> ${f.category || 'عام'}`,
+          category: 'المالية والخزنة',
+          catBg: isIncome ? 'rgba(74, 222, 128, 0.12)' : 'rgba(244, 63, 94, 0.12)',
+          catColor: isIncome ? '#4ade80' : '#f43f5e',
+          catBorder: isIncome ? 'rgba(74, 222, 128, 0.3)' : 'rgba(244, 63, 94, 0.3)',
+          actionType: isIncome ? 'إيراد مالي' : 'مصروف شخصي',
+          title: `${f.description || f.category || 'حركة مالية'}`,
+          subtext: `💳 الخزنة: <b>${f.payment_method || 'خزنة شخصية'}</b> | 🏷️ البند: ${f.category || 'عام'}`,
+          valOrDuration: `${formatEgp(f.amount)}`,
+          valColor: isIncome ? '#4ade80' : '#f43f5e',
           dateStr: f.date,
           createdAt: f.created_at,
-          borderAccent: isIncome ? '#4ade80' : '#f43f5e'
+          formattedTime: formatRelativeDate(f.date, f.created_at)
         });
       });
 
       (recentQuran || []).forEach(q => {
         allEvents.push({
           icon: '📖',
-          category: 'ورد القرآن',
-          title: `سورة ${q.surah_name} (${q.session_type || 'مراجعة وتثبيت'})`,
-          subtext: `📑 <b>الكمية:</b> ${q.pages_count || 1} صفحة | ⭐ <b>الإتقان:</b> ${q.quality_rating || 5}/5`,
+          category: 'القرآن الكريم',
+          catBg: 'rgba(16, 185, 129, 0.15)',
+          catColor: '#10b981',
+          catBorder: 'rgba(16, 185, 129, 0.35)',
+          actionType: 'تلاوة وتثبيت',
+          title: `سورة ${q.surah_name || 'الورد اليومي'}`,
+          subtext: `نوع الورد: ${q.session_type || 'مراجعة وتثبيت'}${q.quality_rating ? ` | ⭐ الإتقان: ${q.quality_rating}/5` : ''}`,
+          valOrDuration: `${q.pages_count || 1} صفحة`,
+          valColor: '#10b981',
           dateStr: q.date,
           createdAt: q.created_at,
-          borderAccent: 'var(--accent-primary)'
+          formattedTime: formatRelativeDate(q.date, q.created_at)
         });
       });
 
       (recentGym || []).forEach(g => {
         allEvents.push({
           icon: '🏋️‍♂️',
-          category: 'لياقة وجيم',
+          category: 'الجيم واللياقة',
+          catBg: 'rgba(56, 189, 248, 0.12)',
+          catColor: '#38bdf8',
+          catBorder: 'rgba(56, 189, 248, 0.3)',
+          actionType: 'تمرين لياقة',
           title: `تمرين: ${g.workout_type || 'حديد ومقاومة'}`,
-          subtext: `⏱️ <b>المدة:</b> ${g.duration_minutes || 45} دقيقة${g.muscle_groups ? ` | 💪 <b>العضلات:</b> ${g.muscle_groups}` : ''}`,
+          subtext: `${g.muscle_groups ? `💪 العضلات المستهدفة: <b>${g.muscle_groups}</b>` : 'تمارين بدنية وقوة'}`,
+          valOrDuration: `${g.duration_minutes || 45} دقيقة`,
+          valColor: '#38bdf8',
           dateStr: g.date,
           createdAt: g.created_at,
-          borderAccent: '#38bdf8'
+          formattedTime: formatRelativeDate(g.date, g.created_at)
         });
       });
 
       (recentEnglish || []).forEach(c => {
         allEvents.push({
           icon: '🗣️',
-          category: 'إنجليزية (Anki)',
-          title: `فلاش كارد: "${c.term_or_sentence || ''}"`,
-          subtext: `💡 <b>المعنى:</b> ${c.egyptian_translation || ''}${c.example_sentence ? ` | 📝 <i>"${c.example_sentence}"</i>` : ''}`,
+          category: 'الإنجليزية (Anki)',
+          catBg: 'rgba(245, 158, 11, 0.12)',
+          catColor: 'var(--accent-gold)',
+          catBorder: 'rgba(245, 158, 11, 0.3)',
+          actionType: 'فلاش كارد',
+          title: `"${c.term_or_sentence || ''}"`,
+          subtext: `💡 ${c.egyptian_translation || ''}${c.example_sentence ? ` | 📝 <i>"${c.example_sentence}"</i>` : ''}`,
+          valOrDuration: `مستوى ${c.repetitions_count || 1}`,
+          valColor: 'var(--accent-gold)',
           dateStr: null,
           createdAt: c.created_at,
-          borderAccent: 'var(--accent-gold)'
+          formattedTime: formatRelativeDate(null, c.created_at)
         });
       });
 
       (recentTasks || []).forEach(t => {
         allEvents.push({
           icon: '🎯',
-          category: 'مهمة يومية',
+          category: 'المهام والمواعيد',
+          catBg: 'rgba(168, 85, 247, 0.12)',
+          catColor: '#c084fc',
+          catBorder: 'rgba(168, 85, 247, 0.3)',
+          actionType: 'مهمة يومية',
           title: `${t.title}`,
-          subtext: `📌 <b>الحالة:</b> ${t.status || 'معلق'} | 🏷️ <b>التصنيف:</b> ${t.category || 'عام'}`,
+          subtext: `📌 الحالة: <b>${t.status || 'معلق'}</b> | 🏷️ التصنيف: ${t.category || 'عام'}`,
+          valOrDuration: t.status === 'تم الإنجاز' ? '✅ منجز' : '⏳ معلق',
+          valColor: t.status === 'تم الإنجاز' ? 'var(--accent-primary)' : 'var(--accent-gold)',
           dateStr: t.date,
           createdAt: t.created_at,
-          borderAccent: t.status === 'تم الإنجاز' ? 'var(--accent-primary)' : 'var(--accent-gold)'
+          formattedTime: formatRelativeDate(t.date, t.created_at)
         });
       });
 
       (recentAppts || []).forEach(a => {
         allEvents.push({
           icon: '⏰',
-          category: 'موعد وتنبيه',
+          category: 'المواعيد والتنبيهات',
+          catBg: 'rgba(168, 85, 247, 0.12)',
+          catColor: '#c084fc',
+          catBorder: 'rgba(168, 85, 247, 0.3)',
+          actionType: 'موعد مجدول',
           title: `${a.title}`,
-          subtext: `${a.notes ? `📝 ${a.notes}` : ''}`,
+          subtext: `${a.notes ? `📝 ${a.notes}` : 'تنبيه مجدول'}`,
+          valOrDuration: '⏰ موعد',
+          valColor: '#c084fc',
           dateStr: a.date,
           createdAt: a.due_datetime || a.created_at,
-          borderAccent: '#a855f7'
+          formattedTime: formatRelativeDate(a.date, a.due_datetime || a.created_at)
         });
       });
 
       (recentWellness || []).forEach(w => {
         allEvents.push({
           icon: '🧠',
-          category: 'اتزان نفسي',
+          category: 'الفضفضة والاتزان',
+          catBg: 'rgba(56, 189, 248, 0.12)',
+          catColor: '#38bdf8',
+          catBorder: 'rgba(56, 189, 248, 0.3)',
+          actionType: 'فضفضة وتفريغ',
           title: `فضفضة: "${(w.venting_content || w.emotional_state || '').slice(0, 45)}..."`,
-          subtext: `💭 <b>المشاعر:</b> ${w.emotional_state || 'تفريغ'} | ⭐ <b>المزاج:</b> ${w.mood_rating || 4}/5`,
+          subtext: `💭 المشاعر: <b>${w.emotional_state || 'تفريغ'}</b> | ⭐ المزاج: ${w.mood_rating || 4}/5`,
+          valOrDuration: `${w.mood_rating || 4}/5 مزاج`,
+          valColor: '#38bdf8',
           dateStr: w.date,
           createdAt: w.created_at,
-          borderAccent: '#38bdf8'
+          formattedTime: formatRelativeDate(w.date, w.created_at)
         });
       });
 
       (recentWork || []).forEach(w => {
         allEvents.push({
           icon: '💼',
-          category: 'شغل ومشاريع',
+          category: 'الشغل والبيزنس',
+          catBg: 'rgba(168, 85, 247, 0.12)',
+          catColor: '#a855f7',
+          catBorder: 'rgba(168, 85, 247, 0.3)',
+          actionType: 'مشروع عمل',
           title: `[${w.project_name}] ${w.task_description}`,
-          subtext: `📌 <b>الحالة:</b> ${w.status || 'قيد التنفيذ'}${w.revenue_generated ? ` | 💵 <b>الإيراد:</b> ${formatEgp(w.revenue_generated)}` : ''}`,
+          subtext: `📌 الحالة: <b>${w.status || 'قيد التنفيذ'}</b>`,
+          valOrDuration: w.revenue_generated ? formatEgp(w.revenue_generated) : '💼 مشروع',
+          valColor: w.revenue_generated ? '#4ade80' : '#a855f7',
           dateStr: w.date,
           createdAt: w.created_at,
-          borderAccent: '#a855f7'
+          formattedTime: formatRelativeDate(w.date, w.created_at)
         });
       });
 
       (recentContent || []).forEach(c => {
         allEvents.push({
           icon: '🎬',
-          category: 'صناعة محتوى',
+          category: 'صناعة المحتوى',
+          catBg: 'rgba(244, 63, 94, 0.12)',
+          catColor: '#f43f5e',
+          catBorder: 'rgba(244, 63, 94, 0.3)',
+          actionType: 'فيديو وميديا',
           title: `[${c.platform}] ${c.title}`,
-          subtext: `📌 <b>المرحلة:</b> ${c.stage || 'فكرة'}`,
+          subtext: `📌 المرحلة: <b>${c.stage || 'فكرة'}</b>`,
+          valOrDuration: `${c.platform || 'ميديا'}`,
+          valColor: '#f43f5e',
           dateStr: c.date,
           createdAt: c.created_at,
-          borderAccent: '#f43f5e'
+          formattedTime: formatRelativeDate(c.date, c.created_at)
         });
       });
 
@@ -840,23 +983,35 @@ async function renderHomeOverview(period = activeHomePeriod) {
         allEvents.push({
           icon: '💡',
           category: 'بنك الخواطر',
+          catBg: 'rgba(245, 158, 11, 0.12)',
+          catColor: 'var(--accent-gold)',
+          catBorder: 'rgba(245, 158, 11, 0.3)',
+          actionType: 'خاطرة وفكرة',
           title: `خاطرة: "${th.content.slice(0, 50)}..."`,
-          subtext: `🏷️ <b>التصنيف:</b> ${th.category || 'انضباط'}`,
+          subtext: `🏷️ التصنيف: <b>${th.category || 'انضباط'}</b>`,
+          valOrDuration: '💡 حكمة',
+          valColor: 'var(--accent-gold)',
           dateStr: th.date,
           createdAt: th.created_at,
-          borderAccent: 'var(--accent-gold)'
+          formattedTime: formatRelativeDate(th.date, th.created_at)
         });
       });
 
       (recentAttendance || []).forEach(a => {
         allEvents.push({
           icon: '📝',
-          category: 'حضور وسكاشن',
+          category: 'الطب والسكاشن',
+          catBg: 'rgba(16, 185, 129, 0.15)',
+          catColor: 'var(--accent-primary)',
+          catBorder: 'rgba(16, 185, 129, 0.35)',
+          actionType: 'حضور راوند',
           title: `[${a.course_code}] ${a.session_title}`,
-          subtext: `📌 <b>الحالة:</b> ${a.status}${a.reason ? ` | السبب: ${a.reason}` : ''}`,
+          subtext: `📌 الحالة: <b>${a.status}</b>${a.reason ? ` | السبب: ${a.reason}` : ''}`,
+          valOrDuration: a.status === 'حضور' ? '✅ حاضر' : '❌ غياب',
+          valColor: a.status === 'حضور' ? 'var(--accent-primary)' : '#f43f5e',
           dateStr: a.date,
           createdAt: a.created_at,
-          borderAccent: a.status === 'حضور' ? 'var(--accent-primary)' : 'var(--accent-gold)'
+          formattedTime: formatRelativeDate(a.date, a.created_at)
         });
       });
 
@@ -867,31 +1022,8 @@ async function renderHomeOverview(period = activeHomePeriod) {
         return tB - tA;
       });
 
-      let activityHtml = '';
-      if (allEvents.length > 0) {
-        allEvents.slice(0, 15).forEach(ev => {
-          activityHtml += `
-            <div class="session-item" style="border-right: 4px solid ${ev.borderAccent}; background: var(--bg-card-inner); padding: 14px 16px; margin-bottom: 10px;">
-              <div class="item-top-row">
-                <span class="item-title" style="font-size: 1.02rem;">${ev.icon} <b>${ev.title}</b></span>
-                <span class="task-status-badge status-done">${ev.category}</span>
-              </div>
-              <div class="item-desc" style="margin-top: 6px;">
-                ${ev.subtext ? `<div style="font-size: 0.86rem; color: #e2e8f0;">${ev.subtext}</div>` : ''}
-                <div style="margin-top: 6px; font-size: 0.8rem; color: var(--accent-primary); font-weight: 700;">
-                  🕒 <b>وقت الحدث:</b> ${formatRelativeDate(ev.dateStr, ev.createdAt)}
-                </div>
-              </div>
-            </div>
-          `;
-        });
-      } else {
-        activityHtml = `<div class="empty-state">لا توجد أحداث مسجلة بعد. أرسل فويس للبوت لتوثيق أي نشاط!</div>`;
-      }
-
-      if (activityFeedEl) {
-        activityFeedEl.innerHTML = activityHtml;
-      }
+      window._cachedAllEvents = allEvents;
+      renderHomeActivityTable(window._currentActivityFilter || 'all');
     } catch (actErr) {
       console.warn('homeRecentActivities error:', actErr);
     }
@@ -1492,23 +1624,27 @@ async function renderFinanceSection() {
     if (balInstapay) balInstapay.textContent = formatEgp(liq['إنستا باي'] || 0);
     if (balBank) balBank.textContent = formatEgp(liq['بنك مصر'] || 0);
 
-    const { data: rows } = await supabase.from('personal_finance').select('*').order('created_at', { ascending: false }).limit(15);
-    if (rows && rows.length > 0 && tableBody) {
-      let html = '';
-      rows.forEach(r => {
-        const isExp = r.type === 'مصروف';
-        html += `
-          <tr>
-            <td>${formatRelativeDate(r.date, r.created_at)}</td>
-            <td><span class="${isExp ? 'badge-expense' : 'badge-income'}">${r.type}</span></td>
-            <td><b>${formatEgp(r.amount)}</b></td>
-            <td>${r.description}</td>
-            <td>${r.payment_method}</td>
-            <td>${r.category}</td>
-          </tr>
-        `;
-      });
-      tableBody.innerHTML = html;
+    const { data: rows } = await supabase.from('personal_finance').select('*').order('created_at', { ascending: false }).limit(25);
+    if (tableBody) {
+      if (rows && rows.length > 0) {
+        let html = '';
+        rows.forEach(r => {
+          const isExp = r.type === 'مصروف' || r.type === 'expense';
+          html += `
+            <tr>
+              <td>${formatRelativeDate(r.date, r.created_at)}</td>
+              <td><span class="${isExp ? 'badge-expense' : 'badge-income'}">${r.type || 'مصروف'}</span></td>
+              <td><b style="color: ${isExp ? '#f43f5e' : '#4ade80'};">${formatEgp(r.amount)}</b></td>
+              <td>${r.description || '—'}</td>
+              <td>${r.payment_method || 'خزنة شخصية'}</td>
+              <td>${r.category || 'عام'}</td>
+            </tr>
+          `;
+        });
+        tableBody.innerHTML = html;
+      } else {
+        tableBody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding: 24px; color: var(--text-muted);">لا توجد حركات مالية مسجلة بعد. أرسل فويس للبوت لتوثيق المصروف فوراً!</td></tr>`;
+      }
     }
   } catch (err) {
     console.warn('renderFinanceSection error:', err);
