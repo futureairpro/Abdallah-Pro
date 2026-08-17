@@ -616,6 +616,31 @@ async function renderHomeOverview(period = activeHomePeriod) {
       activityFeedEl.innerHTML = activityHtml;
     }
 
+    // 16. Habit Consistency Analytics Matrix
+    const habitStudyRate = Math.min(100, Math.round((Number(studyHours) / targetStudyHours) * 100));
+    const habitGymRate = checkGym ? 100 : (period === 'today' ? (gymSessionsCount > 0 ? 100 : 0) : Math.min(100, Math.round((gymSessionsCount / (period === 'week' ? 5 : 20)) * 100)));
+    const habitQuranRate = checkQuran ? 100 : Math.min(100, Math.round((totalQuranMins / (period === 'today' ? 30 : (period === 'week' ? 210 : 900))) * 100));
+    const habitEngRate = checkEnglish ? 100 : 0;
+    const habitFajrRate = checkFajrAdhkar ? 100 : 0;
+    const habitAsrRate = checkAsrAdhkar ? 100 : 0;
+
+    const setHabitUI = (idRate, idFill, rate) => {
+      const rateEl = document.getElementById(idRate);
+      const fillEl = document.getElementById(idFill);
+      if (rateEl) rateEl.textContent = `${rate}%`;
+      if (fillEl) fillEl.style.width = `${rate}%`;
+    };
+
+    setHabitUI('habitStudyRate', 'habitStudyFill', habitStudyRate);
+    setHabitUI('habitGymRate', 'habitGymFill', habitGymRate);
+    setHabitUI('habitQuranRate', 'habitQuranFill', habitQuranRate);
+    setHabitUI('habitEngRate', 'habitEngFill', habitEngRate);
+    setHabitUI('habitFajrRate', 'habitFajrFill', habitFajrRate);
+    setHabitUI('habitAsrRate', 'habitAsrFill', habitAsrRate);
+
+    const medBadgeEl = document.getElementById('homeMedQuizzesBadge');
+    if (medBadgeEl) medBadgeEl.textContent = `${totalMedCount} أسئلة`;
+
   } catch (err) {
     console.warn('renderHomeOverview error:', err);
   }

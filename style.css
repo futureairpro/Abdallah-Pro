@@ -925,15 +925,15 @@ body {
   color: #fff;
 }
 
-/* 🧭 Standards Radar Grid */
-.standards-radar-grid {
+/* 📊 Habit Consistency Analytics Grid */
+.analytics-metrics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
   margin-top: 10px;
 }
 
-.standard-radar-card {
+.analytics-card {
   background: var(--bg-card-inner);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-md);
@@ -941,13 +941,44 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: 10px;
   transition: all 0.2s ease;
 }
 
-.standard-radar-card:hover {
+.analytics-card:hover {
   background: rgba(255, 255, 255, 0.03);
   border-color: var(--border-glow);
   transform: translateY(-2px);
+}
+
+.analytics-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.analytics-icon {
+  font-size: 1.4rem;
+}
+
+.analytics-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.analytics-main-val {
+  font-family: var(--font-en);
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: var(--accent-primary);
+  line-height: 1;
+}
+
+.analytics-subtext {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
 }
 
 .standard-header {
