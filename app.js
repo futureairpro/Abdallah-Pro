@@ -338,7 +338,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
     if (homeFastingEl) homeFastingEl.innerHTML = `${fastDoneCount} <span class="kpi-unit">يوم صيام</span>`;
 
     // 6. Gym Sessions in Period
-    let gymQuery = supabase.from('gym_logs').select('*');
+    let gymQuery = supabase.from('fitness_gym_logs').select('*');
     if (period === 'today') gymQuery = gymQuery.eq('date', todayStr);
     else gymQuery = gymQuery.gte('date', dateFilterStart);
     const { data: gymRows } = await gymQuery;
@@ -360,7 +360,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
     if (homeProjectsEl) homeProjectsEl.innerHTML = `${projRows?.length || 0} <span class="kpi-unit">مهام</span>`;
 
     // 9. Financial Expenses & Health in Period
-    let finQuery = supabase.from('financial_transactions').select('*');
+    let finQuery = supabase.from('personal_finance').select('*');
     if (period === 'today') finQuery = finQuery.eq('date', todayStr);
     else finQuery = finQuery.gte('date', dateFilterStart);
     const { data: finRows } = await finQuery;
@@ -375,9 +375,9 @@ async function renderHomeOverview(period = activeHomePeriod) {
     const homeExpenseEl = document.getElementById('homeExpenseAmount');
     if (homeExpenseEl) homeExpenseEl.innerHTML = `${periodExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })} <span class="kpi-unit">ج.م</span>`;
 
-    const { data: wallets } = await supabase.from('wallets').select('balance');
-    let totalBal = 0;
-    (wallets || []).forEach(w => totalBal += Number(w.balance || 0));
+    const { data: sessLiq } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
+    const liqObj = sessLiq?.data?.liquidity || {};
+    let totalBal = (Number(liqObj['خزنة شخصية'] || 0) + Number(liqObj['فودافون كاش'] || 0) + Number(liqObj['إنستا باي'] || 0) + Number(liqObj['بنك مصر'] || 0));
     const homeTotalBalEl = document.getElementById('homeTotalBalance');
     if (homeTotalBalEl) homeTotalBalEl.textContent = totalBal.toLocaleString('en-US', { minimumFractionDigits: 2 });
 
@@ -517,7 +517,14 @@ async function renderHomeOverview(period = activeHomePeriod) {
     // 💡 Motivational Message Generation
     const motivTextEl = document.getElementById('auditMotivText');
     if (motivTextEl) {
-    // 13. Advanced Retention Intelligence & Spaced Stats
+      if (scorePct >= 80) {
+        motivTextEl.textContent = '🌟 "أداء استثنائي وعزيمة حديدية يا دكتور عبد الله! استمر بنفس القوة والإصرار." 🩺🔥';
+      } else if (scorePct >= 50) {
+        motivTextEl.textContent = '⚡ "بداية طيبة، لكنك قادر على مضاعفة إنجازك اليوم.. انطلق وحقق أهدافك!" 💪';
+      } else {
+        motivTextEl.textContent = '🔥 "حين يخفت الشغف يتقدم الانضباط ليصنع الفارق.. لا تنتظر المزاج أو الحماس، ابدأ أول خطوة الآن واصنع مجدك بيدك!" 🩺';
+      }
+    }
     let masteredCount = 0;
     let learningCount = 0;
     const totalFlashcardsAndQuizzes = totalMedCount + totalEngCount;
@@ -1200,6 +1207,27 @@ async function initDashboard() {
 // ==============================================================================
 // 🧪 Sandbox Test Mode Engine (Backup Snapshot & Clean Restore)
 // ==============================================================================
+const SNAPSHOT_TABLES = [
+  'academic_schedule',
+  'attendance_logs',
+  'study_sessions',
+  'clinical_cases',
+  'medical_spaced_quizzes',
+  'english_spaced_flashcards',
+  'quran_logs',
+  'fasting_and_worship_logs',
+  'mental_wellness_logs',
+  'fitness_gym_logs',
+  'content_creation',
+  'work_projects',
+  'daily_tasks',
+  'appointments_and_reminders',
+  'thoughts_and_wisdom',
+  'self_development_books',
+  'prayers_and_habits',
+  'personal_finance'
+];
+
 async function checkSandboxModeState() {
   try {
     const { data: row } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
@@ -1216,11 +1244,13 @@ async function checkSandboxModeState() {
         btn.style.background = 'rgba(239, 68, 68, 0.2)';
         btn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
         btn.style.color = '#ef4444';
+        btn.title = 'وضع تجربة البوت مفعل حالياً - اضغط لإنهاء التجربة واستعادة البيانات الأصلية';
       } else {
         btn.innerHTML = '<span>🧪</span> <span class="btn-text">تجربة البوت</span>';
         btn.style.background = 'rgba(245, 158, 11, 0.15)';
         btn.style.borderColor = 'rgba(245, 158, 11, 0.4)';
         btn.style.color = '#f59e0b';
+        btn.title = 'تفعيل وضع تجربة واختبار البوت مع أخذ لقطة حفظ احتياطية كاملة';
       }
     }
   } catch (e) {
@@ -1229,122 +1259,136 @@ async function checkSandboxModeState() {
 }
 
 async function toggleSandboxModeFromWeb() {
-  const { data: row } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
-  const isSandbox = row?.data?.sandbox_active === true;
+  const btn = document.getElementById('toggle-sandbox-btn');
+  const originalText = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> <span class="btn-text">جاري الفحص...</span>';
+  }
 
-  if (isSandbox) {
-    disableSandboxModeAndRestore();
-  } else {
-    enableSandboxModeFromWeb();
+  try {
+    const { data: row } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
+    const isSandbox = row?.data?.sandbox_active === true;
+
+    if (btn) btn.disabled = false;
+
+    if (isSandbox) {
+      await disableSandboxModeAndRestore();
+    } else {
+      await enableSandboxModeFromWeb();
+    }
+  } catch (err) {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+    alert('❌ حدث خطأ أثناء فحص حالة وضع التجربة: ' + err.message);
   }
 }
 
 async function enableSandboxModeFromWeb() {
-  if (!confirm('🧪 هل ترغب في تفعيل وضع تجربة واختبار البوت؟\n\nسيتم أخذ لقطة حفظ احتياطية كاملة لجميع أقسام المنظومة والموقع، ويمكنك تجربة أي رسائل وأوامر في البوت دون الخوف على بياناتك وسجلاتك الأصلية.')) return;
+  const proceed = confirm(
+    '🧪 هل ترغب في تفعيل وضع تجربة واختبار البوت؟\n\n' +
+    '• سيتم أخذ لقطة حفظ احتياطية (Full Snapshot) لجميع الأقسام والسجلات والسيولة الحالية فوراً.\n' +
+    '• يمكنك إرسال أي رسائل أو أوامر تجريبية للبوت في تليجرام أو إجراء أي تعديلات دون خوف على بياناتك الأصلية.\n' +
+    '• في أي وقت تضغط "إنهاء التجربة"، سيتم إلغاء الحركات التجريبية وإعادة كل شيء كما كان تماماً!'
+  );
+  if (!proceed) return;
+
+  const btn = document.getElementById('toggle-sandbox-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> <span class="btn-text">جاري أخذ لقطة الحفظ...</span>';
+  }
 
   try {
     const { data: row } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
     const sessionData = row?.data || {};
 
-    const [
-      studies, habits, quran, engLogs, engCards, medQuizzes, acad, wellness, gym, content, work, tasks, thoughts, fin
-    ] = await Promise.all([
-      supabase.from('study_sessions').select('*'),
-      supabase.from('prayers_and_habits').select('*'),
-      supabase.from('quran_logs').select('*'),
-      supabase.from('english_logs').select('*'),
-      supabase.from('english_spaced_flashcards').select('*'),
-      supabase.from('medical_spaced_quizzes').select('*'),
-      supabase.from('academic_schedule').select('*'),
-      supabase.from('mental_wellness_logs').select('*'),
-      supabase.from('fitness_gym_logs').select('*'),
-      supabase.from('content_creation_logs').select('*'),
-      supabase.from('work_projects').select('*'),
-      supabase.from('daily_tasks').select('*'),
-      supabase.from('life_thoughts_and_rules').select('*'),
-      supabase.from('personal_finance').select('*')
-    ]);
+    // Take snapshot of all tables in parallel
+    const snapshotPromises = SNAPSHOT_TABLES.map(async (tbl) => {
+      const { data } = await supabase.from(tbl).select('*');
+      return { tbl, rows: data || [] };
+    });
 
-    sessionData.sandbox_snapshot = {
-      study_sessions: studies.data || [],
-      prayers_and_habits: habits.data || [],
-      quran_logs: quran.data || [],
-      english_logs: engLogs.data || [],
-      english_spaced_flashcards: engCards.data || [],
-      medical_spaced_quizzes: medQuizzes.data || [],
-      academic_schedule: acad.data || [],
-      mental_wellness_logs: wellness.data || [],
-      fitness_gym_logs: gym.data || [],
-      content_creation_logs: content.data || [],
-      work_projects: work.data || [],
-      daily_tasks: tasks.data || [],
-      life_thoughts_and_rules: thoughts.data || [],
-      personal_finance: fin.data || [],
+    const results = await Promise.all(snapshotPromises);
+    const snapshotObj = {
       liquidity: { ...(sessionData.liquidity || {}) },
       created_at: new Date().toISOString()
     };
+
+    results.forEach(({ tbl, rows }) => {
+      snapshotObj[tbl] = rows;
+    });
+
+    sessionData.sandbox_snapshot = snapshotObj;
     sessionData.sandbox_active = true;
 
-    await supabase.from('bot_sessions').upsert({
+    const { error: upsertErr } = await supabase.from('bot_sessions').upsert({
       chat_id: 999999,
       state: 'global_state',
       data: sessionData,
       updated_at: new Date().toISOString()
     });
 
-    alert('🧪 تم تفعيل وضع تجربة البوت بنجاح!\n\nيمكنك الآن إرسال أي رسائل أو أوامر تجريبية للبوت في تليجرام، وتجربة الموقع، وعند الانتهاء اضغط الزر الأحمر بالأعلى واستعادة كل شيء كما كان تماماً.');
+    if (upsertErr) throw upsertErr;
+
+    alert(
+      '🧪 تم تفعيل وضع تجربة البوت بنجاح!\n\n' +
+      '✅ تم أخذ نسخة احتياطية لكافة جداول وسجلات المنظومة.\n' +
+      'يمكنك الآن تجربة إرسال الأوامر والرسائل للبوت في تليجرام بحرية، ولإلغاء التجربة واستعادة بياناتك اضغط الزر الأحمر بالأعلى.'
+    );
+
     await checkSandboxModeState();
   } catch (e) {
     alert('❌ فشل تفعيل وضع التجربة: ' + e.message);
+  } finally {
+    if (btn) btn.disabled = false;
+    await checkSandboxModeState();
   }
 }
 
 async function disableSandboxModeAndRestore() {
-  if (!confirm('🔴 هل أنت متأكد من إنهاء وضع التجربة وإلغاء جميع الحركات التجريبية واستعادة البيانات الأصلية كما كانت بالضبط؟')) return;
+  const proceed = confirm(
+    '🔴 هل أنت متأكد من إنهاء وضع التجربة وإلغاء جميع الحركات التجريبية واستعادة البيانات الأصلية كما كانت بالضبط؟'
+  );
+  if (!proceed) return;
+
+  const btn = document.getElementById('toggle-sandbox-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> <span class="btn-text">جاري استعادة البيانات الأصلية...</span>';
+  }
 
   try {
     const { data: row } = await supabase.from('bot_sessions').select('*').eq('chat_id', 999999).maybeSingle();
     const sessionData = row?.data;
 
     if (!sessionData || !sessionData.sandbox_active || !sessionData.sandbox_snapshot) {
-      alert('⚠️ وضع التجربة غير مفعل حالياً!');
+      alert('⚠️ وضع التجربة غير مفعل أو لا توجد لقطة احتياطية محفوظة!');
+      if (btn) btn.disabled = false;
       return;
     }
 
     const snap = sessionData.sandbox_snapshot;
 
-    // 1. Clear tables
-    const tableNames = [
-      'study_sessions', 'prayers_and_habits', 'quran_logs', 'english_logs',
-      'english_spaced_flashcards', 'medical_spaced_quizzes', 'academic_schedule',
-      'mental_wellness_logs', 'fitness_gym_logs', 'content_creation_logs',
-      'work_projects', 'daily_tasks', 'life_thoughts_and_rules', 'personal_finance'
-    ];
-
-    for (const tbl of tableNames) {
-      if (tbl === 'prayers_and_habits') {
-        await supabase.from(tbl).delete().neq('date', '1970-01-01');
-      } else {
-        await supabase.from(tbl).delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      }
+    // 1. Clear current tables
+    for (const tbl of SNAPSHOT_TABLES) {
+      await supabase.from(tbl).delete().not('id', 'is', null);
     }
 
     // 2. Restore snapshot data
-    if (snap.study_sessions?.length) await supabase.from('study_sessions').insert(snap.study_sessions);
-    if (snap.prayers_and_habits?.length) await supabase.from('prayers_and_habits').insert(snap.prayers_and_habits);
-    if (snap.quran_logs?.length) await supabase.from('quran_logs').insert(snap.quran_logs);
-    if (snap.english_logs?.length) await supabase.from('english_logs').insert(snap.english_logs);
-    if (snap.english_spaced_flashcards?.length) await supabase.from('english_spaced_flashcards').insert(snap.english_spaced_flashcards);
-    if (snap.medical_spaced_quizzes?.length) await supabase.from('medical_spaced_quizzes').insert(snap.medical_spaced_quizzes);
-    if (snap.academic_schedule?.length) await supabase.from('academic_schedule').insert(snap.academic_schedule);
-    if (snap.mental_wellness_logs?.length) await supabase.from('mental_wellness_logs').insert(snap.mental_wellness_logs);
-    if (snap.fitness_gym_logs?.length) await supabase.from('fitness_gym_logs').insert(snap.fitness_gym_logs);
-    if (snap.content_creation_logs?.length) await supabase.from('content_creation_logs').insert(snap.content_creation_logs);
-    if (snap.work_projects?.length) await supabase.from('work_projects').insert(snap.work_projects);
-    if (snap.daily_tasks?.length) await supabase.from('daily_tasks').insert(snap.daily_tasks);
-    if (snap.life_thoughts_and_rules?.length) await supabase.from('life_thoughts_and_rules').insert(snap.life_thoughts_and_rules);
-    if (snap.personal_finance?.length) await supabase.from('personal_finance').insert(snap.personal_finance);
+    for (const tbl of SNAPSHOT_TABLES) {
+      const rows = snap[tbl];
+      if (rows && rows.length > 0) {
+        for (let i = 0; i < rows.length; i += 100) {
+          const chunk = rows.slice(i, i + 100);
+          await supabase.from(tbl).insert(chunk);
+        }
+      }
+    }
 
+    // 3. Restore liquidity and disable sandbox mode
     sessionData.liquidity = { ...(snap.liquidity || {}) };
     sessionData.sandbox_active = false;
     delete sessionData.sandbox_snapshot;
@@ -1356,11 +1400,14 @@ async function disableSandboxModeAndRestore() {
       updated_at: new Date().toISOString()
     });
 
-    alert('✅ تم إنهاء وضع التجربة وإعادة كافة السجلات والموديولات والبيانات للحالة الأصلية بنجاح!');
+    alert('✅ تم إنهاء وضع التجربة وإعادة كافة السجلات والبيانات للحالة الأصلية بنجاح!');
     await checkSandboxModeState();
     window.location.reload();
   } catch (e) {
     alert('❌ فشل استعادة البيانات: ' + e.message);
+  } finally {
+    if (btn) btn.disabled = false;
+    await checkSandboxModeState();
   }
 }
 
@@ -1369,5 +1416,16 @@ window.checkSandboxModeState = checkSandboxModeState;
 window.toggleSandboxModeFromWeb = toggleSandboxModeFromWeb;
 window.enableSandboxModeFromWeb = enableSandboxModeFromWeb;
 window.disableSandboxModeAndRestore = disableSandboxModeAndRestore;
+
+// Bind event listeners
+document.addEventListener('DOMContentLoaded', () => {
+  const sandboxBtn = document.getElementById('toggle-sandbox-btn');
+  if (sandboxBtn) {
+    sandboxBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleSandboxModeFromWeb();
+    });
+  }
+});
 
 window.addEventListener('DOMContentLoaded', initAuthGateway);
