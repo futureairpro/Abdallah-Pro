@@ -69,11 +69,17 @@ function initAuthGateway() {
 
   if (isAuthenticated) {
     if (overlay) overlay.style.display = 'none';
-    if (mainContent) mainContent.style.display = 'block';
+    if (mainContent) {
+      mainContent.classList.remove('hidden');
+      mainContent.style.display = 'flex';
+    }
     initDashboard();
   } else {
     if (overlay) overlay.style.display = 'flex';
-    if (mainContent) mainContent.style.display = 'none';
+    if (mainContent) {
+      mainContent.classList.add('hidden');
+      mainContent.style.display = 'none';
+    }
     if (input) input.focus();
   }
 
@@ -94,7 +100,10 @@ function initAuthGateway() {
       if (isValidMasterPasscode(entered)) {
         localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
         if (overlay) overlay.style.display = 'none';
-        if (mainContent) mainContent.style.display = 'block';
+        if (mainContent) {
+          mainContent.classList.remove('hidden');
+          mainContent.style.display = 'flex';
+        }
         if (errorMsg) errorMsg.textContent = '';
         initDashboard();
       } else {

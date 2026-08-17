@@ -141,19 +141,28 @@ body {
 }
 .auth-footer-note { margin-top: 20px; color: var(--text-muted); font-size: 0.75rem; }
 
+.hidden { display: none !important; }
+
 /* ==============================================================================
    🏢 Master App Layout (Sidebar + Main Wrapper)
    ============================================================================== */
 .app-layout {
-  display: flex;
+  display: flex !important;
+  flex-direction: row;
   min-height: 100vh;
   width: 100%;
+  position: relative;
+}
+
+.app-layout.hidden {
+  display: none !important;
 }
 
 /* 📌 1. Modern Sidebar (Right-side in RTL) */
 .sidebar {
-  width: 280px;
-  min-width: 280px;
+  width: 270px;
+  min-width: 270px;
+  max-width: 270px;
   background: var(--bg-sidebar);
   border-left: 1px solid var(--border-card);
   display: flex;
@@ -161,7 +170,7 @@ body {
   position: sticky;
   top: 0;
   height: 100vh;
-  z-index: 1000;
+  flex-shrink: 0;
 }
 
 .sidebar-header {
