@@ -578,132 +578,228 @@ body {
   margin-bottom: 18px;
 }
 
-.exec-badges-row {
+.exec-top-pills {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
-}
-
-.target-flag-box {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 8px 14px;
-  border-radius: var(--radius-md);
-}
-
-.flag-icon {
-  font-size: 1.4rem;
-}
-
-.flag-label {
-  display: block;
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  font-weight: 700;
-}
-
-.flag-value {
-  font-size: 0.88rem;
-  color: var(--accent-gold);
-  font-weight: 800;
-}
-
-.exec-banner-avatar {
-  flex-shrink: 0;
-  z-index: 1;
-}
-
-.doctor-avatar-circle {
-  width: 90px;
-  height: 90px;
-  background: rgba(16, 185, 129, 0.15);
-  border: 2px solid var(--border-glow);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 3rem;
-  box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
-}
-
-/* 🧭 Daily Non-Negotiable Standards Radar Grid */
-.standards-radar-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
-  margin-top: 10px;
-}
-
-.standard-radar-card {
-  background: var(--bg-card-inner);
-  border: 1px solid var(--border-card);
-  border-radius: var(--radius-md);
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: all 0.2s ease;
-}
-
-.standard-radar-card:hover {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: var(--border-glow);
-  transform: translateY(-2px);
-}
-
-.standard-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-
-.std-icon {
-  font-size: 1.4rem;
-}
-
-.std-title {
-  font-size: 0.98rem;
-  font-weight: 800;
-  color: #fff;
-}
-
-.std-target {
-  font-size: 0.84rem;
-  color: var(--accent-primary);
-  margin-bottom: 6px;
-  font-weight: 700;
-}
-
-.std-target b {
-  color: #fff;
-}
-
-.std-desc {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
   margin-bottom: 12px;
 }
 
-.std-status-row {
+/* 📅 Time Period Filter Controls */
+.time-filter-controls {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
 }
 
-.std-pill {
-  font-size: 0.72rem;
+.time-filter-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.time-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.time-filter-btn.active {
+  background: linear-gradient(135deg, var(--accent-primary), #059669);
+  color: #fff;
   font-weight: 800;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-color: var(--accent-primary);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+/* 🔍 Executive Strategic AI Audit & Diagnosis Card */
+.audit-summary-card {
+  background: var(--bg-card);
+  border: 1.5px solid rgba(16, 185, 129, 0.3);
+  border-radius: var(--radius-xl);
+  padding: 24px 28px;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 24px;
+}
+
+.audit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 18px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.audit-title-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.discipline-score-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  padding: 8px 18px;
+  border-radius: var(--radius-md);
+}
+
+.score-num {
+  font-family: var(--font-en);
+  font-size: 1.5rem;
+  font-weight: 900;
   color: var(--accent-primary);
-  padding: 3px 10px;
-  border-radius: 10px;
+  line-height: 1;
+}
+
+.score-desc {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #e2e8f0;
+  margin-top: 4px;
+}
+
+/* 4 Analytical Diagnostic Boxes Grid */
+.audit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.audit-box {
+  background: var(--bg-card-inner);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.audit-box:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.audit-box-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 8px;
+}
+
+.box-success { border-right: 4px solid var(--accent-primary); }
+.box-warning { border-right: 4px solid var(--accent-gold); }
+.box-danger  { border-right: 4px solid var(--accent-rose); }
+.box-finance { border-right: 4px solid #38bdf8; }
+
+.audit-box-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.audit-bullet {
+  font-size: 0.84rem;
+  color: #e2e8f0;
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.audit-bullet b {
+  color: #fff;
+}
+
+.audit-motivational-banner {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(6, 13, 19, 0.6));
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.audit-motivational-banner p {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.kpi-trend-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-top: 6px;
+  display: inline-block;
+}
+
+.kpi-trend-pill b {
+  color: var(--accent-primary);
+  font-family: var(--font-en);
+}
+
+/* 📋 Checklist Grid */
+.checklist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.check-item {
+  background: var(--bg-card-inner);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.check-item-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.check-item-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.check-item-meta {
+  font-size: 0.76rem;
+  color: var(--text-muted);
 }
 
 /* ==============================================================================

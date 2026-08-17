@@ -202,32 +202,33 @@
         <!-- 🏠 TAB 0: Executive Command Hub & Global Analytics (الصفحة الرئيسية) -->
         <section class="tab-pane active" id="tab-home">
           
-          <!-- 👑 Executive Welcome & Master Target Banner -->
+          <!-- 👑 Executive Welcome & Time Period Filter -->
           <div class="executive-banner-card">
             <div class="exec-banner-content">
-              <div class="exec-badge-pill">
-                <span class="pulse-dot-green"></span>
-                <span>بوابة القيادة التنفيذية والمتابعة الشاملة</span>
+              <div class="exec-top-pills">
+                <div class="exec-badge-pill">
+                  <span class="pulse-dot-green"></span>
+                  <span>بوابة التحليل الاستراتيجي الشامل ومتابعة الأداء</span>
+                </div>
+                <div class="target-badge-pill" style="margin: 0;">
+                  <span class="live-dot"></span>
+                  <span>🎯 الهدف الأكاديمي: امتياز (450/450)</span>
+                </div>
               </div>
               <h1 class="exec-title">مرحباً بك يا د. عبدالله 🩺✨</h1>
-              <p class="exec-desc">لوحة المؤشرات المركزية الشاملة — تقارير ورادارات ذكية ترصد وتوثق كل جوانب يومك الأكاديمي، الديني، البدني، والمهني بأعلى معايير الانضباط.</p>
+              <p class="exec-desc">تقرير "الزتونة" الشامل — رصد تحليلي دقيق لمستوى أدائك، صعودك وهبوطك، ما أنجزته وما تأخرت فيه، ومعدل إنفاقك مع توجيه ذكي للحفاظ على شعلة الانضباط.</p>
               
-              <div class="exec-badges-row">
-                <div class="target-flag-box">
-                  <span class="flag-icon">🎯</span>
-                  <div>
-                    <span class="flag-label">الهدف الأكاديمي الأسمى:</span>
-                    <strong class="flag-value">امتياز الفرقة الرابعة — الترم السابع (450 / 450 درجة)</strong>
-                  </div>
-                </div>
-
-                <div class="target-flag-box">
-                  <span class="flag-icon">⚡</span>
-                  <div>
-                    <span class="flag-label">المزامنة مع البوت:</span>
-                    <strong class="flag-value" style="color: var(--accent-primary);">@abdallahprobot متصل وحي</strong>
-                  </div>
-                </div>
+              <!-- 📅 Time Period Filter Tabs -->
+              <div class="time-filter-controls">
+                <button type="button" class="time-filter-btn active" id="btnFilterToday" onclick="setTimePeriodFilter('today')">
+                  📅 اليوم (Today)
+                </button>
+                <button type="button" class="time-filter-btn" id="btnFilterWeek" onclick="setTimePeriodFilter('week')">
+                  📆 هذا الأسبوع (This Week)
+                </button>
+                <button type="button" class="time-filter-btn" id="btnFilterMonth" onclick="setTimePeriodFilter('month')">
+                  🗓️ هذا الشهر (This Month)
+                </button>
               </div>
             </div>
             <div class="exec-banner-avatar">
@@ -235,242 +236,188 @@
             </div>
           </div>
 
-          <!-- 📊 9 Holistic Life KPIs Matrix -->
-          <div class="section-title-row" style="margin-top: 24px;">
-            <h2>📊 مصفوفة المؤشرات الحية الشاملة (Holistic Life Matrix)</h2>
-            <span class="badge-emerald">مزامنة حية من قاعدة البيانات</span>
+          <!-- 🔍 Executive Strategic AI Audit & Diagnosis ("الزتونة والتحليل الشامل") -->
+          <div class="audit-summary-card">
+            <div class="audit-header">
+              <div class="audit-title-box">
+                <span style="font-size: 1.5rem;">🔍</span>
+                <div>
+                  <h3 style="margin: 0; color: #fff; font-size: 1.15rem; font-weight: 800;">تقرير الزتونة والتشخيص الذكي للأداء (<span id="auditPeriodLabel">اليوم</span>)</h3>
+                  <p style="margin: 3px 0 0; color: var(--text-secondary); font-size: 0.82rem;">تقييم فوري شامل يوضح نقاط قوتك، نواقصك، وحالة ميزانيتك</p>
+                </div>
+              </div>
+              <div class="discipline-score-badge" id="overallScoreBadge">
+                <span class="score-num" id="overallScoreNum">100%</span>
+                <span class="score-desc" id="overallScoreDesc">أداء ممتاز ومنضبط 🟢</span>
+              </div>
+            </div>
+
+            <!-- 4 Analytical Diagnostics Grid -->
+            <div class="audit-grid">
+              
+              <!-- 1. Top Strengths & Wins -->
+              <div class="audit-box box-success">
+                <div class="audit-box-header">
+                  <span class="audit-box-icon">🏆</span>
+                  <span class="audit-box-title">أقوى نقاط الانضباط والتفوق:</span>
+                </div>
+                <div class="audit-box-content" id="auditStrengthsList">
+                  <div class="audit-bullet">🔥 جاري تحليل الإنجازات المحققة...</div>
+                </div>
+              </div>
+
+              <!-- 2. Slipping Areas & Gaps -->
+              <div class="audit-box box-warning">
+                <div class="audit-box-header">
+                  <span class="audit-box-icon">⚠️</span>
+                  <span class="audit-box-title">نواقص وتراجعات تحتاج تدخلاً:</span>
+                </div>
+                <div class="audit-box-content" id="auditSlippingList">
+                  <div class="audit-bullet">🚨 جاري فحص المستهدفات العالقة...</div>
+                </div>
+              </div>
+
+              <!-- 3. Overdue & Backlog -->
+              <div class="audit-box box-danger">
+                <div class="audit-box-header">
+                  <span class="audit-box-icon">⏳</span>
+                  <span class="audit-box-title">المتأخرات والمستحقات العاجلة:</span>
+                </div>
+                <div class="audit-box-content" id="auditBacklogList">
+                  <div class="audit-bullet">⏰ لا توجد متأخرات معلقة حالياً.</div>
+                </div>
+              </div>
+
+              <!-- 4. Expense & Budget Health -->
+              <div class="audit-box box-finance">
+                <div class="audit-box-header">
+                  <span class="audit-box-icon">💵</span>
+                  <span class="audit-box-title">تقرير المصروفات والسيولة:</span>
+                </div>
+                <div class="audit-box-content" id="auditFinanceReport">
+                  <div class="audit-bullet">💳 المصروفات في الحدود الآمنة والطبيعية.</div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Dynamic Mindset & Performance Anchor Message -->
+            <div class="audit-motivational-banner" id="auditMotivBanner">
+              <span style="font-size: 1.4rem;">💡</span>
+              <p id="auditMotivText">"الانضباط هو الجسر بين أهدافك وتفوقك.. كل دقيقة مذاكرة وورد قرآن الآن تصنع طبيباً عظيماً ومستقبلاً باهراً." 🩺👑</p>
+            </div>
+          </div>
+
+          <!-- 📊 Domain Performance Cards Grid (Dynamic Trend Matrix) -->
+          <div class="section-title-row" style="margin-top: 28px;">
+            <h2>📊 تفاصيل أداء الأقسام ومعدلات الصعود والهبوط (<span id="matrixPeriodLabel">اليوم</span>)</h2>
+            <span class="badge-emerald">مؤشرات حية متكاملة</span>
           </div>
 
           <div class="kpi-metrics-grid">
+            
+            <!-- 1. Study -->
             <div class="kpi-card" onclick="switchTabDirect('medical')">
               <div class="kpi-body">
-                <span class="kpi-label">ساعات المذاكرة والتحصيل</span>
+                <span class="kpi-label">المذاكرة والتحصيل الأكاديمي</span>
                 <div class="kpi-value" id="homeStudyHours">0.0 <span class="kpi-unit">ساعة</span></div>
-                <span class="kpi-meta" id="homeStudyMeta">الهدف اليومي: 3 ساعات</span>
+                <div class="kpi-trend-pill" id="studyTrendPill">🎯 المستهدف: <b id="studyTargetLabel">3 ساعات</b></div>
               </div>
               <div class="kpi-icon-box">📚</div>
             </div>
 
+            <!-- 2. Medical Spaced Quizzes -->
             <div class="kpi-card" onclick="switchTabDirect('medical')">
               <div class="kpi-body">
                 <span class="kpi-label">كويزات الطب بالتكرار المتباعد</span>
                 <div class="kpi-value" id="homeMedQuizzes">0 <span class="kpi-unit">سؤال</span></div>
-                <span class="kpi-meta" id="homeMedMeta">تثبيت موديولات الترم 7</span>
+                <div class="kpi-trend-pill" id="medQuizzesDuePill">🩺 <b id="medDueCount">0</b> مستحق للمراجعة</div>
               </div>
               <div class="kpi-icon-box">🩺</div>
             </div>
 
+            <!-- 3. English Cards -->
             <div class="kpi-card" onclick="switchTabDirect('english')">
               <div class="kpi-body">
                 <span class="kpi-label">فلاش كاردز الإنجليزية (Spaced)</span>
                 <div class="kpi-value" id="homeEngCards">0 <span class="kpi-unit">كلمات</span></div>
-                <span class="kpi-meta" id="homeEngMeta">متقنة ومراجعة</span>
+                <div class="kpi-trend-pill" id="engDuePill">🗣️ <b id="engDueCount">0</b> كلمات مستحقة</div>
               </div>
               <div class="kpi-icon-box">🗣️</div>
             </div>
 
+            <!-- 4. Quran & Worship -->
             <div class="kpi-card" onclick="switchTabDirect('quran')">
               <div class="kpi-body">
                 <span class="kpi-label">جلسات القرآن والتدبر</span>
                 <div class="kpi-value" id="homeQuranSessions">0 <span class="kpi-unit">جلسة</span></div>
-                <span class="kpi-meta" id="homeQuranMeta">الهدف: 30 دقيقة ورد</span>
+                <div class="kpi-trend-pill">📖 المستهدف: 30 دقيقة ورد</div>
               </div>
               <div class="kpi-icon-box">📖</div>
             </div>
 
+            <!-- 5. Fasting & Sunnah -->
             <div class="kpi-card" onclick="switchTabDirect('fasting')">
               <div class="kpi-body">
                 <span class="kpi-label">الصيام وسنن الأذكار</span>
                 <div class="kpi-value" id="homeFastingCount">0 <span class="kpi-unit">يوم</span></div>
-                <span class="kpi-meta" id="homeFastingMeta">أذكار الفجر والعصر</span>
+                <div class="kpi-trend-pill">🌙 أذكار الفجر والعصر</div>
               </div>
               <div class="kpi-icon-box">🌙</div>
             </div>
 
+            <!-- 6. Gym & Fitness -->
             <div class="kpi-card" onclick="switchTabDirect('gym')">
               <div class="kpi-body">
                 <span class="kpi-label">الجيم واللياقة البدنية</span>
                 <div class="kpi-value" id="homeGymDays">0 <span class="kpi-unit">تمارين</span></div>
-                <span class="kpi-meta" id="homeGymMeta">انضباط التمارين</span>
+                <div class="kpi-trend-pill">🏋️‍♂️ يومياً ما عدا الراحة</div>
               </div>
               <div class="kpi-icon-box">🏋️‍♂️</div>
             </div>
 
+            <!-- 7. Content Pipeline -->
             <div class="kpi-card" onclick="switchTabDirect('content')">
               <div class="kpi-body">
                 <span class="kpi-label">صناعة المحتوى والميديا</span>
-                <div class="kpi-value" id="homeContentCount">0 <span class="kpi-unit">فيديو/فكرة</span></div>
-                <span class="kpi-meta" id="homeContentMeta">خط الإنتاج والنشر</span>
+                <div class="kpi-value" id="homeContentCount">0 <span class="kpi-unit">مشاريع</span></div>
+                <div class="kpi-trend-pill">🎬 الإنتاج والمونتاج</div>
               </div>
               <div class="kpi-icon-box">🎬</div>
             </div>
 
+            <!-- 8. Business & Work -->
             <div class="kpi-card" onclick="switchTabDirect('work')">
               <div class="kpi-body">
                 <span class="kpi-label">الشغل وإدارة المشاريع</span>
-                <div class="kpi-value" id="homeProjectsCount">0 <span class="kpi-unit">مشاريع</span></div>
-                <span class="kpi-meta" id="homeProjectsMeta">التطوير والبيزنس</span>
+                <div class="kpi-value" id="homeProjectsCount">0 <span class="kpi-unit">مهام</span></div>
+                <div class="kpi-trend-pill">💼 الصفقات والتطوير</div>
               </div>
               <div class="kpi-icon-box">💼</div>
             </div>
 
+            <!-- 9. Finance & Expenses -->
             <div class="kpi-card" onclick="switchTabDirect('finance')">
               <div class="kpi-body">
-                <span class="kpi-label">الخزنة والسيولة المالية</span>
-                <div class="kpi-value" id="homeTotalBalance">0.00 <span class="kpi-unit">ج.م</span></div>
-                <span class="kpi-meta" id="homeFinanceMeta">المحفظة والبنك والمدخرات</span>
+                <span class="kpi-label">مصروفات الفترة والسيولة</span>
+                <div class="kpi-value" id="homeExpenseAmount">0.00 <span class="kpi-unit">ج.م</span></div>
+                <div class="kpi-trend-pill" id="homeBalancePill">💵 إجمالي الخزنة: <b id="homeTotalBalance">0.00</b> ج.م</div>
               </div>
               <div class="kpi-icon-box">💵</div>
             </div>
+
           </div>
 
-          <!-- 🧭 Daily Non-Negotiable Standards Radar -->
-          <div class="split-card full-width-card" style="margin-bottom: 24px;">
+          <!-- 📋 Actionable Performance Checklist (ما تم وما لم يتم إنجازه) -->
+          <div class="split-card full-width-card" style="margin-top: 24px;">
             <div class="card-header">
-              <h3>🧭 رادار الثوابت اليومية وقواعد الانضباط الصارم (Daily Non-Negotiables)</h3>
-              <span class="card-badge" style="color: var(--accent-gold); border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.1);">ثوابت لا تقبل التراجع</span>
+              <h3>📋 جدول فحص الثوابت والإنجاز الفعلي (<span id="checklistPeriodLabel">اليوم</span>)</h3>
+              <span class="card-badge" id="checklistDoneBadge">0 / 6 مكتمل</span>
             </div>
             
-            <div class="standards-radar-grid">
-              <div class="standard-radar-card">
-                <div class="standard-header">
-                  <span class="std-icon">⏱️</span>
-                  <span class="std-title">مذاكرة الطب والسكاشن</span>
-                </div>
-                <div class="std-target">الحد الأدنى: <b>3 ساعات يومياً</b></div>
-                <div class="std-desc">مراجعة الموديولات وحل كويزات التكرار المتباعد والأسئلة السريرية.</div>
-                <div class="std-status-row">
-                  <span class="std-pill">🎯 أساسي كل يوم</span>
-                </div>
-              </div>
-
-              <div class="standard-radar-card">
-                <div class="standard-header">
-                  <span class="std-icon">🏋️‍♂️</span>
-                  <span class="std-title">تمرين الجيم والقوة</span>
-                </div>
-                <div class="std-target">التكرار: <b>يومياً ما عدا يوم راحة</b></div>
-                <div class="std-desc">بناء القوة البدنية ورفع الطاقة والنشاط ومقاومة الخمول.</div>
-                <div class="std-status-row">
-                  <span class="std-pill">💪 انضباط عضلي</span>
-                </div>
-              </div>
-
-              <div class="standard-radar-card">
-                <div class="standard-header">
-                  <span class="std-icon">📖</span>
-                  <span class="std-title">ورد القرآن الكريم</span>
-                </div>
-                <div class="std-target">المدة: <b>نصف ساعة (30 دقيقة)</b></div>
-                <div class="std-desc">تلاوة، تدبر، وتثبيت الحفظ اليومي قبل أو بعد الصلوات.</div>
-                <div class="std-status-row">
-                  <span class="std-pill">🤍 نور وبركة اليوم</span>
-                </div>
-              </div>
-
-              <div class="standard-radar-card">
-                <div class="standard-header">
-                  <span class="std-icon">🗣️</span>
-                  <span class="std-title">تطوير اللغة الإنجليزية</span>
-                </div>
-                <div class="std-target">المدة: <b>نصف ساعة (30 دقيقة)</b></div>
-                <div class="std-desc">ممارسة الفويس مع البوت ومراجعة الفلاش كاردز والجمل الطبية.</div>
-                <div class="std-status-row">
-                  <span class="std-pill">🌍 طلاقة مستمرة</span>
-                </div>
-              </div>
-
-              <div class="standard-radar-card">
-                <div class="standard-header">
-                  <span class="std-icon">🌅</span>
-                  <span class="std-title">أذكار وتدبر الفجر</span>
-                </div>
-                <div class="std-target">المدة: <b>ساعة كاملة بعد صلاة الفجر</b></div>
-                <div class="std-desc">أذكار الصباح، استغفار، تدبر، وتخطيط مهام اليوم بذهن صافٍ.</div>
-                <div class="std-status-row">
-                  <span class="std-pill">☀️ بداية اليوم</span>
-                </div>
-              </div>
-
-              <div class="standard-radar-card">
-                <div class="standard-header">
-                  <span class="std-icon">🌇</span>
-                  <span class="std-title">أذكار وتدبر العصر</span>
-                </div>
-                <div class="std-target">المدة: <b>ساعة كاملة بعد صلاة العصر</b></div>
-                <div class="std-desc">أذكار المساء، استجماع القوة، وتفريغ المشاعر والتفكر.</div>
-                <div class="std-status-row">
-                  <span class="std-pill">🌙 سكينة المساء</span>
-                </div>
-              </div>
+            <div class="checklist-grid" id="homeChecklistGrid">
+              <!-- Dynamically populated by app.js -->
             </div>
-          </div>
-
-          <!-- ⚡ Semester 7 Medical Snapshot & Live Activity Stream -->
-          <div class="content-split-grid" style="margin-bottom: 24px;">
-            <div class="split-card">
-              <div class="card-header">
-                <h3>🩺 موديولات الفرقة 4 — الترم السابع (450 درجة)</h3>
-                <span class="card-badge" onclick="switchTabDirect('medical')" style="cursor: pointer;">عرض التفاصيل ⬅️</span>
-              </div>
-              <div class="home-courses-list" id="homeCoursesList">
-                <div class="session-item">
-                  <div class="item-top-row">
-                    <span class="item-title">🫀 CAD402 — Cardiac Disorders</span>
-                    <span class="task-status-badge status-done">125 درجة | 5 ساعات</span>
-                  </div>
-                  <div class="item-desc">أعمال سنة: 12 | ميد: 25 | فاينال: 50 | إكلينيكي: 38</div>
-                </div>
-                <div class="session-item">
-                  <div class="item-top-row">
-                    <span class="item-title">👶 PED401 — Pediatric 1</span>
-                    <span class="task-status-badge status-done">125 درجة | 5 ساعات</span>
-                  </div>
-                  <div class="item-desc">أعمال سنة: 12 | ميد: 25 | فاينال: 50 | إكلينيكي: 38</div>
-                </div>
-                <div class="session-item">
-                  <div class="item-top-row">
-                    <span class="item-title">🩸 HVD404 — Hematological Disorders</span>
-                    <span class="task-status-badge status-done">100 درجة | 4 ساعات</span>
-                  </div>
-                  <div class="item-desc">أعمال سنة: 10 | ميد: 20 | فاينال: 40 | إكلينيكي: 30</div>
-                </div>
-                <div class="session-item">
-                  <div class="item-top-row">
-                    <span class="item-title">🫁 RSD403 — Respiratory Disorders</span>
-                    <span class="task-status-badge status-done">75 درجة | 3 ساعات</span>
-                  </div>
-                  <div class="item-desc">أعمال سنة: 7 | ميد: 15 | فاينال: 30 | إكلينيكي: 23</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="split-card">
-              <div class="card-header">
-                <h3>⚡ سجل النشاطات الحية والإنجازات (Live Activity Feed)</h3>
-                <span class="card-badge" id="liveActivityCount">نشاطات اليوم</span>
-              </div>
-              <div class="sessions-list" id="homeRecentActivities">
-                <div class="session-item">
-                  <div class="item-top-row">
-                    <span class="item-title">🩺 مرحباً بك في المنظومة يا د. عبدالله!</span>
-                    <span class="item-date">الآن</span>
-                  </div>
-                  <div class="item-desc">أرسل أي فويس أو رسالة في البوت @abdallahprobot وسيقوم بتوثيق كل إنجازاتك تلقائياً هنا!</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 💡 Mindset & Wisdom Anchor -->
-          <div class="split-card full-width-card" style="background: linear-gradient(135deg, rgba(12, 28, 43, 0.9), rgba(6, 13, 19, 0.95)); border: 1.5px solid var(--border-glow);">
-            <div class="card-header" style="border: none; padding-bottom: 0;">
-              <h3>💡 قاعدة الانضباط وصناعة المستقبل:</h3>
-              <span class="card-badge" style="background: rgba(16, 185, 129, 0.2); color: #fff;">Dr. Abdullah Mindset</span>
-            </div>
-            <p style="font-family: 'Amiri', serif; font-size: 1.25rem; color: #f8fafc; line-height: 1.8; margin-top: 10px;">
-              "الشغف شرارة تشعل البداية، لكن الانضباط الصارم والثوابت اليومية هي التي تصنع الطبيب العظيم وتبني المجد الحقيقي. حين تتراجع الرغبة وتخفت الحماسة، يتقدم الانضباط ليكمل المسيرة نحو الامتياز (450/450) دون توقف." 🩺👑
-            </p>
           </div>
 
         </section>

@@ -214,99 +214,316 @@ window.switchTabDirect = function(tabName) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-// 🏠 0. Executive Home Overview & Global Analytics Matrix
-async function renderHomeOverview() {
+// 📅 Current Analytical Time Period State ('today' | 'week' | 'month')
+let activeHomePeriod = 'today';
+
+window.setTimePeriodFilter = function(period) {
+  activeHomePeriod = period;
+  
+  // Update Buttons UI
+  const btnToday = document.getElementById('btnFilterToday');
+  const btnWeek = document.getElementById('btnFilterWeek');
+  const btnMonth = document.getElementById('btnFilterMonth');
+
+  if (btnToday) btnToday.classList.toggle('active', period === 'today');
+  if (btnWeek) btnWeek.classList.toggle('active', period === 'week');
+  if (btnMonth) btnMonth.classList.toggle('active', period === 'month');
+
+  // Update Period Labels
+  const labelText = period === 'today' ? 'اليوم' : (period === 'week' ? 'هذا الأسبوع' : 'هذا الشهر');
+  const auditLabel = document.getElementById('auditPeriodLabel');
+  const matrixLabel = document.getElementById('matrixPeriodLabel');
+  const checklistLabel = document.getElementById('checklistPeriodLabel');
+
+  if (auditLabel) auditLabel.textContent = labelText;
+  if (matrixLabel) matrixLabel.textContent = labelText;
+  if (checklistLabel) checklistLabel.textContent = labelText;
+
+  // Recalculate
+  renderHomeOverview(period);
+};
+
+// 🏠 0. Executive Home Overview & Strategic AI Performance Audit
+async function renderHomeOverview(period = activeHomePeriod) {
   try {
-    // 1. Study Sessions
-    const { data: studyData } = await supabase.from('study_sessions').select('duration_minutes, pages_studied');
-    let totalStudyMins = 0;
-    if (studyData) {
-      studyData.forEach(s => totalStudyMins += (Number(s.duration_minutes) || 0));
+    const todayStr = getCairoToday();
+    const now = new Date();
+    
+    // Determine Date Filter Threshold
+    let dateFilterStart = todayStr;
+    if (period === 'week') {
+      const past7 = new Date();
+      past7.setDate(now.getDate() - 7);
+      dateFilterStart = past7.toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
+    } else if (period === 'month') {
+      const past30 = new Date();
+      past30.setDate(now.getDate() - 30);
+      dateFilterStart = past30.toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
     }
+
+    // 1. Study Sessions in Period
+    let studyQuery = supabase.from('study_sessions').select('*');
+    if (period === 'today') {
+      studyQuery = studyQuery.eq('date', todayStr);
+    } else {
+      studyQuery = studyQuery.gte('date', dateFilterStart);
+    }
+    const { data: studyRows } = await studyQuery;
+    let totalStudyMins = 0;
+    let totalPages = 0;
+    (studyRows || []).forEach(s => {
+      totalStudyMins += (Number(s.duration_minutes) || 0);
+      totalPages += (Number(s.pages_studied) || 0);
+    });
     const studyHours = (totalStudyMins / 60).toFixed(1);
+    const targetStudyHours = period === 'today' ? 3 : (period === 'week' ? 21 : 90);
+    const studyTargetEl = document.getElementById('studyTargetLabel');
+    if (studyTargetEl) studyTargetEl.textContent = `${targetStudyHours} ساعات`;
     const homeStudyEl = document.getElementById('homeStudyHours');
     if (homeStudyEl) homeStudyEl.innerHTML = `${studyHours} <span class="kpi-unit">ساعة</span>`;
 
-    // 2. Med Quizzes
-    const { data: medData } = await supabase.from('medical_spaced_quizzes').select('id');
+    // 2. Medical Spaced Quizzes & Due Overdue Backlog
+    const { data: medQuizzes } = await supabase.from('medical_spaced_quizzes').select('*');
+    const totalMedCount = medQuizzes?.length || 0;
+    let medDueCount = 0;
+    const nowIso = new Date().toISOString();
+    (medQuizzes || []).forEach(q => {
+      if (!q.next_review_at || q.next_review_at <= nowIso) {
+        medDueCount++;
+      }
+    });
     const homeMedEl = document.getElementById('homeMedQuizzes');
-    if (homeMedEl) homeMedEl.innerHTML = `${medData?.length || 0} <span class="kpi-unit">سؤال</span>`;
+    if (homeMedEl) homeMedEl.innerHTML = `${totalMedCount} <span class="kpi-unit">سؤال</span>`;
+    const medDueEl = document.getElementById('medDueCount');
+    if (medDueEl) medDueEl.textContent = medDueCount;
 
-    // 3. English Cards
-    const { data: engData } = await supabase.from('english_spaced_flashcards').select('id');
+    // 3. English Spaced Flashcards & Due Backlog
+    const { data: engCards } = await supabase.from('english_spaced_flashcards').select('*');
+    const totalEngCount = engCards?.length || 0;
+    let engDueCount = 0;
+    (engCards || []).forEach(c => {
+      if (!c.next_review_at || c.next_review_at <= nowIso) {
+        engDueCount++;
+      }
+    });
     const homeEngEl = document.getElementById('homeEngCards');
-    if (homeEngEl) homeEngEl.innerHTML = `${engData?.length || 0} <span class="kpi-unit">كلمات</span>`;
+    if (homeEngEl) homeEngEl.innerHTML = `${totalEngCount} <span class="kpi-unit">كلمة</span>`;
+    const engDueEl = document.getElementById('engDueCount');
+    if (engDueEl) engDueEl.textContent = engDueCount;
 
-    // 4. Quran
-    const { data: quranData } = await supabase.from('quran_logs').select('id');
+    // 4. Quran Sessions in Period
+    let quranQuery = supabase.from('quran_logs').select('*');
+    if (period === 'today') quranQuery = quranQuery.eq('date', todayStr);
+    else quranQuery = quranQuery.gte('date', dateFilterStart);
+    const { data: quranRows } = await quranQuery;
+    let totalQuranMins = 0;
+    (quranRows || []).forEach(q => totalQuranMins += (Number(q.duration_minutes) || 0));
     const homeQuranEl = document.getElementById('homeQuranSessions');
-    if (homeQuranEl) homeQuranEl.innerHTML = `${quranData?.length || 0} <span class="kpi-unit">جلسة</span>`;
+    if (homeQuranEl) homeQuranEl.innerHTML = `${quranRows?.length || 0} <span class="kpi-unit">جلسة</span>`;
 
-    // 5. Fasting
-    const { data: fastData } = await supabase.from('fasting_and_worship_logs').select('id').eq('fasting_completed', true);
+    // 5. Fasting and Worship in Period
+    let fastQuery = supabase.from('fasting_and_worship_logs').select('*');
+    if (period === 'today') fastQuery = fastQuery.eq('date', todayStr);
+    else fastQuery = fastQuery.gte('date', dateFilterStart);
+    const { data: fastRows } = await fastQuery;
+    let fastDoneCount = 0;
+    let adhkarFajrDone = false;
+    let adhkarAsrDone = false;
+    (fastRows || []).forEach(f => {
+      if (f.fasting_completed) fastDoneCount++;
+      if (f.morning_adhkar) adhkarFajrDone = true;
+      if (f.evening_adhkar) adhkarAsrDone = true;
+    });
     const homeFastingEl = document.getElementById('homeFastingCount');
-    if (homeFastingEl) homeFastingEl.innerHTML = `${fastData?.length || 0} <span class="kpi-unit">يوم</span>`;
+    if (homeFastingEl) homeFastingEl.innerHTML = `${fastDoneCount} <span class="kpi-unit">يوم صيام</span>`;
 
-    // 6. Gym
-    const { data: gymData } = await supabase.from('gym_logs').select('id');
+    // 6. Gym Sessions in Period
+    let gymQuery = supabase.from('gym_logs').select('*');
+    if (period === 'today') gymQuery = gymQuery.eq('date', todayStr);
+    else gymQuery = gymQuery.gte('date', dateFilterStart);
+    const { data: gymRows } = await gymQuery;
+    const gymSessionsCount = gymRows?.length || 0;
     const homeGymEl = document.getElementById('homeGymDays');
-    if (homeGymEl) homeGymEl.innerHTML = `${gymData?.length || 0} <span class="kpi-unit">تمارين</span>`;
+    if (homeGymEl) homeGymEl.innerHTML = `${gymSessionsCount} <span class="kpi-unit">تمارين</span>`;
 
-    // 7. Content
-    const { data: contentData } = await supabase.from('content_creation').select('id');
+    // 7. Content Creation in Period
+    let contentQuery = supabase.from('content_creation').select('*');
+    if (period === 'today') contentQuery = contentQuery.eq('date', todayStr);
+    else contentQuery = contentQuery.gte('date', dateFilterStart);
+    const { data: contentRows } = await contentQuery;
     const homeContentEl = document.getElementById('homeContentCount');
-    if (homeContentEl) homeContentEl.innerHTML = `${contentData?.length || 0} <span class="kpi-unit">فكرة/فيديو</span>`;
+    if (homeContentEl) homeContentEl.innerHTML = `${contentRows?.length || 0} <span class="kpi-unit">مشاريع</span>`;
 
-    // 8. Projects
-    const { data: projData } = await supabase.from('work_projects').select('id');
+    // 8. Business & Work Projects in Period
+    const { data: projRows } = await supabase.from('work_projects').select('*');
     const homeProjectsEl = document.getElementById('homeProjectsCount');
-    if (homeProjectsEl) homeProjectsEl.innerHTML = `${projData?.length || 0} <span class="kpi-unit">مشاريع</span>`;
+    if (homeProjectsEl) homeProjectsEl.innerHTML = `${projRows?.length || 0} <span class="kpi-unit">مهام</span>`;
 
-    // 9. Finance Balance
+    // 9. Financial Expenses & Health in Period
+    let finQuery = supabase.from('financial_transactions').select('*');
+    if (period === 'today') finQuery = finQuery.eq('date', todayStr);
+    else finQuery = finQuery.gte('date', dateFilterStart);
+    const { data: finRows } = await finQuery;
+    let periodExpenses = 0;
+    let periodIncome = 0;
+    (finRows || []).forEach(tr => {
+      const amt = Number(tr.amount) || 0;
+      if (tr.type === 'expense' || tr.type === 'مصروف') periodExpenses += amt;
+      else if (tr.type === 'income' || tr.type === 'دخل' || tr.type === 'إيراد') periodIncome += amt;
+    });
+
+    const homeExpenseEl = document.getElementById('homeExpenseAmount');
+    if (homeExpenseEl) homeExpenseEl.innerHTML = `${periodExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })} <span class="kpi-unit">ج.م</span>`;
+
     const { data: wallets } = await supabase.from('wallets').select('balance');
     let totalBal = 0;
-    if (wallets && wallets.length > 0) {
-      wallets.forEach(w => totalBal += Number(w.balance || 0));
-    }
+    (wallets || []).forEach(w => totalBal += Number(w.balance || 0));
     const homeTotalBalEl = document.getElementById('homeTotalBalance');
-    if (homeTotalBalEl) homeTotalBalEl.innerHTML = `${totalBal.toLocaleString('en-US', { minimumFractionDigits: 2 })} <span class="kpi-unit">ج.م</span>`;
+    if (homeTotalBalEl) homeTotalBalEl.textContent = totalBal.toLocaleString('en-US', { minimumFractionDigits: 2 });
 
-    // 10. Live Activity Stream
-    const activityFeedEl = document.getElementById('homeRecentActivities');
-    const { data: recentSessions } = await supabase.from('study_sessions').select('*').order('created_at', { ascending: false }).limit(3);
-    const { data: recentFlashcards } = await supabase.from('english_spaced_flashcards').select('*').order('created_at', { ascending: false }).limit(2);
+    // 10. Daily Non-Negotiable Checklist Evaluation
+    const checkStudy = Number(studyHours) >= (period === 'today' ? 3 : (period === 'week' ? 21 : 90));
+    const checkGym = gymSessionsCount >= (period === 'today' ? 1 : (period === 'week' ? 5 : 20));
+    const checkQuran = totalQuranMins >= (period === 'today' ? 30 : (period === 'week' ? 210 : 900)) || (quranRows && quranRows.length > 0);
+    const checkEnglish = totalEngCount > 0;
+    const checkFajrAdhkar = adhkarFajrDone;
+    const checkAsrAdhkar = adhkarAsrDone;
+
+    const checklistItems = [
+      { title: 'مذاكرة الطب والسكاشن (3 ساعات)', done: checkStudy, meta: `${studyHours} / ${targetStudyHours} ساعة`, icon: '⏱️' },
+      { title: 'تمرين الجيم والقوة البدنية', done: checkGym, meta: `${gymSessionsCount} تمارين مسجلة`, icon: '🏋️‍♂️' },
+      { title: 'ورد القرآن الكريم (30 دقيقة)', done: checkQuran, meta: `${totalQuranMins} دقيقة ورد`, icon: '📖' },
+      { title: 'تطوير اللغة الإنجليزية والـ Anki', done: checkEnglish, meta: `${totalEngCount} كلمات مبرمجة`, icon: '🗣️' },
+      { title: 'أذكار وسكينة الفجر (ساعة كاملة)', done: checkFajrAdhkar, meta: checkFajrAdhkar ? 'تم التوثيق' : 'بانتظار الذكر', icon: '🌅' },
+      { title: 'أذكار وتدبر العصر (ساعة كاملة)', done: checkAsrAdhkar, meta: checkAsrAdhkar ? 'تم التوثيق' : 'بانتظار الذكر', icon: '🌇' }
+    ];
+
+    let doneChecksCount = 0;
+    let checklistHtml = '';
+    checklistItems.forEach(item => {
+      if (item.done) doneChecksCount++;
+      checklistHtml += `
+        <div class="check-item" style="border-right: 4px solid ${item.done ? 'var(--accent-primary)' : 'var(--border-card)'};">
+          <div class="check-item-info">
+            <span style="font-size: 1.3rem;">${item.icon}</span>
+            <div>
+              <div class="check-item-title">${item.title}</div>
+              <div class="check-item-meta">${item.meta}</div>
+            </div>
+          </div>
+          <span class="task-status-badge ${item.done ? 'status-done' : 'status-pending'}">
+            ${item.done ? '✅ مكتمل' : '⏳ بانتظار الإنجاز'}
+          </span>
+        </div>
+      `;
+    });
+
+    const checklistGrid = document.getElementById('homeChecklistGrid');
+    if (checklistGrid) checklistGrid.innerHTML = checklistHtml;
+
+    const checklistBadge = document.getElementById('checklistDoneBadge');
+    if (checklistBadge) checklistBadge.textContent = `${doneChecksCount} / ${checklistItems.length} مكتمل`;
+
+    // 11. Calculate Overall Strategic Score & Momentum
+    const scorePct = Math.round((doneChecksCount / checklistItems.length) * 100);
+    const scoreNumEl = document.getElementById('overallScoreNum');
+    const scoreDescEl = document.getElementById('overallScoreDesc');
+    const scoreBadgeEl = document.getElementById('overallScoreBadge');
+
+    if (scoreNumEl) scoreNumEl.textContent = `${scorePct}%`;
+    if (scoreDescEl) {
+      if (scorePct >= 80) {
+        scoreDescEl.textContent = 'أداء ممتاز واستثنائي 🟢';
+        if (scoreBadgeEl) {
+          scoreBadgeEl.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+          scoreBadgeEl.style.background = 'rgba(16, 185, 129, 0.12)';
+        }
+      } else if (scorePct >= 50) {
+        scoreDescEl.textContent = 'أداء متوسط — يحتاج تعزيز 🟡';
+        if (scoreBadgeEl) {
+          scoreBadgeEl.style.borderColor = 'rgba(245, 158, 11, 0.5)';
+          scoreBadgeEl.style.background = 'rgba(245, 158, 11, 0.12)';
+        }
+      } else {
+        scoreDescEl.textContent = 'تراجع يتطلب تدخلاً وانضباطاً 🔴';
+        if (scoreBadgeEl) {
+          scoreBadgeEl.style.borderColor = 'rgba(244, 63, 94, 0.5)';
+          scoreBadgeEl.style.background = 'rgba(244, 63, 94, 0.12)';
+        }
+      }
+    }
+
+    // 12. Synthesize AI Audit Diagnostics
+    // 🏆 Strengths
+    const strengthsEl = document.getElementById('auditStrengthsList');
+    const strengths = [];
+    if (checkStudy) strengths.push(`📚 إنجاز المذاكرة المستهدفة (${studyHours} ساعة)`);
+    if (checkQuran) strengths.push(`📖 انتظام تام في ورد القرآن الكريم (${totalQuranMins} دقيقة)`);
+    if (checkGym) strengths.push(`🏋️‍♂️ الالتزام بنشاط وتمرين الجيم (${gymSessionsCount} تمارين)`);
+    if (checkEnglish) strengths.push(`🗣️ الاستمرار في حفظ ومراجعة الإنجليزية (${totalEngCount} كلمات)`);
+    if (checkFajrAdhkar) strengths.push(`🌅 المحافظة على أذكار وسكينة الفجر`);
+    if (checkAsrAdhkar) strengths.push(`🌇 أذكار المساء وتفريغ المشاعر مكتملة`);
+    if (strengths.length === 0) strengths.push(`🚀 جاهز للبدء وتحقيق أولى ثوابت ${period === 'today' ? 'اليوم' : 'الفترة'}`);
     
-    let activityHtml = '';
-    if (recentSessions && recentSessions.length > 0) {
-      recentSessions.forEach(s => {
-        activityHtml += `
-          <div class="session-item">
-            <div class="item-top-row">
-              <span class="item-title">📚 جلسة مذاكرة: [${s.course_code || 'طب'}]</span>
-              <span class="item-date">⏱️ ${s.duration_minutes || 0} دقيقة</span>
-            </div>
-            <div class="item-desc">${s.topic_title || 'مراجعة الموديول'} | 📅 ${s.date || 'اليوم'}</div>
-          </div>
-        `;
-      });
+    if (strengthsEl) {
+      strengthsEl.innerHTML = strengths.map(s => `<div class="audit-bullet">🔥 ${s}</div>`).join('');
     }
 
-    if (recentFlashcards && recentFlashcards.length > 0) {
-      recentFlashcards.forEach(f => {
-        activityHtml += `
-          <div class="session-item">
-            <div class="item-top-row">
-              <span class="item-title">🗣️ فلاش كارد: <b>${f.english_word}</b></span>
-              <span class="task-status-badge status-done">تكرار متباعد</span>
-            </div>
-            <div class="item-desc">💡 ${f.arabic_meaning}</div>
-          </div>
-        `;
-      });
+    // ⚠️ Slipping Areas & Gaps
+    const slippingEl = document.getElementById('auditSlippingList');
+    const slippings = [];
+    if (!checkStudy) {
+      const remaining = Math.max(0, targetStudyHours - Number(studyHours)).toFixed(1);
+      slippings.push(`ساعات المذاكرة ناقصة: متبقي <b>${remaining} ساعة</b> للهدف.`);
+    }
+    if (!checkQuran) slippings.push(`لم يتم توثيق ورد القرآن الكريم (30 دقيقة مطلوبة).`);
+    if (!checkGym && period !== 'today') slippings.push(`أيام الجيم أقل من المستهدف لهذا الأسبوع.`);
+    if (!checkEnglish) slippings.push(`لم يتم فتح وممارسة فلاش كاردز الإنجليزية.`);
+    if (!checkFajrAdhkar && period === 'today') slippings.push(`أذكار الفجر لم توثق بعد.`);
+    if (!checkAsrAdhkar && period === 'today') slippings.push(`أذكار العصر لم توثق بعد.`);
+    if (slippings.length === 0) slippings.push(`🌟 لا توجد أي نواقص! أنت في قمة الالتزام والانضباط الكامل.`);
+
+    if (slippingEl) {
+      slippingEl.innerHTML = slippings.map(s => `<div class="audit-bullet">⚠️ ${s}</div>`).join('');
     }
 
-    if (activityHtml && activityFeedEl) {
-      activityFeedEl.innerHTML = activityHtml;
+    // ⏳ Overdue Backlog
+    const backlogEl = document.getElementById('auditBacklogList');
+    const backlogs = [];
+    if (medDueCount > 0) backlogs.push(`🩺 <b>${medDueCount}</b> كويزات طبية مستحقة للمراجعة الآن.`);
+    if (engDueCount > 0) backlogs.push(`🗣️ <b>${engDueCount}</b> فلاش كارد إنجليزية مستحقة للتثبيت.`);
+    if (backlogs.length === 0) backlogs.push(`✅ لا توجد متأخرات مراجعة معلقة.`);
+
+    if (backlogEl) {
+      backlogEl.innerHTML = backlogs.map(b => `<div class="audit-bullet">${b}</div>`).join('');
+    }
+
+    // 💵 Financial Health Report
+    const financeReportEl = document.getElementById('auditFinanceReport');
+    let finMessage = '';
+    const expenseThreshold = period === 'today' ? 300 : (period === 'week' ? 1500 : 6000);
+    if (periodExpenses > expenseThreshold) {
+      finMessage = `⚠️ <b>تنبيه ميزانية:</b> مصروفاتك في ${period === 'today' ? 'اليوم' : (period === 'week' ? 'الأسبوع' : 'الشهر')} مرتفعة (<b>${periodExpenses.toLocaleString('en-US')} ج.م</b>). يُنصح بضبط النفقات غير الضرورية.`;
+    } else if (periodExpenses > 0) {
+      finMessage = `💳 <b>وضع مالي متزن:</b> مصروفات الفترة (<b>${periodExpenses.toLocaleString('en-US')} ج.م</b>) معتدلة وفي حدود الميزانية الطبيعية.`;
+    } else {
+      finMessage = `🟢 لم يتم تسجيل أي مصروفات حتى الآن في هذه الفترة. الرصيد محفوظ بالكامل.`;
+    }
+
+    if (financeReportEl) {
+      financeReportEl.innerHTML = `<div class="audit-bullet">${finMessage}</div>`;
+    }
+
+    // 💡 Motivational Message Generation
+    const motivTextEl = document.getElementById('auditMotivText');
+    if (motivTextEl) {
+      if (scorePct >= 80) {
+        motivTextEl.innerHTML = `"أداء استثنائي يا د. عبدالله! انضباطك اليوم هو البرهان العملي على استحقاقك للامتياز (450/450).. استمر بهذه القوة ولا تدع أي شيء يشتتك." 🩺👑`;
+      } else if (scorePct >= 50) {
+        motivTextEl.innerHTML = `"بداية طيبة ومبشرة! باقٍ خطوات بسيطة على إتمام أهداف اليوم.. ابدأ بجلسة مذاكرة سريعة أو ورد القرآن وستصل لنسبة 100% فوراً." 🚀💪`;
+      } else {
+        motivTextEl.innerHTML = `"حين يخفت الشغف يتقدم الانضباط ليصنع الفارق.. لا تنتظر المزاج أو الحماس، اضغط على زر بدء جلسة المذاكرة الآن واصنع يومك بيدك!" 🩺🔥`;
+      }
     }
 
   } catch (err) {
