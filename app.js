@@ -188,6 +188,132 @@ function initTabs() {
   });
 }
 
+// 🧭 Direct Tab Switcher from Home KPI Cards
+window.switchTabDirect = function(tabName) {
+  const tabs = document.querySelectorAll('.nav-item');
+  const panes = document.querySelectorAll('.tab-pane');
+  const titleEl = document.getElementById('currentSectionTitle');
+
+  tabs.forEach(t => {
+    if (t.dataset.tab === tabName) {
+      t.classList.add('active');
+      if (titleEl && t.dataset.title) titleEl.textContent = t.dataset.title;
+    } else {
+      t.classList.remove('active');
+    }
+  });
+
+  panes.forEach(p => {
+    if (p.id === `tab-${tabName}`) {
+      p.classList.add('active');
+    } else {
+      p.classList.remove('active');
+    }
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// 🏠 0. Executive Home Overview & Global Analytics Matrix
+async function renderHomeOverview() {
+  try {
+    // 1. Study Sessions
+    const { data: studyData } = await supabase.from('study_sessions').select('duration_minutes, pages_studied');
+    let totalStudyMins = 0;
+    if (studyData) {
+      studyData.forEach(s => totalStudyMins += (Number(s.duration_minutes) || 0));
+    }
+    const studyHours = (totalStudyMins / 60).toFixed(1);
+    const homeStudyEl = document.getElementById('homeStudyHours');
+    if (homeStudyEl) homeStudyEl.innerHTML = `${studyHours} <span class="kpi-unit">ساعة</span>`;
+
+    // 2. Med Quizzes
+    const { data: medData } = await supabase.from('medical_spaced_quizzes').select('id');
+    const homeMedEl = document.getElementById('homeMedQuizzes');
+    if (homeMedEl) homeMedEl.innerHTML = `${medData?.length || 0} <span class="kpi-unit">سؤال</span>`;
+
+    // 3. English Cards
+    const { data: engData } = await supabase.from('english_spaced_flashcards').select('id');
+    const homeEngEl = document.getElementById('homeEngCards');
+    if (homeEngEl) homeEngEl.innerHTML = `${engData?.length || 0} <span class="kpi-unit">كلمات</span>`;
+
+    // 4. Quran
+    const { data: quranData } = await supabase.from('quran_logs').select('id');
+    const homeQuranEl = document.getElementById('homeQuranSessions');
+    if (homeQuranEl) homeQuranEl.innerHTML = `${quranData?.length || 0} <span class="kpi-unit">جلسة</span>`;
+
+    // 5. Fasting
+    const { data: fastData } = await supabase.from('fasting_and_worship_logs').select('id').eq('fasting_completed', true);
+    const homeFastingEl = document.getElementById('homeFastingCount');
+    if (homeFastingEl) homeFastingEl.innerHTML = `${fastData?.length || 0} <span class="kpi-unit">يوم</span>`;
+
+    // 6. Gym
+    const { data: gymData } = await supabase.from('gym_logs').select('id');
+    const homeGymEl = document.getElementById('homeGymDays');
+    if (homeGymEl) homeGymEl.innerHTML = `${gymData?.length || 0} <span class="kpi-unit">تمارين</span>`;
+
+    // 7. Content
+    const { data: contentData } = await supabase.from('content_creation').select('id');
+    const homeContentEl = document.getElementById('homeContentCount');
+    if (homeContentEl) homeContentEl.innerHTML = `${contentData?.length || 0} <span class="kpi-unit">فكرة/فيديو</span>`;
+
+    // 8. Projects
+    const { data: projData } = await supabase.from('work_projects').select('id');
+    const homeProjectsEl = document.getElementById('homeProjectsCount');
+    if (homeProjectsEl) homeProjectsEl.innerHTML = `${projData?.length || 0} <span class="kpi-unit">مشاريع</span>`;
+
+    // 9. Finance Balance
+    const { data: wallets } = await supabase.from('wallets').select('balance');
+    let totalBal = 0;
+    if (wallets && wallets.length > 0) {
+      wallets.forEach(w => totalBal += Number(w.balance || 0));
+    }
+    const homeTotalBalEl = document.getElementById('homeTotalBalance');
+    if (homeTotalBalEl) homeTotalBalEl.innerHTML = `${totalBal.toLocaleString('en-US', { minimumFractionDigits: 2 })} <span class="kpi-unit">ج.م</span>`;
+
+    // 10. Live Activity Stream
+    const activityFeedEl = document.getElementById('homeRecentActivities');
+    const { data: recentSessions } = await supabase.from('study_sessions').select('*').order('created_at', { ascending: false }).limit(3);
+    const { data: recentFlashcards } = await supabase.from('english_spaced_flashcards').select('*').order('created_at', { ascending: false }).limit(2);
+    
+    let activityHtml = '';
+    if (recentSessions && recentSessions.length > 0) {
+      recentSessions.forEach(s => {
+        activityHtml += `
+          <div class="session-item">
+            <div class="item-top-row">
+              <span class="item-title">📚 جلسة مذاكرة: [${s.course_code || 'طب'}]</span>
+              <span class="item-date">⏱️ ${s.duration_minutes || 0} دقيقة</span>
+            </div>
+            <div class="item-desc">${s.topic_title || 'مراجعة الموديول'} | 📅 ${s.date || 'اليوم'}</div>
+          </div>
+        `;
+      });
+    }
+
+    if (recentFlashcards && recentFlashcards.length > 0) {
+      recentFlashcards.forEach(f => {
+        activityHtml += `
+          <div class="session-item">
+            <div class="item-top-row">
+              <span class="item-title">🗣️ فلاش كارد: <b>${f.english_word}</b></span>
+              <span class="task-status-badge status-done">تكرار متباعد</span>
+            </div>
+            <div class="item-desc">💡 ${f.arabic_meaning}</div>
+          </div>
+        `;
+      });
+    }
+
+    if (activityHtml && activityFeedEl) {
+      activityFeedEl.innerHTML = activityHtml;
+    }
+
+  } catch (err) {
+    console.warn('renderHomeOverview error:', err);
+  }
+}
+
 // 🩺 1. Academic Modules, Schedule, Attendance & Medical Spaced Quizzes
 async function renderAcademicSection() {
   const container = document.getElementById('semester7Courses');
@@ -724,6 +850,7 @@ async function initDashboard() {
   setInterval(checkSandboxModeState, 5000);
 
   await Promise.allSettled([
+    renderHomeOverview(),
     renderAcademicSection(),
     renderEnglishSection(),
     renderQuranSection(),
