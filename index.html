@@ -1039,24 +1039,24 @@
         }
       }
 
-      if (btnToday) {
-        btnToday.addEventListener('click', (e) => {
-          e.preventDefault();
-          updateActiveTimeBtn('today');
-        });
+      // Activity Table Date Filter Buttons Direct Listeners
+      const btnActAll = document.getElementById('btnActAll');
+      const btnActToday = document.getElementById('btnActToday');
+      const btnActYesterday = document.getElementById('btnActYesterday');
+      const btnActBeforeYesterday = document.getElementById('btnActBeforeYesterday');
+      const btnActFull = document.getElementById('btnActFull');
+
+      function handleActFilter(type) {
+        if (typeof window.filterHomeActivities === 'function') {
+          window.filterHomeActivities(type);
+        }
       }
-      if (btnWeek) {
-        btnWeek.addEventListener('click', (e) => {
-          e.preventDefault();
-          updateActiveTimeBtn('week');
-        });
-      }
-      if (btnMonth) {
-        btnMonth.addEventListener('click', (e) => {
-          e.preventDefault();
-          updateActiveTimeBtn('month');
-        });
-      }
+
+      if (btnActAll) btnActAll.addEventListener('click', () => handleActFilter('all'));
+      if (btnActToday) btnActToday.addEventListener('click', () => handleActFilter('today'));
+      if (btnActYesterday) btnActYesterday.addEventListener('click', () => handleActFilter('yesterday'));
+      if (btnActBeforeYesterday) btnActBeforeYesterday.addEventListener('click', () => handleActFilter('before_yesterday'));
+      if (btnActFull) btnActFull.addEventListener('click', () => handleActFilter('all'));
 
       // Tab switching
       const tabs = document.querySelectorAll('.nav-item');
