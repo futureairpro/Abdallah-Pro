@@ -1,7 +1,11 @@
-// 🌟 Abdullah's Journey OS - Master 360° Life OS Controller
+// 🌟 Abdullah's Journey OS - Master 360° Life OS Controller & Security Gateway
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.4';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 import { getCairoPrayerTimes } from './lib/prayer_times.js';
+
+const MASTER_PASSCODE = 'Bodyyy010019168@';
+const AUTH_STORAGE_KEY = 'abdallah_journey_auth_token';
+const AUTH_TOKEN_VAL = 'authenticated_dr_abdallah_secure_key_2026';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -11,6 +15,61 @@ function formatEgp(num) {
 
 function getCairoToday() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
+}
+
+// 🔒 Security & Authentication Gateway
+function initAuthGateway() {
+  const overlay = document.getElementById('authLockOverlay');
+  const mainContent = document.getElementById('mainAppContent');
+  const form = document.getElementById('authForm');
+  const input = document.getElementById('passcodeInput');
+  const errorMsg = document.getElementById('authErrorMsg');
+  const lockBtn = document.getElementById('btnLockSystem');
+
+  const isAuthenticated = localStorage.getItem(AUTH_STORAGE_KEY) === AUTH_TOKEN_VAL;
+
+  if (isAuthenticated) {
+    if (overlay) overlay.style.display = 'none';
+    if (mainContent) mainContent.style.display = 'block';
+    initDashboard();
+  } else {
+    if (overlay) overlay.style.display = 'flex';
+    if (mainContent) mainContent.style.display = 'none';
+    if (input) input.focus();
+  }
+
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const entered = (input?.value || '').trim();
+
+      if (entered === MASTER_PASSCODE) {
+        localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
+        if (overlay) overlay.style.display = 'none';
+        if (mainContent) mainContent.style.display = 'block';
+        if (errorMsg) errorMsg.textContent = '';
+        initDashboard();
+      } else {
+        if (errorMsg) errorMsg.textContent = '⛔ كلمة المرور غير صحيحة، الوصول مصرح حصرياً لـ د. عبدالله.';
+        if (input) {
+          input.value = '';
+          input.focus();
+        }
+      }
+    });
+  }
+
+  if (lockBtn) {
+    lockBtn.addEventListener('click', () => {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+      if (overlay) overlay.style.display = 'flex';
+      if (mainContent) mainContent.style.display = 'none';
+      if (input) {
+        input.value = '';
+        input.focus();
+      }
+    });
+  }
 }
 
 function initClockAndPrayers() {
@@ -582,8 +641,12 @@ async function renderFinanceSection() {
   }
 }
 
-// 🚀 Master Init
-async function init() {
+// 🚀 Dashboard Init (Only triggered when authenticated)
+let dashboardInitialized = false;
+async function initDashboard() {
+  if (dashboardInitialized) return;
+  dashboardInitialized = true;
+
   initClockAndPrayers();
   initTabs();
   await Promise.allSettled([
@@ -601,4 +664,4 @@ async function init() {
   ]);
 }
 
-window.addEventListener('DOMContentLoaded', init);
+window.addEventListener('DOMContentLoaded', initAuthGateway);
