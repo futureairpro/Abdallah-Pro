@@ -1,0 +1,16 @@
+{
+  "name": "abdullah-journey-os",
+  "version": "1.0.0",
+  "description": "منظومة رحلة عبدالله - إدارة الحياة الفائقة، الطب، القرآن، الإنجليزية، والعادات الذكية",
+  "main": "api/webhook.js",
+  "type": "module",
+  "scripts": {
+    "start": "node api/webhook.js",
+    "dev": "node scripts/local_test.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.4",
+    "dotenv": "^16.4.5",
+    "telegraf": "^4.16.3"
+  }
+}

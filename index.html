@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منظومة رحلة عبدالله | Abdullah's Journey OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;600;700;800&family=Amiri:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-right">
+        <div class="user-avatar">🩺</div>
+        <div class="user-meta">
+          <div class="user-name">د. عبدالله</div>
+          <div class="user-subtitle">طالب طب بشري | الفرقة الرابعة (الفصل الدراسي السابع)</div>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="kpi-pill target-pill">
+          <span class="pill-dot"></span>
+          <span>الهدف الأكاديمي: امتياز (450/450)</span>
+        </div>
+        <div class="kpi-pill semester-pill">
+          <span>الترم السابع: 20 ساعة معتمدة</span>
+        </div>
+      </div>
+
+      <div class="header-left">
+        <div class="cairo-clock" id="cairoClock">--:--:--</div>
+        <a href="https://t.me/abdallahprobot" target="_blank" class="bot-badge">
+          <span class="bot-status-dot"></span>
+          <span>البوت الصوتي: @abdallahprobot</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Cairo Live Prayer Times Banner -->
+    <section class="prayer-times-banner" id="prayerTimesBanner" style="background: var(--bg-surface); border: 1px solid var(--border-card); border-radius: var(--radius-lg); padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; overflow-x: auto; gap: 12px;">
+      <div style="font-weight: 800; color: #38bdf8; font-size: 0.95rem; white-space: nowrap;">🕌 مواقيت الصلاة الحية بالقاهرة:</div>
+      <div class="prayer-pill-item"><span style="color: #94a3b8;">الفجر:</span> <b id="ptFajr">--:--</b></div>
+      <div class="prayer-pill-item"><span style="color: #94a3b8;">الشروق:</span> <b id="ptSunrise">--:--</b></div>
+      <div class="prayer-pill-item"><span style="color: #94a3b8;">الظهر:</span> <b id="ptDhuhr">--:--</b></div>
+      <div class="prayer-pill-item"><span style="color: #94a3b8;">العصر:</span> <b id="ptAsr">--:--</b></div>
+      <div class="prayer-pill-item"><span style="color: #94a3b8;">المغرب:</span> <b id="ptMaghrib">--:--</b></div>
+      <div class="prayer-pill-item"><span style="color: #94a3b8;">العشاء:</span> <b id="ptIsha">--:--</b></div>
+    </section>
+
+    <!-- Main Navigation Bar -->
+    <nav class="main-nav">
+      <button class="nav-tab active" data-tab="medical">
+        <span class="tab-icon">🩺</span>
+        <span>الطب والسكاشن</span>
+      </button>
+      <button class="nav-tab" data-tab="quran">
+        <span class="tab-icon">📖</span>
+        <span>المصحف والقرآن</span>
+      </button>
+      <button class="nav-tab" data-tab="fasting">
+        <span class="tab-icon">🌙</span>
+        <span>الصيام والسنن</span>
+      </button>
+      <button class="nav-tab" data-tab="english">
+        <span class="tab-icon">🗣️</span>
+        <span>فلاش كاردز الإنجليزية</span>
+      </button>
+      <button class="nav-tab" data-tab="wellness">
+        <span class="tab-icon">🧠</span>
+        <span>الفضفضة والاتزان</span>
+      </button>
+      <button class="nav-tab" data-tab="gym">
+        <span class="tab-icon">🏋️‍♂️</span>
+        <span>الجيم واللياقة</span>
+      </button>
+      <button class="nav-tab" data-tab="content">
+        <span class="tab-icon">🎬</span>
+        <span>صناعة المحتوى</span>
+      </button>
+      <button class="nav-tab" data-tab="work">
+        <span class="tab-icon">💼</span>
+        <span>الشغل والبيزنس</span>
+      </button>
+      <button class="nav-tab" data-tab="tasks">
+        <span class="tab-icon">🎯</span>
+        <span>المهام والمواعيد</span>
+      </button>
+      <button class="nav-tab" data-tab="thoughts">
+        <span class="tab-icon">💡</span>
+        <span>بنك الخواطر</span>
+      </button>
+      <button class="nav-tab" data-tab="finance">
+        <span class="tab-icon">💵</span>
+        <span>الخزنة والمالية</span>
+      </button>
+    </nav>
+
+    <!-- Hero Stats Row -->
+    <section class="stats-overview">
+      <div class="stat-card stat-study">
+        <div class="stat-icon">📚</div>
+        <div class="stat-body">
+          <div class="stat-label">ساعات المذاكرة والتحصيل</div>
+          <div class="stat-value" id="totalStudyHours">0 <span class="stat-unit">ساعة</span></div>
+          <div class="stat-meta" id="totalPagesCovered">0 صفحة منجزة</div>
+        </div>
+      </div>
+
+      <div class="stat-card stat-quran">
+        <div class="stat-icon">📖</div>
+        <div class="stat-body">
+          <div class="stat-label">جلسات القرآن وتثبيت الحفظ</div>
+          <div class="stat-value" id="totalQuranSessions">0 <span class="stat-unit">جلسة</span></div>
+          <div class="stat-meta" id="totalQuranPages">0 صفحة تمت مراجعتها</div>
+        </div>
+      </div>
+
+      <div class="stat-card stat-prayers">
+        <div class="stat-icon">🗣️</div>
+        <div class="stat-body">
+          <div class="stat-label">فلاش كاردز الإنجليزية (Spaced)</div>
+          <div class="stat-value" id="totalEngCards">0 <span class="stat-unit">كلمات</span></div>
+          <div class="stat-meta" id="masteredEngCards">0 كلمات متقنة بالكامل</div>
+        </div>
+      </div>
+
+      <div class="stat-card stat-english">
+        <div class="stat-icon">🩺</div>
+        <div class="stat-body">
+          <div class="stat-label">كويزات الطب بالتكرار المتباعد</div>
+          <div class="stat-value" id="totalMedQuizzes">0 <span class="stat-unit">أسئلة</span></div>
+          <div class="stat-meta" id="masteredMedQuizzes">تثبيت موديولات الترم السابع</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab Contents -->
+    <main class="tab-container">
+
+      <!-- 🩺 TAB 1: Medical & Semester 7 -->
+      <section class="tab-pane active" id="tab-medical">
+        <div class="section-title-row">
+          <h2>🩺 موديولات الفرقة الرابعة — الفصل الدراسي السابع (450 درجة)</h2>
+          <div class="actions-group">
+            <span class="badge-total-marks">إجمالي المجموع: 450 درجة | 20 Credit Hours</span>
+          </div>
+        </div>
+
+        <div class="courses-grid" id="semester7Courses"></div>
+
+        <!-- Medical Spaced Quizzes Vault -->
+        <div class="split-card full-width-card" style="margin-bottom: 24px;">
+          <div class="card-header">
+            <h3>🩺 بنك كويزات الموديولات بالتكرار المتباعد (Medical Spaced Retention Engine)</h3>
+            <span class="card-badge" id="medQuizzesBadge">0 أسئلة مبرمجة</span>
+          </div>
+          <div class="skills-grid" id="medSpacedList">
+            <div class="empty-state">أرسل أي سؤال طبي مع إجابته للبوت (مثال: "سؤال كارديو CAD402: ايه اهم لقطة في علاج Heart Failure؟") وسيقوم بجدولته لك بالتكرار المتباعد!</div>
+          </div>
+        </div>
+
+        <!-- Weekly Schedule & Attendance -->
+        <div class="content-split-grid" style="margin-bottom: 24px;">
+          <div class="split-card">
+            <div class="card-header">
+              <h3>📅 جدول السكاشن والمحاضرات الأسبوعي والتنبيهات</h3>
+            </div>
+            <div class="schedule-list" id="academicScheduleList"></div>
+          </div>
+
+          <div class="split-card">
+            <div class="card-header">
+              <h3>📝 سجل الحضور والغياب والخطط البديلة</h3>
+              <span class="card-badge" id="attendanceRate">حضور: 100%</span>
+            </div>
+            <div class="attendance-list" id="attendanceLogsList">
+              <div class="empty-state">لا توجد سجلات غياب. سجل حضورك أو غيابك عبر الفويس مباشرة!</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clinical Cases & Study Sessions -->
+        <div class="content-split-grid">
+          <div class="split-card">
+            <div class="card-header">
+              <h3>🩺 الحالات الإكلينيكية وراوندات المستشفى</h3>
+              <span class="card-badge" id="casesCount">0 حالات</span>
+            </div>
+            <div class="cases-list" id="clinicalCasesList">
+              <div class="empty-state">لا توجد حالات سريرية مسجلة بعد.</div>
+            </div>
+          </div>
+
+          <div class="split-card">
+            <div class="card-header">
+              <h3>📝 سجل جلسات المذاكرة والخطط المؤجلة</h3>
+              <span class="card-badge" id="sessionsCount">0 جلسات</span>
+            </div>
+            <div class="sessions-list" id="studySessionsList">
+              <div class="empty-state">لا توجد جلسات مذاكرة مسجلة اليوم.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 🗣️ TAB 2: English Spaced Flashcards Hub -->
+      <section class="tab-pane" id="tab-english">
+        <div class="section-title-row">
+          <h2>🗣️ بنك الكلمات والجمل الإنجليزية بالتكرار المتباعد (Spaced Flashcards)</h2>
+          <div class="actions-group">
+            <span class="badge-accent">Scientific Spaced Repetition (Anki / SM-2)</span>
+          </div>
+        </div>
+
+        <div class="skills-grid" id="englishFlashcardsGrid">
+          <div class="empty-state full-width-card">
+            ✨ أرسل أي كلمة أو جملة إنجليزية للبوت (مثال: <i>"احفظ كلمة Dyspnea on exertion"</i> أو <i>"احفظ جملة Out of the blue"</i>)<br>
+            سيترجمها فوراً للعامية المصرية ويجدولها على فترات علمية (12h ➔ 1d ➔ 3d ➔ 7d ➔ 14d ➔ 30d) حتى الحفظ المتقن 100%!
+          </div>
+        </div>
+      </section>
+
+      <!-- 📖 TAB 3: Quran Tracker -->
+      <section class="tab-pane" id="tab-quran">
+        <div class="section-title-row">
+          <h2>📖 سجل وتثبيت القرآن الكريم (Spaced Repetition Engine)</h2>
+          <div class="actions-group">
+            <span class="badge-accent">خطة الختمة وتثبيت المتشابهات</span>
+          </div>
+        </div>
+
+        <div class="quran-dashboard-grid">
+          <div class="split-card">
+            <div class="card-header">
+              <h3>🕌 جلسات الحفظ والمراجعة الأخيرة</h3>
+            </div>
+            <div class="quran-list" id="quranLogsList">
+              <div class="empty-state">لم يتم تسجيل ورد قرآني بعد.</div>
+            </div>
+          </div>
+
+          <div class="split-card">
+            <div class="card-header">
+              <h3>✨ إرشادات وتوجيهات الحفظ والتثبيت المتقن</h3>
+            </div>
+            <div class="quran-guide-card">
+              <div class="guide-item">
+                <span class="guide-num">1</span>
+                <div>
+                  <strong>الورد اليومي الثابت:</strong>
+                  <p>حفظ ربعين جديدين + مراجعة جزء كامل يومياً لتثبيت الختمة كل شهر.</p>
+                </div>
+              </div>
+              <div class="guide-item">
+                <span class="guide-num">2</span>
+                <div>
+                  <strong>نظام التثبيت الذكي:</strong>
+                  <p>أي سورة تسجلها بـ "يحتاج تثبيت عاجل"، يقوم النظام بوضعها في أولوية المراجعة القصيرة.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 🌙 TAB 4: Fasting, Sunnah & Adhkar -->
+      <section class="tab-pane" id="tab-fasting">
+        <div class="section-title-row">
+          <h2>🌙 سجل الصيام والسنن الرواتب والأذكار</h2>
+          <div class="actions-group">
+            <span class="badge-accent" id="fastingTodayDate">اليوم</span>
+          </div>
+        </div>
+
+        <div class="prayers-container" style="margin-bottom: 24px;">
+          <div class="prayers-grid" id="prayersGrid">
+            <div class="prayer-card"><div class="prayer-time">الفجر 🌅</div><div class="prayer-status" id="fajrStatus">لم يُسجل ⚪</div></div>
+            <div class="prayer-card"><div class="prayer-time">الظهر ☀️</div><div class="prayer-status" id="dhuhrStatus">لم يُسجل ⚪</div></div>
+            <div class="prayer-card"><div class="prayer-time">العصر 🌤️</div><div class="prayer-status" id="asrStatus">لم يُسجل ⚪</div></div>
+            <div class="prayer-card"><div class="prayer-time">المغرب 🌇</div><div class="prayer-status" id="maghribStatus">لم يُسجل ⚪</div></div>
+            <div class="prayer-card"><div class="prayer-time">العشاء 🌌</div><div class="prayer-status" id="ishaStatus">لم يُسجل ⚪</div></div>
+          </div>
+
+          <div class="habits-secondary-grid">
+            <div class="habit-metric-box"><div class="habit-metric-title">🕌 السنن الرواتب</div><div class="habit-metric-val" id="sunanBoxVal">0 / 12 ركعة</div></div>
+            <div class="habit-metric-box"><div class="habit-metric-title">📿 أذكار الصباح والمساء</div><div class="habit-metric-val" id="adhkarBoxVal">صباح ⚪ | مساء ⚪</div></div>
+            <div class="habit-metric-box"><div class="habit-metric-title">☀️ صلاة الضحى</div><div class="habit-metric-val" id="duhaBoxVal">لم تسجل ⚪</div></div>
+            <div class="habit-metric-box"><div class="habit-metric-title">🌙 قيام الليل والوتر</div><div class="habit-metric-val" id="qiyamBoxVal">لم تسجل ⚪</div></div>
+          </div>
+        </div>
+
+        <div class="split-card full-width-card">
+          <div class="card-header">
+            <h3>🥣 سجل أيام الصيام والسنن الأخيرة</h3>
+          </div>
+          <div class="fasting-list" id="fastingLogsList">
+            <div class="empty-state">البوت يرسل لك تذكيراً تلقائياً ليلة الإثنين والأربعاء وقبل أذان الفجر بساعة!</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 🧠 TAB 5: Mental Wellness & Venting -->
+      <section class="tab-pane" id="tab-wellness">
+        <div class="section-title-row">
+          <h2>🧠 سجل الفضفضة، تفريغ المشاعر، والاتزان النفسي (Mental Wellness)</h2>
+          <div class="actions-group">
+            <span class="badge-accent">Resilience & Mindset Mastery</span>
+          </div>
+        </div>
+
+        <div class="thoughts-grid" id="wellnessGrid">
+          <div class="empty-state full-width-card">
+            ✨ عندما تشعر بضغط أو رغبة في تفريغ ما بداخلك، سجل فويس وابدأ بـ <i>"دردشة عامة / فضفضة: حاسس بـ..."</i>
+          </div>
+        </div>
+      </section>
+
+      <!-- 🏋️‍♂️ TAB 6: Gym & Fitness -->
+      <section class="tab-pane" id="tab-gym">
+        <div class="section-title-row">
+          <h2>🏋️‍♂️ الجيم، اللياقة البدنية، والتغذية (Body Engineering)</h2>
+          <div class="actions-group">
+            <span class="badge-accent">Peak Physical Conditioning</span>
+          </div>
+        </div>
+
+        <div class="gym-stats-grid" id="gymLogsList">
+          <div class="empty-state full-width-card">لا توجد تمارين مسجلة بعد. قل للبوت: "لعبت تمرين صدر وتراي وشربت 3 لتر مية".</div>
+        </div>
+      </section>
+
+      <!-- 🎬 TAB 7: Content Creation -->
+      <section class="tab-pane" id="tab-content">
+        <div class="section-title-row">
+          <h2>🎬 صناعة المحتوى والمونتاج والميديا (Content Pipeline)</h2>
+          <div class="actions-group">
+            <span class="badge-accent">YouTube • TikTok • DaVinci Resolve</span>
+          </div>
+        </div>
+
+        <div class="content-pipeline-grid" id="contentPipelineList">
+          <div class="empty-state full-width-card">لا توجد مشاريع محتوى مسجلة بعد.</div>
+        </div>
+      </section>
+
+      <!-- 💼 TAB 8: Work & Projects -->
+      <section class="tab-pane" id="tab-work">
+        <div class="section-title-row">
+          <h2>💼 الشغل وإدارة المشاريع والبيزنس (Business Hub)</h2>
+          <div class="actions-group">
+            <span class="badge-accent">Future Air & Ventures</span>
+          </div>
+        </div>
+
+        <div class="work-projects-grid" id="workProjectsList">
+          <div class="empty-state full-width-card">لا توجد مهام عمل مسجلة بعد.</div>
+        </div>
+      </section>
+
+      <!-- 🎯 TAB 9: Tasks & Appointments -->
+      <section class="tab-pane" id="tab-tasks">
+        <div class="section-title-row">
+          <h2>🎯 المهام اليومية، أهداف المذاكرة، والمواعيد الذكية</h2>
+          <div class="actions-group">
+            <span class="badge-accent">Deep Work & Accountability</span>
+          </div>
+        </div>
+
+        <div class="content-split-grid">
+          <div class="split-card">
+            <div class="card-header">
+              <h3>📋 المهام اليومية وأهداف التركيز</h3>
+              <span class="card-badge" id="tasksBadge">0 مهام</span>
+            </div>
+            <div class="tasks-list" id="tasksList">
+              <div class="empty-state">لا توجد مهام مسجلة اليوم.</div>
+            </div>
+          </div>
+
+          <div class="split-card">
+            <div class="card-header">
+              <h3>⏰ المواعيد والتنبيهات المجدولة</h3>
+              <span class="card-badge" id="apptsBadge">0 مواعيد</span>
+            </div>
+            <div class="appointments-list" id="appointmentsList">
+              <div class="empty-state">لا توجد مواعيد مجدولة.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 💡 TAB 10: Thoughts & Wisdom Vault -->
+      <section class="tab-pane" id="tab-thoughts">
+        <div class="section-title-row">
+          <h2>💡 بنك الخواطر، الأفكار العميقة، وقواعد الانضباط</h2>
+          <div class="actions-group">
+            <span class="badge-accent">Wisdom & Discipline</span>
+          </div>
+        </div>
+
+        <div class="thoughts-grid" id="thoughtsGrid">
+          <div class="empty-state full-width-card">لا توجد خواطر مسجلة بعد.</div>
+        </div>
+      </section>
+
+      <!-- 💵 TAB 11: Personal Finance -->
+      <section class="tab-pane" id="tab-finance">
+        <div class="section-title-row">
+          <h2>💵 الخزنة والمصروفات الشخصية والسيولة (Personal Finance)</h2>
+          <div class="actions-group">
+            <span class="badge-accent">إدارة مالية دقيقة وفائقة</span>
+          </div>
+        </div>
+
+        <div class="wallets-grid" id="walletsGrid">
+          <div class="wallet-card"><div class="wallet-icon">💵</div><div class="wallet-name">خزنة شخصية (كاش)</div><div class="wallet-amount" id="balCash">0 ج.م</div></div>
+          <div class="wallet-card"><div class="wallet-icon">📱</div><div class="wallet-name">فودافون كاش</div><div class="wallet-amount" id="balVodafone">0 ج.م</div></div>
+          <div class="wallet-card"><div class="wallet-icon">⚡</div><div class="wallet-name">إنستا باي (InstaPay)</div><div class="wallet-amount" id="balInstapay">0 ج.م</div></div>
+          <div class="wallet-card"><div class="wallet-icon">🏦</div><div class="wallet-name">بنك مصر</div><div class="wallet-amount" id="balBank">0 ج.م</div></div>
+        </div>
+
+        <div class="split-card full-width-card">
+          <div class="card-header">
+            <h3>📑 سجل الحركات والمصروفات الأخيرة</h3>
+          </div>
+          <div class="transactions-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>التاريخ</th>
+                  <th>النوع</th>
+                  <th>المبلغ</th>
+                  <th>البيان</th>
+                  <th>الوسيلة</th>
+                  <th>التصنيف</th>
+                </tr>
+              </thead>
+              <tbody id="financeTableBody">
+                <tr><td colspan="6" class="text-center">لا توجد حركات مالية مسجلة بعد.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div>منظومة رحلة عبدالله © 2026 | مدعومة بالذكاء الاصطناعي الفائق (Google Gemini 3.x & Supabase Cloud)</div>
+    </footer>
+
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
