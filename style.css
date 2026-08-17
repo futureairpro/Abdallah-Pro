@@ -1508,7 +1508,79 @@ body {
 @keyframes pulseGreen {
   0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
   70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+/* Dynamic Clinical Module Study Cards */
+.module-progress-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.module-progress-card:hover {
+  border-color: var(--border-glow);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(16, 185, 129, 0.15);
+}
+
+.module-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.module-code-badge {
+  font-family: var(--font-en);
+  font-weight: 900;
+  font-size: 0.92rem;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-primary);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.module-name-title {
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: #fff;
+  margin-top: 4px;
+}
+
+.module-stats-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  background: var(--bg-card-inner);
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.module-study-hours-val {
+  font-family: var(--font-en);
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--accent-primary);
+}
+
+.module-study-hours-val span {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.module-last-session-text {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.module-last-session-text b {
+  color: #fff;
 }
 
 /* 📱 Responsive Breakpoints */

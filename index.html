@@ -486,59 +486,18 @@
 
           </div>
 
-          <!-- 🩺 2. Semester 7 Medical Modules Tracker & Integrated Mastery Analytics -->
+          <!-- 🩺 2. Semester 7 Medical Modules Dynamic Tracker -->
           <div class="split-card full-width-card" style="margin-bottom: 24px;">
             <div class="card-header">
-              <h3>🩺 خارطة تحصيل موديولات الفرقة الرابعة — الفصل الدراسي السابع (450 درجة)</h3>
+              <h3>🩺 ساعات التحصيل لموديولات الفرقة الرابعة — الفصل الدراسي السابع</h3>
               <div class="actions-group">
-                <span class="badge-gold">🎯 جاهزية الموديولات: 0%</span>
+                <span class="badge-gold" id="homeModulesSummaryBadge">📊 متابعة المذاكرة الحية</span>
               </div>
             </div>
 
-            <!-- Integrated Medical Analytics Bar -->
-            <div class="medical-summary-banner" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 1.4rem;">🩺</span>
-                <div>
-                  <strong style="color: #fff; font-size: 0.95rem;">التحليل الأكاديمي الشامل للموديولات السريرية:</strong>
-                  <div style="font-size: 0.78rem; color: var(--text-secondary);">4 موديولات رئيسية • 20 Credit Hours • متابعة مستمرة للأسئلة السريرية والـ MCQs</div>
-                </div>
-              </div>
-              <div style="display: flex; gap: 16px; align-items: center;">
-                <div style="text-align: center;"><span style="display: block; font-size: 0.72rem; color: var(--text-muted);">إجمالي الدرجات</span><b style="color: var(--accent-gold); font-size: 1.05rem;">450 / 450</b></div>
-                <div style="text-align: center;"><span style="display: block; font-size: 0.72rem; color: var(--text-muted);">كويزات التكرار</span><b style="color: var(--accent-primary); font-size: 1.05rem;" id="homeMedQuizzesBadge">0 أسئلة</b></div>
-              </div>
-            </div>
-
-            <div class="home-courses-list" id="homeCoursesList">
-              <div class="session-item">
-                <div class="item-top-row">
-                  <span class="item-title">🫀 CAD402 — Cardiac Disorders</span>
-                  <span class="task-status-badge status-done">125 درجة | 5 ساعات معتمدة</span>
-                </div>
-                <div class="item-desc">أعمال سنة: 12 | ميدترم: 25 | تحريري فاينال: 50 | إكلينيكي وشفوي: 38</div>
-              </div>
-              <div class="session-item">
-                <div class="item-top-row">
-                  <span class="item-title">👶 PED401 — Pediatric 1</span>
-                  <span class="task-status-badge status-done">125 درجة | 5 ساعات معتمدة</span>
-                </div>
-                <div class="item-desc">أعمال سنة: 12 | ميدترم: 25 | تحريري فاينال: 50 | إكلينيكي وشفوي: 38</div>
-              </div>
-              <div class="session-item">
-                <div class="item-top-row">
-                  <span class="item-title">🩸 HVD404 — Hematological Disorders</span>
-                  <span class="task-status-badge status-done">100 درجة | 4 ساعات معتمدة</span>
-                </div>
-                <div class="item-desc">أعمال سنة: 10 | ميدترم: 20 | تحريري فاينال: 40 | إكلينيكي وشفوي: 30</div>
-              </div>
-              <div class="session-item">
-                <div class="item-top-row">
-                  <span class="item-title">🫁 RSD403 — Respiratory Disorders</span>
-                  <span class="task-status-badge status-done">75 درجة | 3 ساعات معتمدة</span>
-                </div>
-                <div class="item-desc">أعمال سنة: 7 | ميدترم: 15 | تحريري فاينال: 30 | إكلينيكي وشفوي: 23</div>
-              </div>
+            <!-- Dynamic Medical Modules Grid -->
+            <div class="courses-grid" id="homeModulesProgressGrid">
+              <!-- Dynamically populated by app.js with real hours and last session info -->
             </div>
           </div>
 
@@ -644,54 +603,59 @@
 
         </section>
 
-        <!-- 🩺 TAB 1: Medical & Semester 7 -->
+        <!-- 🩺 TAB 1: Medical & Clinical Study -->
         <section class="tab-pane" id="tab-medical">
           <div class="section-title-row">
-            <h2>🩺 موديولات الفرقة الرابعة — الفصل الدراسي السابع (450 درجة)</h2>
+            <h2>🩺 موديولات الطب وسجل المذاكرة والتحصيل الإكلينيكي</h2>
             <div class="actions-group">
-              <span class="badge-gold">إجمالي المجموع: 450 درجة | 20 Credit Hours</span>
+              <span class="badge-gold" id="medicalOverallStatsBadge">⏱️ ساعات المذاكرة الحية</span>
             </div>
           </div>
 
+          <!-- Dynamic Clinical Module Hours Cards -->
           <div class="courses-grid" id="semester7Courses">
-            <div class="course-card">
-              <div class="course-header"><span class="course-code">CAD402</span><span class="course-credits">5 ساعات</span></div>
-              <div class="course-title">Cardiac Disorders</div>
-              <table class="marks-breakdown-table">
-                <thead><tr><th>أعمال سنة</th><th>ميد</th><th>فاينال</th><th>إكلينيكي</th></tr></thead>
-                <tbody><tr><td>12</td><td>25</td><td>50</td><td>38</td></tr></tbody>
-              </table>
-              <div class="course-total-badge"><span class="course-total-label">المجموع:</span><span class="course-total-val">125 درجة</span></div>
+            <!-- Dynamically populated with real hours and progress by app.js -->
+          </div>
+
+          <!-- 📚 PROMINENT LIVE STUDY SESSIONS LEDGER (سجل جلسات المذاكرة المباشر) -->
+          <div class="split-card full-width-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.4rem;">📚</span>
+                <div>
+                  <h3 style="margin: 0; font-size: 1.12rem;">سجل جلسات المذاكرة والتحصيل الأكاديمي المباشر</h3>
+                  <p style="margin: 2px 0 0; color: var(--text-secondary); font-size: 0.8rem;">كل جلسة تسجلها عبر الفويس أو البوت تظهر هنا فوراً بالتفصيل والمدة</p>
+                </div>
+              </div>
+              <span class="card-badge" id="sessionsCount">0 جلسات</span>
+            </div>
+            <div class="sessions-list" id="studySessionsList">
+              <div class="empty-state">لا توجد جلسات مذاكرة مسجلة اليوم. أرسل فويس للبوت لتسجيل أول جلسة!</div>
+            </div>
+          </div>
+
+          <!-- Clinical Cases & Attendance Grid -->
+          <div class="content-split-grid" style="margin-bottom: 24px;">
+            <!-- Clinical Cases -->
+            <div class="split-card">
+              <div class="card-header">
+                <h3>🏥 الحالات الإكلينيكية وراوندات المستشفى</h3>
+                <span class="card-badge" id="casesCount">0 حالات</span>
+              </div>
+              <div class="cases-list" id="clinicalCasesList">
+                <div class="empty-state">لا توجد حالات سريرية مسجلة بعد.</div>
+              </div>
             </div>
 
-            <div class="course-card">
-              <div class="course-header"><span class="course-code">PED401</span><span class="course-credits">5 ساعات</span></div>
-              <div class="course-title">Pediatric 1</div>
-              <table class="marks-breakdown-table">
-                <thead><tr><th>أعمال سنة</th><th>ميد</th><th>فاينال</th><th>إكلينيكي</th></tr></thead>
-                <tbody><tr><td>12</td><td>25</td><td>50</td><td>38</td></tr></tbody>
-              </table>
-              <div class="course-total-badge"><span class="course-total-label">المجموع:</span><span class="course-total-val">125 درجة</span></div>
-            </div>
-
-            <div class="course-card">
-              <div class="course-header"><span class="course-code">HVD404</span><span class="course-credits">4 ساعات</span></div>
-              <div class="course-title">Hematological & Vascular Disorders</div>
-              <table class="marks-breakdown-table">
-                <thead><tr><th>أعمال سنة</th><th>ميد</th><th>فاينال</th><th>إكلينيكي</th></tr></thead>
-                <tbody><tr><td>10</td><td>20</td><td>40</td><td>30</td></tr></tbody>
-              </table>
-              <div class="course-total-badge"><span class="course-total-label">المجموع:</span><span class="course-total-val">100 درجة</span></div>
-            </div>
-
-            <div class="course-card">
-              <div class="course-header"><span class="course-code">RSD403</span><span class="course-credits">3 ساعات</span></div>
-              <div class="course-title">Respiratory Disorders</div>
-              <table class="marks-breakdown-table">
-                <thead><tr><th>أعمال سنة</th><th>ميد</th><th>فاينال</th><th>إكلينيكي</th></tr></thead>
-                <tbody><tr><td>7</td><td>15</td><td>30</td><td>23</td></tr></tbody>
-              </table>
-              <div class="course-total-badge"><span class="course-total-label">المجموع:</span><span class="course-total-val">75 درجة</span></div>
+            <!-- Attendance Logs -->
+            <div class="split-card">
+              <div class="card-header">
+                <h3>📝 سجل حضور وغياب السكاشن</h3>
+                <span class="card-badge" id="attendanceRate">حضور: 100%</span>
+              </div>
+              <div class="attendance-list" id="attendanceLogsList">
+                <div class="empty-state">لا توجد سجلات غياب. سجل حضورك أو غيابك عبر الفويس مباشرة!</div>
+              </div>
             </div>
           </div>
 
@@ -706,53 +670,18 @@
             </div>
           </div>
 
-          <!-- Weekly Schedule & Attendance -->
-          <div class="content-split-grid" style="margin-bottom: 24px;">
-            <div class="split-card">
-              <div class="card-header">
-                <h3>📅 جدول السكاشن والمحاضرات الأسبوعي والتنبيهات</h3>
-              </div>
-              <div class="schedule-list" id="academicScheduleList">
-                <div class="session-item">
-                  <div class="item-top-row">
-                    <span class="item-title">📅 الأحد: [CAD402] راوند القلب الإكلينيكي</span>
-                    <span class="task-status-badge status-pending">⏰ 09:00 - 12:00</span>
-                  </div>
-                  <div class="item-desc">📍 المستشفى الجامعي | تنبيه قبلها بـ 60 دقيقة</div>
+          <!-- Weekly Schedule -->
+          <div class="split-card full-width-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h3>📅 جدول السكاشن والمحاضرات الأسبوعي والتنبيهات</h3>
+            </div>
+            <div class="schedule-list" id="academicScheduleList">
+              <div class="session-item">
+                <div class="item-top-row">
+                  <span class="item-title">📅 الأحد: [CAD402] راوند القلب الإكلينيكي</span>
+                  <span class="task-status-badge status-pending">⏰ 09:00 - 12:00</span>
                 </div>
-              </div>
-            </div>
-
-            <div class="split-card">
-              <div class="card-header">
-                <h3>📝 سجل الحضور والغياب والخطط البديلة</h3>
-                <span class="card-badge" id="attendanceRate">حضور: 100%</span>
-              </div>
-              <div class="attendance-list" id="attendanceLogsList">
-                <div class="empty-state">لا توجد سجلات غياب. سجل حضورك أو غيابك عبر الفويس مباشرة!</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Clinical Cases & Study Sessions -->
-          <div class="content-split-grid">
-            <div class="split-card">
-              <div class="card-header">
-                <h3>🩺 الحالات الإكلينيكية وراوندات المستشفى</h3>
-                <span class="card-badge" id="casesCount">0 حالات</span>
-              </div>
-              <div class="cases-list" id="clinicalCasesList">
-                <div class="empty-state">لا توجد حالات سريرية مسجلة بعد.</div>
-              </div>
-            </div>
-
-            <div class="split-card">
-              <div class="card-header">
-                <h3>📝 سجل جلسات المذاكرة والخطط المؤجلة</h3>
-                <span class="card-badge" id="sessionsCount">0 جلسات</span>
-              </div>
-              <div class="sessions-list" id="studySessionsList">
-                <div class="empty-state">لا توجد جلسات مذاكرة مسجلة اليوم.</div>
+                <div class="item-desc">📍 المستشفى الجامعي | تنبيه قبلها بـ 60 دقيقة</div>
               </div>
             </div>
           </div>
@@ -784,21 +713,16 @@
             </div>
           </div>
 
-          <div class="content-split-grid">
-            <div class="split-card">
-              <div class="card-header">
-                <h3>🕌 جلسات الحفظ والمراجعة الأخيرة</h3>
-              </div>
-              <div class="quran-list" id="quranLogsList">
-                <div class="empty-state">لم يتم تسجيل ورد قرآني بعد.</div>
-              </div>
+          <div class="split-card full-width-card">
+            <div class="card-header">
+              <h3>🕌 سجل جلسات التلاوة وتثبيت الحفظ المباشر</h3>
+              <span class="card-badge" id="quranTotalSessionsBadge">0 جلسات</span>
             </div>
-
-            <div class="split-card">
-              <div class="card-header">
-                <h3>✨ إرشادات وتوجيهات الحفظ والتثبيت المتقن</h3>
-              </div>
-              <div class="schedule-list">
+            <div class="quran-list" id="quranLogsList">
+              <div class="empty-state">لم يتم تسجيل ورد قرآني بعد. أرسل فويس بالورد اليومي لتوثيقه فوراً!</div>
+            </div>
+          </div>
+        </section>
                 <div class="session-item">
                   <div class="item-title">1. الورد اليومي الثابت:</div>
                   <div class="item-desc">حفظ ربعين جديدين + مراجعة جزء كامل يومياً لتثبيت الختمة كل شهر.</div>

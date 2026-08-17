@@ -585,21 +585,23 @@ async function renderHomeOverview(period = activeHomePeriod) {
     if (expTransEl) expTransEl.textContent = `${catTransport.toLocaleString('en-US', { minimumFractionDigits: 2 })} ج.م`;
     if (expBizEl) expBizEl.textContent = `${catBusiness.toLocaleString('en-US', { minimumFractionDigits: 2 })} ج.م`;
 
-    // 15. Live Realtime Activity Stream
+    // 15. Live Realtime Activity Stream & Dynamic Modules Progress on Home
     const activityFeedEl = document.getElementById('homeRecentActivities');
-    const { data: recentSessions } = await supabase.from('study_sessions').select('*').order('created_at', { ascending: false }).limit(3);
-    const { data: recentFlashcards } = await supabase.from('english_spaced_flashcards').select('*').order('created_at', { ascending: false }).limit(2);
+    const { data: recentSessions } = await supabase.from('study_sessions').select('*').order('created_at', { ascending: false }).limit(4);
+    const { data: recentFlashcards } = await supabase.from('english_spaced_flashcards').select('*').order('created_at', { ascending: false }).limit(3);
     
     let activityHtml = '';
     if (recentSessions && recentSessions.length > 0) {
       recentSessions.forEach(s => {
+        const durMins = Number(s.duration_minutes || 0);
+        let durText = durMins >= 60 ? `${(durMins / 60).toFixed(1).replace('.0', '')} ساعة (${durMins} د)` : `${durMins} دقيقة`;
         activityHtml += `
-          <div class="session-item">
+          <div class="session-item" style="border-right: 4px solid var(--accent-primary);">
             <div class="item-top-row">
-              <span class="item-title">📚 جلسة مذاكرة: [${s.course_code || 'طب'}]</span>
-              <span class="item-date">⏱️ ${s.duration_minutes || 0} دقيقة</span>
+              <span class="item-title">🩺 [${s.course_code || 'CAD402'}] <b>${s.topic || 'مذاكرة'}</b></span>
+              <span class="task-status-badge status-done">⏱️ ${durText}</span>
             </div>
-            <div class="item-desc">${s.topic_title || 'مراجعة الموديول'} | 📅 ${s.date || 'اليوم'}</div>
+            <div class="item-desc">📅 <b>التاريخ:</b> ${s.date || 'اليوم'}${s.pages_covered ? ` | 📄 <b>${s.pages_covered} صفحة</b>` : ''}${s.comprehension_rating ? ` | 🧠 استيعاب: ${'⭐'.repeat(s.comprehension_rating)}` : ''}</div>
           </div>
         `;
       });
@@ -608,12 +610,12 @@ async function renderHomeOverview(period = activeHomePeriod) {
     if (recentFlashcards && recentFlashcards.length > 0) {
       recentFlashcards.forEach(f => {
         activityHtml += `
-          <div class="session-item">
+          <div class="session-item" style="border-right: 4px solid var(--accent-cyan);">
             <div class="item-top-row">
-              <span class="item-title">🗣️ فلاش كارد: <b>${f.english_word}</b></span>
-              <span class="task-status-badge status-done">تكرار متباعد</span>
+              <span class="item-title">🗣️ فلاش كارد: <b>${f.term_or_sentence || ''}</b></span>
+              <span class="task-status-badge status-done">مستوى ${f.repetition_level || 0}/6</span>
             </div>
-            <div class="item-desc">💡 ${f.arabic_meaning}</div>
+            <div class="item-desc">💡 ${f.egyptian_translation || ''} ${f.example_sentence ? `| 📝 "${f.example_sentence}"` : ''}</div>
           </div>
         `;
       });
@@ -621,6 +623,52 @@ async function renderHomeOverview(period = activeHomePeriod) {
 
     if (activityHtml && activityFeedEl) {
       activityFeedEl.innerHTML = activityHtml;
+    }
+
+    // Dynamic Modules Tracker on Home
+    const homeModulesContainer = document.getElementById('homeModulesProgressGrid');
+    if (homeModulesContainer) {
+      const { data: allStudyRows } = await supabase.from('study_sessions').select('*');
+      const moduleStats = {
+        'CAD402': { name: 'Cardiac Disorders (أمراض القلب)', icon: '🫀', hours: 0, count: 0, lastTopic: '', lastDate: '' },
+        'PED401': { name: 'Pediatric 1 (طب الأطفال 1)', icon: '👶', hours: 0, count: 0, lastTopic: '', lastDate: '' },
+        'HVD404': { name: 'Hematological Disorders (أمراض الدم)', icon: '🩸', hours: 0, count: 0, lastTopic: '', lastDate: '' },
+        'RSD403': { name: 'Respiratory Disorders (أمراض الصدر)', icon: '🫁', hours: 0, count: 0, lastTopic: '', lastDate: '' },
+        'SKL 7':  { name: 'Clinical Skills 7 (المهارات الإكلينيكية)', icon: '🩺', hours: 0, count: 0, lastTopic: '', lastDate: '' }
+      };
+
+      (allStudyRows || []).forEach(s => {
+        const code = (s.course_code || 'CAD402').trim().toUpperCase();
+        if (moduleStats[code]) {
+          moduleStats[code].hours += (Number(s.duration_minutes) || 0) / 60;
+          moduleStats[code].count++;
+          if (!moduleStats[code].lastTopic || (s.date && s.date >= moduleStats[code].lastDate)) {
+            moduleStats[code].lastTopic = s.topic || 'مذاكرة';
+            moduleStats[code].lastDate = s.date || '';
+          }
+        }
+      });
+
+      let modHtml = '';
+      Object.entries(moduleStats).forEach(([code, data]) => {
+        const hrsFormatted = data.hours > 0 ? (data.hours % 1 === 0 ? data.hours.toFixed(0) : data.hours.toFixed(1)) : '0.0';
+        modHtml += `
+          <div class="module-progress-card" onclick="switchTabDirect('medical')">
+            <div class="module-progress-header">
+              <span class="module-code-badge">${code}</span>
+              <span class="task-status-badge ${data.count > 0 ? 'status-done' : 'status-pending'}">${data.count > 0 ? `${data.count} جلسات` : 'بانتظار البدء'}</span>
+            </div>
+            <div class="module-name-title">${data.icon} ${data.name}</div>
+            <div class="module-stats-row">
+              <div class="module-study-hours-val">${hrsFormatted} <span>ساعة مذاكرة</span></div>
+            </div>
+            <div class="module-last-session-text">
+              ${data.lastTopic ? `📌 آخر جلسة: <b>${data.lastTopic}</b> • 📅 ${data.lastDate || 'اليوم'}` : 'لم تبدأ المذاكرة في هذا الموديول بعد.'}
+            </div>
+          </div>
+        `;
+      });
+      homeModulesContainer.innerHTML = modHtml;
     }
 
     // 16. Habit Consistency Analytics Matrix
@@ -661,52 +709,146 @@ async function renderAcademicSection() {
   const attRateEl = document.getElementById('attendanceRate');
   const casesEl = document.getElementById('clinicalCasesList');
   const sessionsEl = document.getElementById('studySessionsList');
-  const totalStudyHoursEl = document.getElementById('totalStudyHours');
-  const totalPagesEl = document.getElementById('totalPagesCovered');
-  const casesCountEl = document.getElementById('casesCount');
   const sessionsCountEl = document.getElementById('sessionsCount');
   const medSpacedList = document.getElementById('medSpacedList');
   const totalMedQuizzes = document.getElementById('totalMedQuizzes');
   const medQuizzesBadge = document.getElementById('medQuizzesBadge');
+  const overallBadge = document.getElementById('medicalOverallStatsBadge');
 
   try {
-    // Courses
-    const { data: courses } = await supabase.from('academic_courses').select('*').eq('semester', 7).order('credit_hours', { ascending: false });
-    const defaultCourses = [
-      { code: 'PED401', title: 'Pediatric 1', credit_hours: 5, mod_work_marks: 12, mid_mod_marks: 25, end_module_marks: 50, pract_clin_marks: 38, total_marks: 125, is_pass_fail: false },
-      { code: 'CAD402', title: 'Cardiac Disorders', credit_hours: 5, mod_work_marks: 12, mid_mod_marks: 25, end_module_marks: 50, pract_clin_marks: 38, total_marks: 125, is_pass_fail: false },
-      { code: 'RSD403', title: 'Respiratory Disorders', credit_hours: 3, mod_work_marks: 7, mid_mod_marks: 15, end_module_marks: 30, pract_clin_marks: 23, total_marks: 75, is_pass_fail: false },
-      { code: 'HVD404', title: 'Hematological & Vascular Disorders', credit_hours: 4, mod_work_marks: 10, mid_mod_marks: 20, end_module_marks: 40, pract_clin_marks: 30, total_marks: 100, is_pass_fail: false },
-      { code: 'SKL 7', title: 'Skills 7', credit_hours: 1, mod_work_marks: 0, mid_mod_marks: 0, end_module_marks: 0, pract_clin_marks: 25, total_marks: 25, is_pass_fail: false },
-      { code: 'PRF 7', title: 'Professionalism 7', credit_hours: 1, mod_work_marks: 0, mid_mod_marks: 0, end_module_marks: 0, pract_clin_marks: 0, total_marks: 0, is_pass_fail: true },
-      { code: 'ELE 7', title: 'Elective 7', credit_hours: 1, mod_work_marks: 0, mid_mod_marks: 0, end_module_marks: 0, pract_clin_marks: 0, total_marks: 0, is_pass_fail: true }
-    ];
-    const activeList = (courses && courses.length > 0) ? courses : defaultCourses;
-    let html = '';
-    activeList.forEach(c => {
-      html += `
-        <div class="course-card">
-          <div class="course-header">
-            <span class="course-code">${c.code}</span>
-            <span class="course-credits">${c.credit_hours} ساعات</span>
-          </div>
-          <div class="course-title">${c.title}</div>
-          ${!c.is_pass_fail ? `
-            <table class="marks-breakdown-table">
-              <thead><tr><th>أعمال سنة</th><th>ميد</th><th>فاينال</th><th>إكلينيكي</th></tr></thead>
-              <tbody><tr><td>${c.mod_work_marks}</td><td>${c.mid_mod_marks}</td><td>${c.end_module_marks}</td><td>${c.pract_clin_marks}</td></tr></tbody>
-            </table>
-          ` : `<div style="color: #94a3b8; font-size: 0.85rem; margin: 10px 0;">Pass / Fail (ساعة معتمدة)</div>`}
-          <div class="course-total-badge">
-            <span class="course-total-label">المجموع:</span>
-            <span class="course-total-val">${c.is_pass_fail ? 'Pass / Fail' : `${c.total_marks} درجة`}</span>
-          </div>
-        </div>
-      `;
-    });
-    if (container) container.innerHTML = html;
+    // 1. Fetch all study sessions
+    const { data: sessions } = await supabase.from('study_sessions').select('*').order('created_at', { ascending: false });
+    
+    // Group study time by module
+    const moduleStats = {
+      'CAD402': { name: 'Cardiac Disorders (أمراض القلب)', icon: '🫀', credits: 5, mins: 0, count: 0, lastTopic: '', lastDur: 0, lastDate: '' },
+      'PED401': { name: 'Pediatric 1 (طب الأطفال 1)', icon: '👶', credits: 5, mins: 0, count: 0, lastTopic: '', lastDur: 0, lastDate: '' },
+      'HVD404': { name: 'Hematological Disorders (أمراض الدم والأوعية)', icon: '🩸', credits: 4, mins: 0, count: 0, lastTopic: '', lastDur: 0, lastDate: '' },
+      'RSD403': { name: 'Respiratory Disorders (أمراض الصدر)', icon: '🫁', credits: 3, mins: 0, count: 0, lastTopic: '', lastDur: 0, lastDate: '' },
+      'SKL 7':  { name: 'Clinical Skills 7 (المهارات الإكلينيكية)', icon: '🩺', credits: 1, mins: 0, count: 0, lastTopic: '', lastDur: 0, lastDate: '' }
+    };
 
-    // Medical Spaced Quizzes
+    let grandTotalMins = 0;
+    (sessions || []).forEach(s => {
+      const code = (s.course_code || 'CAD402').trim().toUpperCase();
+      const dur = Number(s.duration_minutes || 0);
+      grandTotalMins += dur;
+      if (moduleStats[code]) {
+        moduleStats[code].mins += dur;
+        moduleStats[code].count++;
+        if (!moduleStats[code].lastTopic || (s.date && s.date >= moduleStats[code].lastDate)) {
+          moduleStats[code].lastTopic = s.topic || 'مذاكرة';
+          moduleStats[code].lastDur = dur;
+          moduleStats[code].lastDate = s.date || '';
+        }
+      }
+    });
+
+    if (overallBadge) {
+      const totalHrs = (grandTotalMins / 60).toFixed(1).replace('.0', '');
+      overallBadge.textContent = `⏱️ إجمالي المذاكرة: ${totalHrs} ساعة (${grandTotalMins} دقيقة)`;
+    }
+
+    // Render Dynamic Clinical Module Cards
+    if (container) {
+      let modHtml = '';
+      Object.entries(moduleStats).forEach(([code, data]) => {
+        const hrs = (data.mins / 60).toFixed(1).replace('.0', '');
+        modHtml += `
+          <div class="module-progress-card">
+            <div class="module-progress-header">
+              <span class="module-code-badge">${code}</span>
+              <span class="task-status-badge ${data.count > 0 ? 'status-done' : 'status-pending'}">${data.count > 0 ? `${data.count} جلسات` : 'بانتظار البدء'}</span>
+            </div>
+            <div class="module-name-title">${data.icon} ${data.name}</div>
+            <div class="module-stats-row">
+              <div class="module-study-hours-val">${hrs} <span>ساعة مذاكرة (${data.mins} د)</span></div>
+              <div style="font-size: 0.78rem; color: var(--text-muted);">${data.credits} ساعات معتمدة</div>
+            </div>
+            <div class="module-last-session-text">
+              ${data.lastTopic ? `📌 آخر جلسة: <b>${data.lastTopic}</b> (${data.lastDur} د) • 📅 ${data.lastDate || 'اليوم'}` : 'لم تسجل جلسات في هذا الموديول بعد.'}
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = modHtml;
+    }
+
+    // 2. Render Prominent Live Study Sessions Ledger
+    if (sessions && sessions.length > 0) {
+      if (sessionsCountEl) sessionsCountEl.textContent = `${sessions.length} جلسات مسجلة`;
+      let sHtml = '';
+      sessions.forEach(s => {
+        const durMins = Number(s.duration_minutes || 0);
+        let durText = durMins >= 60 ? `${(durMins / 60).toFixed(1).replace('.0', '')} ${durMins === 60 ? 'ساعة' : durMins === 120 ? 'ساعتين' : durMins >= 180 && durMins <= 600 ? 'ساعات' : 'ساعة'} (${durMins} دقيقة)` : `${durMins} دقيقة`;
+        sHtml += `
+          <div class="session-item" style="border-right: 4px solid var(--accent-primary); background: var(--bg-card-inner); padding: 16px; margin-bottom: 8px;">
+            <div class="item-top-row">
+              <span class="item-title" style="font-size: 1.08rem;">🩺 <b>[${s.course_code || 'CAD402'}]</b> ${s.topic || 'جلسة مذاكرة'} ${s.was_rescheduled ? '🔄 (مؤجل)' : ''}</span>
+              <span class="task-status-badge status-done" style="font-size: 0.85rem; padding: 4px 10px;">⏱️ ${durText}</span>
+            </div>
+            <div class="item-desc" style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; font-size: 0.88rem;">
+              <span>📅 <b>التاريخ:</b> ${s.date || 'اليوم'}</span>
+              ${s.pages_covered ? `<span>📄 <b>الصفحات:</b> ${s.pages_covered} صفحة</span>` : ''}
+              ${s.comprehension_rating ? `<span>🧠 <b>الاستيعاب:</b> ${'⭐'.repeat(s.comprehension_rating)}</span>` : ''}
+              ${s.session_type ? `<span>🏷️ <b>النوع:</b> ${s.session_type}</span>` : ''}
+            </div>
+            ${s.reschedule_reason ? `<div style="font-size: 0.82rem; color: var(--accent-gold); margin-top: 6px;">⚠️ <b>سبب التأجيل:</b> ${s.reschedule_reason}</div>` : ''}
+            ${s.notes ? `<div style="font-size: 0.82rem; color: #cbd5e1; margin-top: 6px;">💬 <i>${s.notes}</i></div>` : ''}
+          </div>
+        `;
+      });
+      if (sessionsEl) sessionsEl.innerHTML = sHtml;
+    } else {
+      if (sessionsEl) sessionsEl.innerHTML = `<div class="empty-state">لا توجد جلسات مذاكرة مسجلة اليوم. أرسل فويس للبوت وسيقوم بتوثيق جلستك فوراً!</div>`;
+    }
+
+    // 3. Clinical Cases
+    const { data: cases } = await supabase.from('clinical_cases').select('*').order('date', { ascending: false }).limit(8);
+    if (cases && cases.length > 0) {
+      if (casesCountEl) casesCountEl.textContent = `${cases.length} حالات`;
+      let cHtml = '';
+      cases.forEach(c => {
+        cHtml += `
+          <div class="case-item">
+            <div class="item-top-row"><span class="item-title">🩺 [${c.course_code || 'طب'}] ${c.title || 'حالة إكلينيكية'}</span><span class="item-date">${c.date || ''}</span></div>
+            <div class="item-desc">
+              ${c.chief_complaint ? `• <b>الشكوى:</b> ${c.chief_complaint}<br>` : ''}
+              ${c.provisional_diagnosis ? `• <b>التشخيص:</b> ${c.provisional_diagnosis}<br>` : ''}
+              ${c.doctor_pearls ? `• 💡 <b>تريكة الراوند:</b> ${c.doctor_pearls}` : ''}
+            </div>
+          </div>
+        `;
+      });
+      if (casesEl) casesEl.innerHTML = cHtml;
+    }
+
+    // 4. Attendance Logs
+    const { data: attList } = await supabase.from('attendance_logs').select('*').order('date', { ascending: false }).limit(8);
+    if (attList && attList.length > 0 && attEl) {
+      let aHtml = '';
+      let presentCount = 0;
+      attList.forEach(a => {
+        if (a.status === 'حضور') presentCount++;
+        const isPresent = a.status === 'حضور';
+        aHtml += `
+          <div class="task-item">
+            <div class="item-top-row">
+              <span class="item-title">${isPresent ? '✅' : '⚠️'} [${a.course_code || 'طب'}] ${a.session_title || 'سيكشن'}</span>
+              <span class="task-status-badge ${isPresent ? 'status-done' : 'status-pending'}">${a.status}</span>
+            </div>
+            <div class="item-desc">
+              📅 ${a.date || ''} ${a.reason ? `| السبب: ${a.reason}` : ''}
+              ${a.makeup_plan ? `<br>🔄 <b>خطة التعويض:</b> ${a.makeup_plan}` : ''}
+            </div>
+          </div>
+        `;
+      });
+      attEl.innerHTML = aHtml;
+      if (attRateEl) attRateEl.textContent = `نسبة الحضور: ${Math.round((presentCount / attList.length) * 100)}%`;
+    }
+
+    // 5. Medical Spaced Quizzes
     const { data: quizzes } = await supabase.from('medical_spaced_quizzes').select('*').order('created_at', { ascending: false });
     if (quizzes && quizzes.length > 0) {
       if (totalMedQuizzes) totalMedQuizzes.innerHTML = `${quizzes.length} <span class="stat-unit">سؤال</span>`;
@@ -718,7 +860,7 @@ async function renderAcademicSection() {
           qHtml += `
             <div class="skill-card" style="border-color: rgba(56, 189, 248, 0.25);">
               <div class="item-top-row">
-                <span class="skill-title">🩺 [${q.course_code}] ${q.topic || 'Clinical MCQ'}</span>
+                <span class="skill-title">🩺 [${q.course_code || 'طب'}] ${q.topic || 'Clinical MCQ'}</span>
                 <span class="task-status-badge ${q.is_mastered ? 'status-done' : 'status-pending'}">مستوى: ${q.repetition_level || 0}/6</span>
               </div>
               <div style="font-weight: 700; color: #f8fafc; margin: 8px 0; font-size: 1.05rem;">❓ ${q.question}</div>
@@ -733,7 +875,7 @@ async function renderAcademicSection() {
       }
     }
 
-    // Academic Schedule
+    // 6. Academic Schedule
     const { data: schedule } = await supabase.from('academic_schedule').select('*').eq('is_active', true);
     if (schedule && schedule.length > 0 && schedEl) {
       let sHtml = '';
@@ -751,80 +893,6 @@ async function renderAcademicSection() {
       schedEl.innerHTML = sHtml;
     }
 
-    // Attendance Logs
-    const { data: attList } = await supabase.from('attendance_logs').select('*').order('date', { ascending: false }).limit(6);
-    if (attList && attList.length > 0 && attEl) {
-      let aHtml = '';
-      let presentCount = 0;
-      attList.forEach(a => {
-        if (a.status === 'حضور') presentCount++;
-        const isPresent = a.status === 'حضور';
-        aHtml += `
-          <div class="task-item">
-            <div class="item-top-row">
-              <span class="item-title">${isPresent ? '✅' : '⚠️'} [${a.course_code}] ${a.session_title}</span>
-              <span class="task-status-badge ${isPresent ? 'status-done' : 'status-pending'}">${a.status}</span>
-            </div>
-            <div class="item-desc">
-              📅 ${a.date} ${a.reason ? `| السبب: ${a.reason}` : ''}
-              ${a.makeup_plan ? `<br>🔄 <b>خطة التعويض:</b> ${a.makeup_plan}` : ''}
-            </div>
-          </div>
-        `;
-      });
-      attEl.innerHTML = aHtml;
-      if (attRateEl) attRateEl.textContent = `نسبة الحضور: ${Math.round((presentCount / attList.length) * 100)}%`;
-    }
-
-    // Study Sessions
-    const { data: sessions } = await supabase.from('study_sessions').select('*').order('date', { ascending: false }).limit(8);
-    let totalMins = 0;
-    let totalPages = 0;
-    if (sessions && sessions.length > 0) {
-      sessions.forEach(s => {
-        totalMins += Number(s.duration_minutes || 0);
-        totalPages += Number(s.pages_covered || 0);
-      });
-      if (sessionsCountEl) sessionsCountEl.textContent = `${sessions.length} جلسات`;
-      let sHtml = '';
-      sessions.forEach(s => {
-        sHtml += `
-          <div class="session-item">
-            <div class="item-top-row">
-              <span class="item-title">📚 [${s.course_code}] ${s.topic} ${s.was_rescheduled ? '🔄 (مؤجل)' : ''}</span>
-              <span class="item-date">${s.date}</span>
-            </div>
-            <div class="item-desc">
-              ⏱️ ${s.duration_minutes || 0} دقيقة | 📄 ${s.pages_covered || 0} صفحة
-              ${s.reschedule_reason ? `<br>⚠️ <b>سبب التأجيل:</b> ${s.reschedule_reason}` : ''}
-            </div>
-          </div>
-        `;
-      });
-      if (sessionsEl) sessionsEl.innerHTML = sHtml;
-    }
-    if (totalStudyHoursEl) totalStudyHoursEl.innerHTML = `${(totalMins / 60).toFixed(1)} <span class="stat-unit">ساعة</span>`;
-    if (totalPagesEl) totalPagesEl.textContent = `${totalPages} صفحة منجزة`;
-
-    // Cases
-    const { data: cases } = await supabase.from('clinical_cases').select('*').order('date', { ascending: false }).limit(6);
-    if (cases && cases.length > 0) {
-      if (casesCountEl) casesCountEl.textContent = `${cases.length} حالات`;
-      let cHtml = '';
-      cases.forEach(c => {
-        cHtml += `
-          <div class="case-item">
-            <div class="item-top-row"><span class="item-title">🩺 [${c.course_code}] ${c.title}</span><span class="item-date">${c.date}</span></div>
-            <div class="item-desc">
-              ${c.chief_complaint ? `• <b>الشكوى:</b> ${c.chief_complaint}<br>` : ''}
-              ${c.provisional_diagnosis ? `• <b>التشخيص:</b> ${c.provisional_diagnosis}<br>` : ''}
-              ${c.doctor_pearls ? `• 💡 <b>تريكة الراوند:</b> ${c.doctor_pearls}` : ''}
-            </div>
-          </div>
-        `;
-      });
-      if (casesEl) casesEl.innerHTML = cHtml;
-    }
   } catch (err) {
     console.warn('renderAcademicSection error:', err);
   }
