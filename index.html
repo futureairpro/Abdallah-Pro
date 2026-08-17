@@ -56,57 +56,57 @@
       </div>
 
       <nav class="sidebar-nav">
-        <button class="nav-item active" data-tab="medical" data-title="لوحة المؤشرات | الطب والسكاشن" onclick="toggleMobileSidebar(false)">
+        <button class="nav-item active" data-tab="medical" data-title="الطب والسكاشن" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">🩺</span>
           <span>الطب والسكاشن</span>
         </button>
 
-        <button class="nav-item" data-tab="english" data-title="فلاش كاردز الإنجليزية | Spaced Flashcards" onclick="toggleMobileSidebar(false)">
+        <button class="nav-item" data-tab="english" data-title="فلاش كاردز الإنجليزية" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">🗣️</span>
           <span>فلاش كاردز الإنجليزية</span>
         </button>
 
-        <button class="nav-item" data-tab="quran" data-title="المصحف وتثبيت الحفظ | Quran OS" onclick="toggleMobileSidebar(false)">
+        <button class="nav-item" data-tab="quran" data-title="المصحف وتثبيت الحفظ" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">📖</span>
           <span>المصحف والقرآن</span>
         </button>
 
-        <button class="nav-item" data-tab="fasting" data-title="الصيام والسنن والأذكار | Worship Logs" onclick="toggleMobileSidebar(false)">
+        <button class="nav-item" data-tab="fasting" data-title="الصيام والسنن والأذكار" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">🌙</span>
           <span>الصيام والسنن والأذكار</span>
         </button>
 
-        <button class="nav-item" data-tab="wellness" data-title="الفضفضة والاتزان النفسي | Mental Wellness" onclick="toggleMobileSidebar(false)">
+        <button class="nav-item" data-tab="wellness" data-title="الفضفضة والاتزان النفسي" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">🧠</span>
           <span>الفضفضة والاتزان</span>
         </button>
 
-        <button class="nav-item" data-tab="gym" data-title="الجيم واللياقة البدنية | Body Engineering" onclick="toggleMobileSidebar(false)">
+        <button class="nav-item" data-tab="gym" data-title="الجيم واللياقة البدنية" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">🏋️‍♂️</span>
           <span>الجيم واللياقة</span>
         </button>
 
-        <button class="nav-item" data-tab="content" data-title="صناعة المحتوى والميديا | Content Pipeline" onclick="toggleMobileSidebar(false)">
+        <button class="nav-item" data-tab="content" data-title="صناعة المحتوى والميديا" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">🎬</span>
           <span>صناعة المحتوى</span>
         </button>
 
-        <button class="nav-item" data-tab="work" data-title="الشغل وإدارة المشاريع | Business Hub" onclick="toggleMobileSidebar(false)">
+        <button class="nav-item" data-tab="work" data-title="الشغل وإدارة المشاريع" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">💼</span>
           <span>الشغل والبيزنس</span>
         </button>
 
-        <button class="nav-item" data-tab="tasks" data-title="المهام اليومية والمواعيد | Focus & Tasks" onclick="toggleMobileSidebar(false)">
+        <button class="nav-item" data-tab="tasks" data-title="المهام اليومية والمواعيد" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">🎯</span>
           <span>المهام والمواعيد</span>
         </button>
 
-        <button class="nav-item" data-tab="thoughts" data-title="بنك الخواطر والانضباط | Wisdom Vault" onclick="toggleMobileSidebar(false)">
+        <button class="nav-item" data-tab="thoughts" data-title="بنك الخواطر والانضباط" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">💡</span>
           <span>بنك الخواطر</span>
         </button>
 
-        <button class="nav-item" data-tab="finance" data-title="الخزنة والمصروفات المالية | Personal Finance" onclick="toggleMobileSidebar(false)">
+        <button class="nav-item" data-tab="finance" data-title="الخزنة والمصروفات المالية" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">💵</span>
           <span>الخزنة والمالية</span>
         </button>
@@ -129,25 +129,14 @@
           <button id="mobile-menu-toggle" class="mobile-menu-btn" onclick="toggleMobileSidebar(true)" title="القائمة">
             ☰
           </button>
-          <h2 class="page-title" id="currentSectionTitle">لوحة المؤشرات | الطب والسكاشن</h2>
+          <h2 class="page-title" id="currentSectionTitle">الطب والسكاشن</h2>
         </div>
 
         <!-- 🕒 Digital Clock & Date Widget -->
         <div class="digital-clock-widget">
           <span class="clock-time" id="digital-clock">--:--:-- --</span>
-          <span style="height: 12px; width: 1px; background: rgba(255,255,255,0.15);"></span>
+          <span class="clock-divider">|</span>
           <span class="clock-date" id="digital-date">--/--/----</span>
-        </div>
-
-        <div class="topbar-center">
-          <div class="prayer-capsule-bar">
-            <span class="prayer-capsule-item">الفجر: <b id="ptFajr">04:51</b></span>
-            <span class="prayer-capsule-item">الشروق: <b id="ptSunrise">06:24</b></span>
-            <span class="prayer-capsule-item">الظهر: <b id="ptDhuhr">13:00</b></span>
-            <span class="prayer-capsule-item">العصر: <b id="ptAsr">16:35</b></span>
-            <span class="prayer-capsule-item">المغرب: <b id="ptMaghrib">19:36</b></span>
-            <span class="prayer-capsule-item">العشاء: <b id="ptIsha">20:57</b></span>
-          </div>
         </div>
 
         <div class="topbar-left">
@@ -166,12 +155,7 @@
           <!-- Live Bot Sync Indicator -->
           <div class="bot-status-indicator">
             <span class="pulse-dot-green"></span>
-            <span>مزامنة مباشرة مع البوت</span>
-          </div>
-
-          <div class="user-profile-btn">
-            <span class="user-mini-avatar">🩺</span>
-            <span class="user-mini-name">د. عبدالله</span>
+            <span>مزامنة مباشرة</span>
           </div>
 
           <button class="btn-lock-top" id="btnLockSystem" title="قفل الشاشة">
@@ -179,6 +163,23 @@
           </button>
         </div>
       </header>
+
+      <!-- 🕌 Slim Prayer Times Bar -->
+      <div class="prayer-times-subbar">
+        <div class="prayer-capsule-bar">
+          <span class="prayer-subbar-label">🕌 مواقيت الصلاة اليوم:</span>
+          <span class="prayer-capsule-item">الفجر: <b id="ptFajr">04:51</b></span>
+          <span class="prayer-capsule-item">الشروق: <b id="ptSunrise">06:24</b></span>
+          <span class="prayer-capsule-item">الظهر: <b id="ptDhuhr">13:00</b></span>
+          <span class="prayer-capsule-item">العصر: <b id="ptAsr">16:35</b></span>
+          <span class="prayer-capsule-item">المغرب: <b id="ptMaghrib">19:36</b></span>
+          <span class="prayer-capsule-item">العشاء: <b id="ptIsha">20:57</b></span>
+        </div>
+        <div class="target-badge-pill">
+          <span class="live-dot"></span>
+          <span>الهدف الأكاديمي: امتياز (450/450)</span>
+        </div>
+      </div>
 
       <!-- 🧪 SANDBOX TEST MODE BANNER BAR -->
       <div id="sandbox-mode-banner" style="display: none; background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(234, 88, 12, 0.2)); border: 2px dashed #f59e0b; padding: 12px 20px; border-radius: 12px; margin: 15px 25px 0 25px; align-items: center; justify-content: space-between; gap: 15px; box-shadow: 0 0 20px rgba(245, 158, 11, 0.15); direction: rtl; flex-wrap: wrap;">
@@ -651,12 +652,12 @@
         const dateEl = document.getElementById('digital-date');
 
         if (clockEl) {
-          const timeStr = now.toLocaleTimeString('ar-EG', { timeZone: 'Africa/Cairo', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+          const timeStr = now.toLocaleTimeString('en-US', { timeZone: 'Africa/Cairo', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
           clockEl.textContent = timeStr;
         }
 
         if (dateEl) {
-          const dateStr = now.toLocaleDateString('ar-EG', { timeZone: 'Africa/Cairo', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+          const dateStr = now.toLocaleDateString('ar-EG', { timeZone: 'Africa/Cairo', weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
           dateEl.textContent = dateStr;
         }
       }
