@@ -252,12 +252,14 @@ function initClockAndPrayers() {
       return `${String(h).padStart(2, '0')}:${m} ${suffix}`;
     };
 
-    setPt('ptFajr', formatPt(prayers.times.fajr));
-    setPt('ptSunrise', formatPt(prayers.times.sunrise));
-    setPt('ptDhuhr', formatPt(prayers.times.dhuhr));
-    setPt('ptAsr', formatPt(prayers.times.asr));
-    setPt('ptMaghrib', formatPt(prayers.times.maghrib));
-    setPt('ptIsha', formatPt(prayers.times.isha));
+    if (prayers) {
+      setPt('ptFajr', formatPt(prayers.fajr || (prayers.times && prayers.times.fajr)));
+      setPt('ptSunrise', formatPt(prayers.sunrise || (prayers.times && prayers.times.sunrise)));
+      setPt('ptDhuhr', formatPt(prayers.dhuhr || (prayers.times && prayers.times.dhuhr)));
+      setPt('ptAsr', formatPt(prayers.asr || (prayers.times && prayers.times.asr)));
+      setPt('ptMaghrib', formatPt(prayers.maghrib || (prayers.times && prayers.times.maghrib)));
+      setPt('ptIsha', formatPt(prayers.isha || (prayers.times && prayers.times.isha)));
+    }
   } catch (e) {
     console.warn('Prayer times init error:', e);
   }
