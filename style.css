@@ -429,6 +429,12 @@ body {
   animation: pulseGreen 2s infinite;
 }
 
+@keyframes pulseGreen {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
 .btn-lock-top {
   background: rgba(244, 63, 94, 0.12);
   border: 1px solid rgba(244, 63, 94, 0.3);
@@ -460,6 +466,70 @@ body {
   gap: 16px;
   box-shadow: var(--shadow-card);
   flex-wrap: wrap;
+}
+
+/* 🧪 Sandbox Mode Banner */
+.sandbox-mode-banner {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(234, 88, 12, 0.2));
+  border: 2px dashed #f59e0b;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  margin: 15px 28px 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+  direction: rtl;
+  flex-wrap: wrap;
+}
+
+.sandbox-banner-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 260px;
+}
+
+.sandbox-banner-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.sandbox-banner-text h4 {
+  margin: 0;
+  color: #fbbf24;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.sandbox-banner-text p {
+  margin: 3px 0 0;
+  color: #fde68a;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.sandbox-banner-btn {
+  background: var(--accent-rose);
+  color: #fff;
+  border: none;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
+  font-family: inherit;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sandbox-banner-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(244, 63, 94, 0.6);
 }
 
 .prayer-capsule-bar {
@@ -1400,23 +1470,27 @@ body {
 .empty-state { color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 24px 12px; }
 .app-footer { margin-top: 40px; text-align: center; font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 20px; }
 
-/* 📱 Mobile Menu Button & Drawer Architecture */
+/* ==============================================================================
+   📱 Mobile Navigation & Responsive Drawer System
+   ============================================================================== */
 .mobile-menu-btn {
   display: none;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
   color: #fff;
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   padding: 6px 12px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   align-items: center;
   justify-content: center;
-  margin-left: 10px;
+  margin-left: 8px;
   transition: all 0.2s ease;
+  line-height: 1;
 }
+
 .mobile-menu-btn:hover {
-  background: rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.25);
   border-color: var(--accent-primary);
 }
 
@@ -1424,13 +1498,14 @@ body {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 9998;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
+
 .sidebar-backdrop.active {
   display: block;
   opacity: 1;
@@ -1438,105 +1513,28 @@ body {
 
 .mobile-menu-close-btn {
   display: none;
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 1.8rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.5rem;
   cursor: pointer;
-  padding: 0;
+  padding: 2px 8px;
   line-height: 1;
   margin-right: auto;
   margin-left: 0;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
 }
+
 .mobile-menu-close-btn:hover {
+  background: rgba(244, 63, 94, 0.2);
   color: #fff;
+  border-color: var(--accent-rose);
 }
 
-/* 🕒 Digital Clock & Date Widget */
-.digital-clock-widget {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 6px 16px;
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  direction: rtl;
-}
-.digital-clock-widget .clock-time {
-  font-family: var(--font-en), monospace;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: 0.5px;
-}
-.digital-clock-widget .clock-date {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-/* 🧪 & 💻 Topbar Mode Action Buttons */
-.btn-topbar-mode {
-  padding: 6px 14px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: var(--font-ar);
-  white-space: nowrap;
-}
-.btn-desktop-toggle {
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: var(--accent-primary);
-}
-.btn-desktop-toggle:hover {
-  background: rgba(16, 185, 129, 0.25);
-}
-
-.btn-sandbox-toggle {
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  color: #f59e0b;
-}
-.btn-sandbox-toggle:hover {
-  background: rgba(245, 158, 11, 0.28);
-}
-
-/* 🟢 Bot Status Live Indicator */
-.bot-status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.03);
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  white-space: nowrap;
-}
-.pulse-dot-green {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 10px #10b981;
-  animation: pulseGreen 2s infinite;
-}
-@keyframes pulseGreen {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-/* Dynamic Clinical Module Study Cards */
+/* ==============================================================================
+   🩺 Dynamic Clinical Module Study Cards
+   ============================================================================== */
 .module-progress-card {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
@@ -1611,74 +1609,518 @@ body {
   color: #fff;
 }
 
-/* 📱 Responsive Breakpoints */
+/* ==============================================================================
+   📱 Comprehensive Responsive Breakpoints (Mobile & Tablet Perfection)
+   ============================================================================== */
+
+/* 📱 1. Tablet & Small Laptop View (<= 992px) */
 @media (max-width: 992px) {
-  .mobile-menu-btn { display: flex; }
-  .mobile-menu-close-btn { display: block; }
+  .mobile-menu-btn {
+    display: flex;
+  }
+  .mobile-menu-close-btn {
+    display: flex;
+  }
 
   .sidebar {
     position: fixed;
     top: 0;
     right: 0;
     bottom: 0;
-    width: 290px;
-    min-width: 290px;
+    width: min(290px, 85vw);
+    min-width: unset;
+    max-width: unset;
     height: 100vh;
-    z-index: 9999;
+    z-index: 10000;
     transform: translateX(100%);
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.8);
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.85);
+    background: #08131d;
   }
+
   .sidebar.mobile-open {
     transform: translateX(0);
   }
-  .sidebar.mobile-open .brand-text,
-  .sidebar.mobile-open .nav-item span,
-  .sidebar.mobile-open .sidebar-footer {
-    display: block !important;
-  }
-  .sidebar.mobile-open .nav-item {
-    justify-content: flex-start !important;
+
+  .main-wrapper {
+    width: 100%;
+    min-width: 0;
   }
 
   .topbar {
-    padding: 12px 16px;
+    padding: 0 16px;
+    height: 56px;
+    min-height: 56px;
+  }
+
+  .prayer-times-subbar {
+    margin: 14px 16px 0 16px;
+    padding: 10px 14px;
     gap: 10px;
-    flex-wrap: wrap;
   }
-  .topbar-center {
-    order: 3;
-    width: 100%;
-    justify-content: center;
-    margin-top: 6px;
+
+  .sandbox-mode-banner {
+    margin: 12px 16px 0 16px;
+    padding: 12px 16px;
   }
+
+  .main-body {
+    padding: 18px 16px 60px;
+  }
+
+  .content-split-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .courses-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+/* 📱 2. Mobile View (<= 768px) */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  /* Topbar Mobile Layout */
+  .topbar {
+    padding: 0 12px;
+    height: 54px;
+    min-height: 54px;
+    gap: 8px;
+  }
+
+  .topbar-right {
+    gap: 8px;
+  }
+
+  .page-title {
+    font-size: 1rem;
+  }
+
+  .digital-clock-widget {
+    padding: 4px 10px;
+    border-radius: 14px;
+  }
+  .digital-clock-widget .clock-time {
+    font-size: 0.82rem;
+  }
+  .digital-clock-widget .clock-divider,
+  .digital-clock-widget .clock-date {
+    display: none;
+  }
+
+  .topbar-left {
+    gap: 6px;
+  }
+
+  .btn-topbar-mode {
+    padding: 5px 8px;
+    font-size: 0.75rem;
+    border-radius: 10px;
+  }
+  .btn-topbar-mode span.btn-text {
+    display: none;
+  }
+
+  .bot-status-indicator {
+    padding: 5px 8px;
+    font-size: 0.72rem;
+  }
+  .bot-status-indicator span:not(.pulse-dot-green) {
+    display: none;
+  }
+
+  .btn-lock-top {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+  }
+
+  /* Prayer Times Subbar on Mobile */
+  .prayer-times-subbar {
+    margin: 10px 10px 0 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+  }
+
   .prayer-capsule-bar {
     width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 6px;
     justify-content: flex-start;
   }
+  .prayer-capsule-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .prayer-subbar-label {
+    font-size: 0.78rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .prayer-capsule-item {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    flex-shrink: 0;
+  }
+
+  /* Sandbox Banner on Mobile */
+  .sandbox-mode-banner {
+    margin: 10px 10px 0 10px;
+    padding: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .sandbox-banner-info {
+    min-width: 0;
+    gap: 10px;
+  }
+
+  .sandbox-banner-icon {
+    font-size: 1.5rem;
+  }
+
+  .sandbox-banner-text h4 {
+    font-size: 0.95rem;
+  }
+
+  .sandbox-banner-text p {
+    font-size: 0.78rem;
+  }
+
+  .sandbox-banner-btn {
+    width: 100%;
+    text-align: center;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+  }
+
+  /* Main Body on Mobile */
   .main-body {
-    padding: 16px 14px 60px;
+    padding: 12px 10px 60px;
+  }
+
+  /* Executive Banner Card on Mobile */
+  .executive-banner-card {
+    padding: 16px 14px;
+    border-radius: var(--radius-lg);
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .exec-banner-avatar {
+    display: flex;
+    justify-content: center;
+  }
+
+  .doctor-avatar-circle {
+    width: 56px;
+    height: 56px;
+    font-size: 2rem;
+  }
+
+  .exec-top-pills {
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .exec-badge-pill,
+  .target-badge-pill {
+    font-size: 0.72rem;
+    padding: 4px 10px;
+  }
+
+  .exec-title {
+    font-size: 1.25rem;
+    margin-bottom: 6px;
+  }
+
+  .exec-desc {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+
+  .time-filter-controls {
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .time-filter-btn {
+    padding: 6px 12px;
+    font-size: 0.78rem;
+    border-radius: 12px;
+  }
+
+  /* 📊 KPI Metrics Grid on Mobile: 2 clean columns */
+  .kpi-metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .kpi-card {
+    padding: 12px 10px;
+    border-radius: var(--radius-md);
+  }
+
+  .kpi-label {
+    font-size: 0.75rem;
+  }
+
+  .kpi-value {
+    font-size: 1.25rem;
+  }
+
+  .kpi-unit {
+    font-size: 0.75rem;
+  }
+
+  .kpi-trend-pill {
+    font-size: 0.68rem;
+    padding: 2px 6px;
+  }
+
+  .kpi-icon-box {
+    width: 36px;
+    height: 36px;
+    font-size: 1.15rem;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Split Cards & General Container Padding */
+  .split-card,
+  .audit-summary-card,
+  .course-card,
+  .module-progress-card,
+  .thought-card,
+  .wallet-card {
+    padding: 14px 12px;
+    border-radius: var(--radius-md);
+    margin-bottom: 14px !important;
+  }
+
+  .card-header {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .card-header h3 {
+    font-size: 0.96rem;
+  }
+
+  /* Table Horizontal Scrolling on Mobile */
+  .transactions-table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius-sm);
+  }
+
+  .data-table {
+    min-width: 540px;
+    width: 100%;
+    font-size: 0.8rem;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 10px 8px;
+    white-space: normal;
+  }
+
+  /* Dynamic Grids -> 1 Column on Mobile */
+  .courses-grid,
+  .skills-grid,
+  .thoughts-grid,
+  .gym-stats-grid,
+  .content-pipeline-grid,
+  .work-projects-grid,
+  .content-split-grid,
+  .analytics-metrics-grid,
+  .checklist-grid,
+  .audit-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .wallets-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .wallet-card {
+    padding: 14px 8px;
+  }
+  .wallet-icon {
+    font-size: 1.6rem;
+    margin-bottom: 4px;
+  }
+  .wallet-name {
+    font-size: 0.78rem;
+  }
+  .wallet-amount {
+    font-size: 1.2rem;
+  }
+
+  /* Audit Section on Mobile */
+  .audit-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
+
+  .discipline-score-badge {
+    align-items: center;
+    text-align: center;
+    padding: 8px 12px;
+  }
+  .score-num {
+    font-size: 1.3rem;
+  }
+
+  .audit-box {
+    padding: 12px 14px;
+  }
+
+  .audit-motivational-banner {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .audit-motivational-banner p {
+    font-size: 0.8rem;
+  }
+
+  /* Prayers Grid on Mobile */
+  .prayers-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .prayer-card {
+    padding: 8px 4px;
+  }
+  .prayer-time {
+    font-size: 0.82rem;
+  }
+  .prayer-status {
+    font-size: 0.72rem;
+  }
+
+  .habits-secondary-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .habit-metric-box {
+    padding: 10px 8px;
+  }
+  .habit-metric-title {
+    font-size: 0.74rem;
+  }
+  .habit-metric-val {
+    font-size: 0.95rem;
+  }
+
+  /* Section Title Rows */
+  .section-title-row {
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+
+  .section-title-row h2 {
+    font-size: 1.05rem;
+  }
+
+  .badge-gold,
+  .badge-emerald {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+  }
+
+  /* Passcode Modal Mobile */
+  .auth-card {
+    padding: 28px 18px;
+    max-width: 94vw;
+  }
+  .auth-avatar {
+    font-size: 2.8rem;
+  }
+  .auth-title {
+    font-size: 1.4rem;
+  }
+  .auth-subtitle {
+    font-size: 0.8rem;
   }
 }
 
-@media (max-width: 768px) {
-  .digital-clock-widget .clock-date { display: none; }
-  .user-profile-btn .user-mini-name { display: none; }
-  .content-split-grid { grid-template-columns: 1fr !important; }
-  .courses-grid { grid-template-columns: 1fr !important; }
-  .skills-grid, .thoughts-grid, .wallets-grid, .gym-stats-grid, .content-pipeline-grid, .work-projects-grid { grid-template-columns: 1fr !important; }
-  .kpi-metrics-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .kpi-card { padding: 14px; }
-  .kpi-value { font-size: 1.3rem; }
-  .kpi-icon-box { width: 40px; height: 40px; font-size: 1.3rem; }
-  .topbar-right { gap: 8px; }
-  .page-title { font-size: 1.05rem; }
+/* 📱 3. Extra-Small Mobile Screens (<= 420px) */
+@media (max-width: 420px) {
+  .kpi-metrics-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .prayers-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .wallets-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .habits-secondary-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
-@media (max-width: 480px) {
-  .kpi-metrics-grid { grid-template-columns: 1fr; }
-  .btn-topbar-mode span.btn-text { display: none; }
-  .bot-status-indicator span { display: none; }
-  .bot-status-indicator { padding: 6px 10px; }
+/* ==============================================================================
+   💻 Explicit Desktop Force Mode Override (When user chooses Desktop view on Mobile)
+   ============================================================================== */
+body.force-desktop-mode .app-layout {
+  min-width: 1200px !important;
+}
+
+body.force-desktop-mode .sidebar {
+  position: sticky !important;
+  top: 0 !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 270px !important;
+  min-width: 270px !important;
+  max-width: 270px !important;
+  height: 100vh !important;
+  transform: none !important;
+  box-shadow: none !important;
+  display: flex !important;
+}
+
+body.force-desktop-mode .mobile-menu-btn,
+body.force-desktop-mode .mobile-menu-close-btn,
+body.force-desktop-mode .sidebar-backdrop {
+  display: none !important;
+}
+
+body.force-desktop-mode .main-wrapper {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+body.force-desktop-mode .kpi-metrics-grid {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important;
+}
+
+body.force-desktop-mode .content-split-grid {
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)) !important;
 }

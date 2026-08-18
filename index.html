@@ -185,15 +185,15 @@
       </div>
 
       <!-- 🧪 SANDBOX TEST MODE BANNER BAR -->
-      <div id="sandbox-mode-banner" style="display: none; background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(234, 88, 12, 0.2)); border: 2px dashed #f59e0b; padding: 12px 20px; border-radius: 12px; margin: 15px 25px 0 25px; align-items: center; justify-content: space-between; gap: 15px; box-shadow: 0 0 20px rgba(245, 158, 11, 0.15); direction: rtl; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <span style="font-size: 1.8rem;">🧪</span>
-          <div>
-            <h4 style="margin: 0; color: #fbbf24; font-size: 1.05rem; font-weight: 800;">وضع تجربة واختبار البوت مفّعل حالياً! (Sandbox Mode)</h4>
-            <p style="margin: 3px 0 0; color: #fde68a; font-size: 0.85rem;">تم أخذ لقطة حفظ احتياطية كاملة لجميع أقسام المنظومة.. يمكنك تجربة أي رسائل وأوامر في البوت، ولإلغاء التجربة واستعادة كل شيء كما كان اضغط الزر الأحمر باليسار.</p>
+      <div id="sandbox-mode-banner" class="sandbox-mode-banner" style="display: none;">
+        <div class="sandbox-banner-info">
+          <span class="sandbox-banner-icon">🧪</span>
+          <div class="sandbox-banner-text">
+            <h4>وضع تجربة واختبار البوت مفّعل حالياً! (Sandbox Mode)</h4>
+            <p>تم أخذ لقطة حفظ احتياطية كاملة لجميع أقسام المنظومة.. يمكنك تجربة أي رسائل وأوامر في البوت، ولإلغاء التجربة واستعادة كل شيء كما كان اضغط الزر الأحمر باليسار.</p>
           </div>
         </div>
-        <button type="button" onclick="disableSandboxModeAndRestore()" class="btn" style="background: var(--accent-rose); color: #fff; border: none; font-weight: 700; padding: 8px 18px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);">
+        <button type="button" onclick="disableSandboxModeAndRestore()" class="sandbox-banner-btn">
           🔴 إنهاء التجربة واستعادة البيانات الأصلية
         </button>
       </div>
@@ -239,7 +239,7 @@
           </div>
 
           <!-- 📊 1. Top KPI Metrics Row (مربعات مؤشرات المنظومة فوق السجل) -->
-          <div class="kpi-metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 24px;">
+          <div class="kpi-metrics-grid">
             
             <!-- Card 1: Study -->
             <div class="kpi-card" onclick="switchTabDirect('medical')">

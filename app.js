@@ -307,6 +307,10 @@ window.switchTabDirect = function(tabName) {
     }
   });
 
+  if (typeof window.toggleMobileSidebar === 'function') {
+    window.toggleMobileSidebar(false);
+  }
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
