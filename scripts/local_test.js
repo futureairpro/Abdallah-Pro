@@ -1,6 +1,7 @@
 // 🧪 Local Development Polling Runner for Abdullah's Journey Bot
 import { bot } from '../lib/bot.js';
 import { registerHandlers } from '../lib/handlers.js';
+import { startScheduler } from '../lib/scheduler.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -12,10 +13,14 @@ if (!bot) {
 
 registerHandlers(bot);
 
+const authUser = process.env.AUTHORIZED_USERS?.split(',')[0]?.trim() || '1191760477';
+startScheduler(bot, authUser);
+
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 console.log('👑 منظومة رحلة عبدالله (Abdullah\'s Journey OS) 🚀');
 console.log('🩺 الفرقة الرابعة | الفصل الدراسي السابع (450 درجة)');
 console.log('🧠 محرك الذكاء الاصطناعي متعدد المفاتيح (Gemini Multi-Key)');
+console.log('⏰ المجدول التلقائي والمراجعة الذكية نشطة الآن');
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
 bot.telegram.deleteWebhook().then(() => {

@@ -1,8 +1,18 @@
 {
+  "crons": [
+    {
+      "path": "/api/cron",
+      "schedule": "*/10 * * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/webhook",
       "destination": "/api/webhook.js"
+    },
+    {
+      "source": "/api/cron",
+      "destination": "/api/cron.js"
     }
   ]
 }

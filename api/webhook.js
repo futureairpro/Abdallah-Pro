@@ -1,7 +1,6 @@
 // 🚀 Vercel Serverless Webhook Endpoint for Abdullah's Journey OS
 import { bot } from '../lib/bot.js';
 import { registerHandlers } from '../lib/handlers.js';
-import { runSchedulerCycle } from '../lib/scheduler.js';
 
 let isRegistered = false;
 if (bot && !isRegistered) {
@@ -10,13 +9,7 @@ if (bot && !isRegistered) {
 }
 
 export default async function handler(req, res) {
-  // Trigger background scheduler check
-  if (bot) {
-    const targetChatId = process.env.TELEGRAM_CHAT_ID || '1191760477';
-    runSchedulerCycle(bot, targetChatId).catch(() => {});
-  }
-
-  // 1. Handle Telegram Update POST
+  // 1. Handle Telegram Update POST (Strictly handles user messages & commands without triggering scheduler)
   if (req.method === 'POST') {
     try {
       if (!bot) {
