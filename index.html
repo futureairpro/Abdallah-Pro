@@ -988,10 +988,31 @@
       const overlay = document.getElementById('authLockOverlay');
       const mainContent = document.getElementById('mainAppContent');
 
-      // Auto-authenticate if opened inside Telegram WebApp or with telegram_id
-      const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-      const urlUserId = new URLSearchParams(window.location.search).get('telegram_id');
-      if (tgUser || urlUserId) {
+      // ─── Detect Identity ───────────────────────────────────────────────
+      const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+      const tgUserId = tgUser?.id;
+      const urlUserId = Number(new URLSearchParams(window.location.search).get('telegram_id'));
+      const ADMIN_ID = 1191760477;
+
+      // Store globally so app.js can use it for all DB queries
+      window.CURRENT_USER_ID = Number(tgUserId || urlUserId || ADMIN_ID);
+      window.CURRENT_USER_NAME = tgUser?.first_name || null;
+      window.IS_ADMIN = (window.CURRENT_USER_ID === ADMIN_ID);
+      window.IS_TELEGRAM_USER = !!(tgUserId || urlUserId);
+
+      // ─── Telegram Mini App Setup ────────────────────────────────────────
+      if (window.Telegram?.WebApp) {
+        const twa = window.Telegram.WebApp;
+        twa.ready();
+        twa.expand();
+        // 🛡️ Prevent pull-to-dismiss scroll gesture
+        if (typeof twa.disableVerticalSwipes === 'function') twa.disableVerticalSwipes();
+        // Telegram users bypass passcode — they are authenticated via Telegram
+        if (window.IS_TELEGRAM_USER) {
+          localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
+        }
+      } else if (urlUserId) {
+        // URL param bypass (used when opened from menu button with ?telegram_id=xxx)
         localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
       }
 
@@ -1003,8 +1024,8 @@
       } else {
         if (overlay) overlay.style.display = 'flex';
         if (mainContent) mainContent.style.display = 'none';
-        const input = document.getElementById('passcodeInput');
-        if (input) input.focus();
+        const inputEl = document.getElementById('passcodeInput');
+        if (inputEl) inputEl.focus();
       }
     }
 

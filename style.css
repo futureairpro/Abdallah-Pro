@@ -53,13 +53,29 @@ html, body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden !important;
-  overscroll-behavior-x: none;
+  /* 🛡️ Prevent pull-to-dismiss in Telegram Mini App */
+  overscroll-behavior: none !important;
+  overscroll-behavior-y: none !important;
+  -webkit-overflow-scrolling: touch;
   width: 100%;
   max-width: 100%;
   position: relative;
   touch-action: pan-y;
   box-sizing: border-box;
 }
+
+/* Scrollable list containers - prevent outer page scroll when inside a list */
+.scrollable-list {
+  overflow-y: auto;
+  max-height: 380px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16,185,129,0.3) transparent;
+}
+.scrollable-list::-webkit-scrollbar { width: 4px; }
+.scrollable-list::-webkit-scrollbar-track { background: transparent; }
+.scrollable-list::-webkit-scrollbar-thumb { background: rgba(16,185,129,0.35); border-radius: 4px; }
 
 /* 🔒 Auth Lock Screen Overlay */
 .auth-lock-overlay {
