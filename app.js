@@ -170,92 +170,41 @@ function getCairoToday() {
 
 }
 
-// 🕒 Smart Arabic Relative Date & Time Formatter (اليوم، أمس، قبل أمس، منذ X أيام)
-
+// 🕒 Smart Arabic Relative Date & Time Formatter (Compact & Clean)
 function formatRelativeDate(dateStr, createdAtStr = null) {
-
   if (!dateStr && !createdAtStr) return 'الآن';
-
   const todayStr = getCairoToday();
-
   let timePortion = '';
-
   if (createdAtStr) {
-
     try {
-
       const createdDate = new Date(createdAtStr);
-
-      timePortion = createdDate.toLocaleTimeString('ar-EG', { timeZone: 'Africa/Cairo', hour: '2-digit', minute: '2-digit', hour12: true });
-
+      timePortion = createdDate.toLocaleTimeString('ar-EG', { timeZone: 'Africa/Cairo', hour: 'numeric', minute: '2-digit', hour12: true });
     } catch (e) {}
-
   }
 
   let targetDateStr = dateStr;
-
   if (!targetDateStr && createdAtStr) {
-
     try {
-
       targetDateStr = new Date(createdAtStr).toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
-
     } catch (e) {}
-
   }
 
   if (!targetDateStr || targetDateStr === todayStr) {
-
-    return timePortion ? `اليوم • ${timePortion}` : 'اليوم';
-
+    return timePortion ? `اليوم ${timePortion}` : 'اليوم';
   }
 
   try {
-
     const dToday = new Date(todayStr);
-
     const dTarget = new Date(targetDateStr);
+    const diffDays = Math.round((dToday.getTime() - dTarget.getTime()) / (1000 * 3600 * 24));
 
-    const diffTime = dToday.getTime() - dTarget.getTime();
-
-    const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
-
-    let dayLabel = '';
-
-    if (diffDays === 1) {
-
-      dayLabel = 'أمس';
-
-    } else if (diffDays === 2) {
-
-      dayLabel = 'قبل أمس';
-
-    } else if (diffDays > 2 && diffDays <= 10) {
-
-      dayLabel = `منذ ${diffDays} أيام`;
-
-    } else if (diffDays > 10) {
-
-      dayLabel = `منذ ${diffDays} يوم`;
-
-    } else if (diffDays < 0) {
-
-      dayLabel = `موعد قادم`;
-
-    } else {
-
-      dayLabel = targetDateStr;
-
-    }
-
-    return timePortion ? `${dayLabel} • ${timePortion} (${targetDateStr})` : `${dayLabel} (${targetDateStr})`;
-
+    if (diffDays === 1) return timePortion ? `أمس ${timePortion}` : 'أمس';
+    if (diffDays === 2) return timePortion ? `قبل أمس ${timePortion}` : 'قبل أمس';
+    if (diffDays > 2) return timePortion ? `${targetDateStr.slice(5)} ${timePortion}` : targetDateStr.slice(5);
+    return timePortion ? `قادم ${timePortion}` : 'موعد قادم';
   } catch (err) {
-
     return targetDateStr || 'اليوم';
-
   }
-
 }
 
 // 🔒 Security & Authentication Gateway
@@ -667,22 +616,22 @@ function renderHomeActivityTable(filterType = window._currentActivityFilter || '
     else if (filterType === 'yesterday') emptyMsg = 'لا توجد نشاطات مسجلة بالأمس.';
     else if (filterType === 'before_yesterday') emptyMsg = 'لا توجد نشاطات مسجلة قبل أمس.';
 
-    tableBody.innerHTML = `<tr><td colspan="5" class="text-center">` + emptyMsg + `</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="4" class="text-center" style="padding: 16px; color: var(--text-muted); font-size: 0.85rem;">` + emptyMsg + `</td></tr>`;
     return;
   }
 
   let html = '';
   filtered.forEach(ev => {
     const isNegative = ev.category === 'المالية والخزنة' && (ev.actionType === 'مصروف' || ev.actionType === 'expense');
+    const valColor = isNegative ? '#f43f5e' : (ev.valColor || '#10b981');
     const badgeClass = isNegative ? 'badge-expense' : 'badge-income';
 
     html += `
       <tr>
-        <td style="color: #94a3b8; font-size: 0.82rem; white-space: nowrap;">🕒 ${ev.formattedTime}</td>
-        <td><span class="${badgeClass}">${ev.icon || '📌'} ${ev.category}</span></td>
-        <td><b style="color: #fff; font-size: 0.9rem;">${ev.title}</b></td>
-        <td><b style="color: ${ev.valColor || (isNegative ? '#f43f5e' : '#4ade80')}; font-size: 0.92rem;">${ev.valOrDuration || '—'}</b></td>
-        <td style="color: var(--text-secondary); font-size: 0.82rem;">${ev.subtext || ev.actionType || 'توثيق فوري'}</td>
+        <td style="color: #94a3b8; font-size: 0.76rem; font-weight: 700; white-space: nowrap;">${ev.formattedTime}</td>
+        <td><b style="color: ${valColor}; font-size: 0.88rem; font-family: var(--font-en); direction: ltr; display: inline-block;">${ev.valOrDuration || '—'}</b></td>
+        <td><span style="color: #fff; font-weight: 700; font-size: 0.84rem;">${ev.title}</span></td>
+        <td><span class="${badgeClass}">${ev.icon || '📌'} ${ev.actionType || ev.category}</span></td>
       </tr>
     `;
   });
