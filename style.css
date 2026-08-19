@@ -52,30 +52,48 @@ html, body {
   line-height: 1.6;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden !important;
-  /* 🛡️ Prevent pull-to-dismiss in Telegram Mini App */
-  overscroll-behavior: none !important;
-  overscroll-behavior-y: none !important;
-  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+  overflow-y: auto !important;
   width: 100%;
   max-width: 100%;
   position: relative;
-  touch-action: pan-y;
   box-sizing: border-box;
 }
 
-/* Scrollable list containers - prevent outer page scroll when inside a list */
-.scrollable-list {
-  overflow-y: auto;
-  max-height: 380px;
-  overscroll-behavior: contain;
+/* 📜 Universal Scrollable Containers (Up/Down & Left/Right) */
+.transactions-table-container,
+.scrollable-list,
+.scrollable-card-body,
+.courses-grid,
+.prayers-grid {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  max-height: 480px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: rgba(16,185,129,0.3) transparent;
+  scrollbar-color: rgba(16, 185, 129, 0.35) rgba(255, 255, 255, 0.02);
 }
-.scrollable-list::-webkit-scrollbar { width: 4px; }
-.scrollable-list::-webkit-scrollbar-track { background: transparent; }
-.scrollable-list::-webkit-scrollbar-thumb { background: rgba(16,185,129,0.35); border-radius: 4px; }
+
+.transactions-table-container::-webkit-scrollbar,
+.scrollable-list::-webkit-scrollbar,
+.courses-grid::-webkit-scrollbar,
+.prayers-grid::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.transactions-table-container::-webkit-scrollbar-track,
+.scrollable-list::-webkit-scrollbar-track,
+.courses-grid::-webkit-scrollbar-track,
+.prayers-grid::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+.transactions-table-container::-webkit-scrollbar-thumb,
+.scrollable-list::-webkit-scrollbar-thumb,
+.courses-grid::-webkit-scrollbar-thumb,
+.prayers-grid::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.4);
+  border-radius: 6px;
+}
 
 /* 🔒 Auth Lock Screen Overlay */
 .auth-lock-overlay {
