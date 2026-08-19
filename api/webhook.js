@@ -41,7 +41,7 @@ export default async function handler(req, res) {
           menu_button: {
             type: 'web_app',
             text: '📱 لوحة التحكم',
-            web_app: { url: `https://${host}/api/dashboard` }
+            web_app: { url: `https://${host}/` }
           }
         }).catch(() => {});
         return res.status(200).json({
