@@ -31,10 +31,10 @@ export default async function handler(req, res) {
       .eq('date', today);
 
     // Filter user sessions
-    const userStudy = (studyRows || []).filter(s => {
-      if (!s.telegram_id || s.telegram_id == numId) return true;
-      return false;
-    });
+    const userStudy = (studyRows || []).filter(s => !s.topic?.includes('usr:') ? numId === ADMIN_CHAT_ID : s.topic.includes(`usr:${numId}`)).map(s => ({
+      ...s,
+      topic: (s.topic || '').replace(/\[usr:\d+\]\s*/g, '').trim()
+    }));
 
     let totalStudyMins = 0;
     const moduleBreakdown = {
@@ -64,7 +64,11 @@ export default async function handler(req, res) {
       .eq('date', today)
       .order('created_at', { ascending: false });
 
-    const userTasks = (taskRows || []).filter(t => !t.telegram_id || t.telegram_id == numId);
+    const userTasks = (taskRows || []).filter(t => !t.category?.includes('usr:') ? numId === ADMIN_CHAT_ID : t.category.includes(`usr:${numId}`)).map(t => ({
+      ...t,
+      title: (t.title || '').replace(/\[usr:\d+\]\s*/g, '').trim(),
+      category: (t.category || '').replace(/\[usr:\d+\]\s*/g, '').trim()
+    }));
 
     // 4. Fetch Finance
     const { data: finRows } = await supabase
@@ -73,7 +77,11 @@ export default async function handler(req, res) {
       .eq('date', today)
       .order('created_at', { ascending: false });
 
-    const userFinance = (finRows || []).filter(f => !f.telegram_id || f.telegram_id == numId);
+    const userFinance = (finRows || []).filter(f => !f.description?.includes('usr:') ? numId === ADMIN_CHAT_ID : f.description.includes(`usr:${numId}`)).map(f => ({
+      ...f,
+      description: (f.description || '').replace(/\[usr:\d+\]\s*/g, '').trim()
+    }));
+
     let todayIncome = 0;
     let todayExpense = 0;
     userFinance.forEach(f => {
@@ -86,7 +94,10 @@ export default async function handler(req, res) {
       .from('quran_logs')
       .select('*')
       .eq('date', today);
-    const userQuran = (quranRows || []).filter(q => !q.telegram_id || q.telegram_id == numId);
+    const userQuran = (quranRows || []).filter(q => !q.session_type?.includes('usr:') ? numId === ADMIN_CHAT_ID : q.session_type.includes(`usr:${numId}`)).map(q => ({
+      ...q,
+      session_type: (q.session_type || '').replace(/\[usr:\d+\]\s*/g, '').trim()
+    }));
 
     const { data: fwRow } = await supabase
       .from('fasting_and_worship_logs')
@@ -98,14 +109,14 @@ export default async function handler(req, res) {
     const { data: apptRows } = await supabase
       .from('appointments_and_reminders')
       .select('*')
-      .eq('date', today)
+      .gte('due_datetime', today)
       .order('due_datetime', { ascending: true });
 
-    const userAppts = (apptRows || []).filter(a => {
-      if (a.notes?.includes(`usr:${numId}`) || a.telegram_id == numId) return true;
-      if (!a.notes?.includes('usr:') && numId === ADMIN_CHAT_ID) return true;
-      return false;
-    });
+    const userAppts = (apptRows || []).filter(a => !a.notes?.includes('usr:') ? numId === ADMIN_CHAT_ID : a.notes.includes(`usr:${numId}`)).map(a => ({
+      ...a,
+      title: (a.title || '').replace(/\[usr:\d+\]\s*/g, '').trim(),
+      notes: (a.notes || '').replace(/\[usr:\d+\]\s*/g, '').trim()
+    }));
 
     return res.status(200).json({
       ok: true,
