@@ -3118,351 +3118,235 @@ window.renderAcademicSection = renderAcademicSection;
 // ==============================================================================
 
 const SNAPSHOT_TABLES = [
-
-  'academic_schedule',
-
-  'attendance_logs',
-
+  'personal_finance',
   'study_sessions',
-
-  'clinical_cases',
-
-  'medical_spaced_quizzes',
-
-  'english_spaced_flashcards',
-
   'quran_logs',
-
-  'fasting_and_worship_logs',
-
-  'mental_wellness_logs',
-
-  'fitness_gym_logs',
-
-  'content_creation',
-
-  'work_projects',
-
   'daily_tasks',
-
-  'appointments_and_reminders',
-
   'thoughts_and_wisdom',
-
-  'self_development_books',
-
-  'prayers_and_habits',
-
-  'personal_finance'
-
+  'appointments_and_reminders',
+  'attendance_logs',
+  'fitness_gym_logs',
+  'english_spaced_flashcards',
+  'medical_spaced_quizzes',
+  'mental_wellness_logs',
+  'work_projects',
+  'content_creation',
+  'fasting_and_worship_logs'
 ];
 
 async function checkSandboxModeState() {
+  const btn = document.getElementById('toggle-sandbox-btn');
+  if (!btn) return;
+  const uid = getUID();
 
-  try {
-
-    const { data: row } = await db.from('bot_sessions').select('*').eq('chat_id', getUID()).maybeSingle();
-
-    const isSandbox = row?.data?.sandbox_active === true;
-
-    const banner = document.getElementById('sandbox-mode-banner');
-
-    const btn = document.getElementById('toggle-sandbox-btn');
-
-    if (banner) banner.style.display = isSandbox ? 'flex' : 'none';
-
-    if (btn) {
-
-      if (isSandbox) {
-
-        btn.innerHTML = '<span>🧪</span> <span class="btn-text">وضع التجربة (مفعّل 🟢)</span>';
-
-        btn.style.background = 'rgba(239, 68, 68, 0.2)';
-
-        btn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
-
-        btn.style.color = '#ef4444';
-
-        btn.title = 'وضع تجربة البوت مفعل حالياً - اضغط لإنهاء التجربة واستعادة البيانات الأصلية';
-
-      } else {
-
-        btn.innerHTML = '<span>🧪</span> <span class="btn-text">تجربة البوت</span>';
-
-        btn.style.background = 'rgba(245, 158, 11, 0.15)';
-
-        btn.style.borderColor = 'rgba(245, 158, 11, 0.4)';
-
-        btn.style.color = '#f59e0b';
-
-        btn.title = 'تفعيل وضع تجربة واختبار البوت مع أخذ لقطة حفظ احتياطية كاملة';
-
-      }
-
-    }
-
-  } catch (e) {
-
-    console.warn('checkSandboxModeState error:', e.message);
-
+  // Hide button completely for students - only Dr. Abdullah (Admin) sees it
+  if (uid !== 1191760477) {
+    btn.style.display = 'none';
+    return;
+  } else {
+    btn.style.display = 'inline-flex';
   }
 
+  try {
+    const { data: row } = await db.from('bot_sessions').select('*').eq('chat_id', uid).maybeSingle();
+    const isSandbox = row?.data?.sandbox_active === true;
+
+    if (isSandbox) {
+      btn.classList.add('sandbox-active');
+      btn.title = 'وضع التجربة نشط! اضغط لإنهاء التجربة وإعادة البيانات الأصلية';
+      btn.innerHTML = '<span>⏳</span> <span class="btn-text">إنهاء التجربة</span>';
+      
+      let banner = document.getElementById('sandbox-active-banner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'sandbox-active-banner';
+        banner.className = 'sandbox-banner-bar';
+        banner.innerHTML = `
+          <span>⚠️ وضع تجربة البوت نشط حالياً لحسابك. أي تعديلات تسجلها لن تؤثر على بياناتك الأصلية.</span>
+          <button type="button" class="btn-end-sandbox" onclick="toggleSandboxModeFromWeb()">إنهاء التجربة واستعادة البيانات</button>
+        `;
+        document.body.prepend(banner);
+      }
+    } else {
+      btn.classList.remove('sandbox-active');
+      btn.title = 'تفعيل أو إنهاء وضع تجربة البوت';
+      btn.innerHTML = '<span>🧪</span> <span class="btn-text">تجربة البوت</span>';
+      const banner = document.getElementById('sandbox-active-banner');
+      if (banner) banner.remove();
+    }
+  } catch (e) {
+    console.warn('checkSandboxModeState error:', e.message);
+  }
 }
 
 async function toggleSandboxModeFromWeb() {
+  const uid = getUID();
+  if (uid !== 1191760477) {
+    alert('وضع التجربة متاح فقط للمشرف العام.');
+    return;
+  }
 
   const btn = document.getElementById('toggle-sandbox-btn');
-
   const originalText = btn ? btn.innerHTML : '';
-
   if (btn) {
-
     btn.disabled = true;
-
     btn.innerHTML = '<span>⏳</span> <span class="btn-text">جاري الفحص...</span>';
-
   }
 
   try {
-
-    const { data: row } = await db.from('bot_sessions').select('*').eq('chat_id', getUID()).maybeSingle();
-
+    const { data: row } = await db.from('bot_sessions').select('*').eq('chat_id', uid).maybeSingle();
     const isSandbox = row?.data?.sandbox_active === true;
-
     if (btn) btn.disabled = false;
 
     if (isSandbox) {
-
       await disableSandboxModeAndRestore();
-
     } else {
-
       await enableSandboxModeFromWeb();
-
     }
-
   } catch (err) {
-
     if (btn) {
-
       btn.disabled = false;
-
       btn.innerHTML = originalText;
-
     }
-
     alert('❌ حدث خطأ أثناء فحص حالة وضع التجربة: ' + err.message);
-
   }
-
 }
 
 async function enableSandboxModeFromWeb() {
-
+  const uid = getUID();
   const proceed = confirm(
-
-    '🧪 هل ترغب في تفعيل وضع تجربة واختبار البوت؟\n\n' +
-
-    '• سيتم أخذ لقطة حفظ احتياطية (Full Snapshot) لجميع الأقسام والسجلات والسيولة الحالية فوراً.\n' +
-
-    '• يمكنك إرسال أي رسائل أو أوامر تجريبية للبوت في تليجرام أو إجراء أي تعديلات دون خوف على بياناتك الأصلية.\n' +
-
-    '• في أي وقت تضغط "إنهاء التجربة"، سيتم إلغاء الحركات التجريبية وإعادة كل شيء كما كان تماماً!'
-
+    '🧪 هل ترغب في تفعيل وضع تجربة واختبار البوت لحسابك؟\n\n' +
+    '• سيتم أخذ لقطة حفظ احتياطية (Full Snapshot) لسجلاتك وبياناتك الحالية.\n' +
+    '• يمكنك تجربة إرسال أي رسائل أو أوامر للبوت بحرية دون التأثير على الآخرين.\n' +
+    '• عند إنهاء التجربة، سيتم حذف التعديلات التجريبية واستعادة سجلاتك الأصلية بدقة!'
   );
-
   if (!proceed) return;
 
   const btn = document.getElementById('toggle-sandbox-btn');
-
   if (btn) {
-
     btn.disabled = true;
-
     btn.innerHTML = '<span>⏳</span> <span class="btn-text">جاري أخذ لقطة الحفظ...</span>';
-
   }
 
   try {
-
-    const { data: row } = await db.from('bot_sessions').select('*').eq('chat_id', getUID()).maybeSingle();
-
+    const { data: row } = await db.from('bot_sessions').select('*').eq('chat_id', uid).maybeSingle();
     const sessionData = row?.data || {};
 
-    // Take snapshot of all tables in parallel
-
+    // Take snapshot of current user rows only
     const snapshotPromises = SNAPSHOT_TABLES.map(async (tbl) => {
-
       const { data } = await db.from(tbl).select('*');
-
-      return { tbl, rows: data || [] };
-
+      const userRows = (data || []).filter(r => userMatchesRow(r, uid));
+      return { tbl, rows: userRows };
     });
 
     const results = await Promise.all(snapshotPromises);
-
     const snapshotObj = {
-
       liquidity: { ...(sessionData.liquidity || {}) },
-
       created_at: new Date().toISOString()
-
     };
 
     results.forEach(({ tbl, rows }) => {
-
       snapshotObj[tbl] = rows;
-
     });
 
     sessionData.sandbox_snapshot = snapshotObj;
-
     sessionData.sandbox_active = true;
 
     const { error: upsertErr } = await db.from('bot_sessions').upsert({
-
-      chat_id: 999999,
-
-      state: 'global_state',
-
+      chat_id: uid,
+      state: row?.state || 'idle',
       data: sessionData,
-
       updated_at: new Date().toISOString()
-
     });
 
     if (upsertErr) throw upsertErr;
 
     alert(
-
-      '🧪 تم تفعيل وضع تجربة البوت بنجاح!\n\n' +
-
-      '✅ تم أخذ نسخة احتياطية لكافة جداول وسجلات المنظومة.\n' +
-
-      'يمكنك الآن تجربة إرسال الأوامر والرسائل للبوت في تليجرام بحرية، ولإلغاء التجربة واستعادة بياناتك اضغط الزر الأحمر بالأعلى.'
-
+      '🧪 تم تفعيل وضع تجربة البوت بنجاح لحسابك!\n\n' +
+      '✅ تم حفظ نسخة احتياطية لسجلاتك.\n' +
+      'يمكنك الآن تجربة إرسال الأوامر بحرية، ولإلغاء التجربة اضغط الزر الأحمر بالأعلى.'
     );
 
     await checkSandboxModeState();
-
   } catch (e) {
-
     alert('❌ فشل تفعيل وضع التجربة: ' + e.message);
-
   } finally {
-
     if (btn) btn.disabled = false;
-
     await checkSandboxModeState();
-
   }
-
 }
 
 async function disableSandboxModeAndRestore() {
-
+  const uid = getUID();
   const proceed = confirm(
-
-    '🔴 هل أنت متأكد من إنهاء وضع التجربة وإلغاء جميع الحركات التجريبية واستعادة البيانات الأصلية كما كانت بالضبط؟'
-
+    '🔴 هل أنت متأكد من إنهاء وضع التجربة واستعادة بياناتك وسجلاتك الأصلية؟'
   );
-
   if (!proceed) return;
 
   const btn = document.getElementById('toggle-sandbox-btn');
-
   if (btn) {
-
     btn.disabled = true;
-
     btn.innerHTML = '<span>⏳</span> <span class="btn-text">جاري استعادة البيانات الأصلية...</span>';
-
   }
 
   try {
-
-    const { data: row } = await db.from('bot_sessions').select('*').eq('chat_id', getUID()).maybeSingle();
-
+    const { data: row } = await db.from('bot_sessions').select('*').eq('chat_id', uid).maybeSingle();
     const sessionData = row?.data;
 
     if (!sessionData || !sessionData.sandbox_active || !sessionData.sandbox_snapshot) {
-
       alert('⚠️ وضع التجربة غير مفعل أو لا توجد لقطة احتياطية محفوظة!');
-
       if (btn) btn.disabled = false;
-
       return;
-
     }
 
     const snap = sessionData.sandbox_snapshot;
 
-    // 1. Clear current tables
-
+    // 1. Delete ONLY current user's records created during sandbox (do NOT wipe other users!)
     for (const tbl of SNAPSHOT_TABLES) {
-
-      await db.from(tbl).delete().not('id', 'is', null);
-
+      const { data: currentRows } = await db.from(tbl).select('*');
+      const myRows = (currentRows || []).filter(r => userMatchesRow(r, uid));
+      const myIds = myRows.map(r => r.id).filter(Boolean);
+      
+      if (myIds.length > 0) {
+        for (let i = 0; i < myIds.length; i += 50) {
+          const chunk = myIds.slice(i, i + 50);
+          await db.from(tbl).delete().in('id', chunk);
+        }
+      }
     }
 
-    // 2. Restore snapshot data
-
+    // 2. Restore snapshot rows for this user
     for (const tbl of SNAPSHOT_TABLES) {
-
       const rows = snap[tbl];
-
       if (rows && rows.length > 0) {
-
         for (let i = 0; i < rows.length; i += 100) {
-
           const chunk = rows.slice(i, i + 100);
-
           await db.from(tbl).insert(chunk);
-
         }
-
       }
-
     }
 
     // 3. Restore liquidity and disable sandbox mode
-
     sessionData.liquidity = { ...(snap.liquidity || {}) };
-
     sessionData.sandbox_active = false;
-
     delete sessionData.sandbox_snapshot;
 
     await db.from('bot_sessions').upsert({
-
-      chat_id: 999999,
-
-      state: 'global_state',
-
+      chat_id: uid,
+      state: row?.state || 'idle',
       data: sessionData,
-
       updated_at: new Date().toISOString()
-
     });
 
-    alert('✅ تم إنهاء وضع التجربة وإعادة كافة السجلات والبيانات للحالة الأصلية بنجاح!');
-
+    alert('✅ تم إنهاء وضع التجربة وإعادة كافة سجلاتك للحالة الأصلية بنجاح دون التأثير على أي مستخدم آخر!');
     await checkSandboxModeState();
-
-    window.location.reload();
-
+    if (typeof loadAllDashboardData === 'function') await loadAllDashboardData();
   } catch (e) {
-
     alert('❌ فشل استعادة البيانات: ' + e.message);
-
   } finally {
-
     if (btn) btn.disabled = false;
-
     await checkSandboxModeState();
-
   }
-
 }
 
 // Global exposure
