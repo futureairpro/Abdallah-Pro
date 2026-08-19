@@ -317,35 +317,20 @@
 
             <!-- Table Container -->
             <div class="transactions-table-container">
-              <table class="data-table" style="width: 100%;">
+              <table class="data-table">
                 <thead>
                   <tr>
-                    <th style="width: 15%;">القسم</th>
-                    <th style="width: 16%;">الحركة / النوع</th>
-                    <th style="width: 38%;">التفاصيل والبيان</th>
-                    <th style="width: 16%;">القيمة / المدة</th>
-                    <th style="width: 15%;">الوقت والتاريخ</th>
+                    <th>التاريخ / الوقت</th>
+                    <th>القسم</th>
+                    <th>البيان والتفاصيل</th>
+                    <th>القيمة / الإنجاز</th>
+                    <th>الحالة / الملاحظات</th>
                   </tr>
                 </thead>
                 <tbody id="homeActivityTableBody">
-                  <tr><td colspan="5" class="text-center" style="padding: 24px; color: var(--text-muted);">جاري تحميل سجل النشاطات الحية...</td></tr>
+                  <tr><td colspan="5" class="text-center">جاري تحميل سجل النشاطات الحية...</td></tr>
                 </tbody>
               </table>
-            </div>
-          </div>
-
-          <!-- 🩺 3. Semester 7 Medical Modules Dynamic Tracker -->
-          <div class="split-card full-width-card" style="margin-bottom: 24px;">
-            <div class="card-header">
-              <h3>🩺 ساعات التحصيل لموديولات الفرقة الرابعة — الفصل الدراسي السابع</h3>
-              <div class="actions-group">
-                <span class="badge-gold" id="homeModulesSummaryBadge">📊 متابعة المذاكرة الحية</span>
-              </div>
-            </div>
-
-            <!-- Dynamic Medical Modules Grid -->
-            <div class="courses-grid" id="homeModulesProgressGrid">
-              <!-- Dynamically populated by app.js with real hours and last session info -->
             </div>
           </div>
 
@@ -418,18 +403,6 @@
             <div class="audit-motivational-banner" id="auditMotivBanner">
               <span style="font-size: 1.4rem;">💡</span>
               <p id="auditMotivText">"حين يخفت الشغف يتقدم الانضباط ليصنع الفارق.. لا تنتظر المزاج أو الحماس، ابدأ أول خطوة الآن واصنع مجدك بيدك!" 🩺🔥</p>
-            </div>
-          </div>
-
-          <!-- 📋 6. Actionable Performance Checklist (جدول فحص الثوابت) -->
-          <div class="split-card full-width-card" style="margin-bottom: 24px;">
-            <div class="card-header">
-              <h3>📋 جدول فحص الثوابت والإنجاز الفعلي (<span id="checklistPeriodLabel">اليوم</span>)</h3>
-              <span class="card-badge" id="checklistDoneBadge">0 / 6 مكتمل</span>
-            </div>
-            
-            <div class="checklist-grid" id="homeChecklistGrid">
-              <!-- Dynamically populated by app.js -->
             </div>
           </div>
 

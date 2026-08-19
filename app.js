@@ -633,150 +633,62 @@ window.filterHomeActivities = function(filterType) {
 };
 
 function renderHomeActivityTable(filterType = window._currentActivityFilter || 'all') {
-
   const tableBody = document.getElementById('homeActivityTableBody');
-
   if (!tableBody) return;
 
   const todayStr = getCairoToday();
-
   const dToday = new Date(todayStr);
 
   const past1 = new Date(dToday);
-
   past1.setDate(dToday.getDate() - 1);
-
   const yesterdayStr = past1.toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
 
   const past2 = new Date(dToday);
-
   past2.setDate(dToday.getDate() - 2);
-
   const beforeYesterdayStr = past2.toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
 
   let filtered = (window._cachedAllEvents || []).filter(ev => {
-
     let evDate = ev.dateStr;
-
     if (!evDate && ev.createdAt) {
-
       try {
-
         evDate = new Date(ev.createdAt).toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
-
       } catch (e) {}
-
     }
 
-    if (filterType === 'today') {
-
-      return evDate === todayStr;
-
-    } else if (filterType === 'yesterday') {
-
-      return evDate === yesterdayStr;
-
-    } else if (filterType === 'before_yesterday') {
-
-      return evDate === beforeYesterdayStr;
-
-    }
-
+    if (filterType === 'today') return evDate === todayStr;
+    if (filterType === 'yesterday') return evDate === yesterdayStr;
+    if (filterType === 'before_yesterday') return evDate === beforeYesterdayStr;
     return true; // 'all'
-
   });
 
   if (!filtered || filtered.length === 0) {
-
     let emptyMsg = 'لا توجد نشاطات مسجلة في هذه الفترة.';
-
-    if (filterType === 'today') emptyMsg = 'لا توجد نشاطات مسجلة اليوم حتى الآن. أرسل أي فويس أو رسالة في البوت لتوثيقها فوراً!';
-
+    if (filterType === 'today') emptyMsg = 'لا توجد نشاطات مسجلة اليوم حتى الآن. أرسل فويس للبوت لتوثيقها فوراً!';
     else if (filterType === 'yesterday') emptyMsg = 'لا توجد نشاطات مسجلة بالأمس.';
-
     else if (filterType === 'before_yesterday') emptyMsg = 'لا توجد نشاطات مسجلة قبل أمس.';
 
-    tableBody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding: 28px; color: var(--text-muted); font-size: 0.95rem;">${emptyMsg}</td></tr>`;
-
+    tableBody.innerHTML = `<tr><td colspan="5" class="text-center">` + emptyMsg + `</td></tr>`;
     return;
-
   }
 
   let html = '';
-
   filtered.forEach(ev => {
+    const isNegative = ev.category === 'المالية والخزنة' && (ev.actionType === 'مصروف' || ev.actionType === 'expense');
+    const badgeClass = isNegative ? 'badge-expense' : 'badge-income';
 
     html += `
-
-      <tr style="transition: all 0.2s ease;">
-
-        <td>
-
-          <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 0.82rem; background: ${ev.catBg || 'rgba(16,185,129,0.12)'}; color: ${ev.catColor || '#10b981'}; border: 1px solid ${ev.catBorder || 'rgba(16,185,129,0.3)'};">
-
-            <span>${ev.icon}</span> <span>${ev.category}</span>
-
-          </span>
-
-        </td>
-
-        <td>
-
-          <span style="display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; background: rgba(255,255,255,0.05); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.08);">
-
-            ${ev.actionType || ev.category}
-
-          </span>
-
-        </td>
-
-        <td>
-
-          <div style="font-weight: 800; color: #fff; font-size: 0.92rem; margin-bottom: 2px;">${ev.title}</div>
-
-          ${ev.subtext ? `<div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">${ev.subtext}</div>` : ''}
-
-        </td>
-
-        <td>
-
-          <b style="color: ${ev.valColor || 'var(--accent-primary)'}; font-family: var(--font-en); font-size: 0.95rem; font-weight: 800; direction: ltr; display: inline-block;">
-
-            ${ev.valOrDuration || '—'}
-
-          </b>
-
-        </td>
-
-        <td>
-
-          <span style="font-size: 0.82rem; color: #94a3b8; font-weight: 700; white-space: nowrap;">
-
-            🕒 ${ev.formattedTime}
-
-          </span>
-
-        </td>
-
+      <tr>
+        <td style="color: #94a3b8; font-size: 0.82rem; white-space: nowrap;">🕒 ${ev.formattedTime}</td>
+        <td><span class="${badgeClass}">${ev.icon || '📌'} ${ev.category}</span></td>
+        <td><b style="color: #fff; font-size: 0.9rem;">${ev.title}</b></td>
+        <td><b style="color: ${ev.valColor || (isNegative ? '#f43f5e' : '#4ade80')}; font-size: 0.92rem;">${ev.valOrDuration || '—'}</b></td>
+        <td style="color: var(--text-secondary); font-size: 0.82rem;">${ev.subtext || ev.actionType || 'توثيق فوري'}</td>
       </tr>
-
     `;
-
   });
 
   tableBody.innerHTML = html;
-
 }
-
-// ─────────────────────────────────────────────────────────────
-
-// 🔐 Multi-Tenant User-Scoped Query Helper & Personalization Engine
-
-// Ensures every DB query and UI element is dynamically tailored
-
-// to the current user's profile and telegram_id
-
-// ─────────────────────────────────────────────────────────────
 
 // ─────────────────────────────────────────────────────────────
 // 🔐 Multi-Tenant User-Scoped Query Helper & Personalization Engine
