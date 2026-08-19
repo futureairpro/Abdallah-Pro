@@ -1,7 +1,6 @@
 // 🚀 Vercel Serverless Webhook Endpoint for Abdullah's Journey OS
 import { bot } from '../lib/bot.js';
 import { registerHandlers } from '../lib/handlers.js';
-import { runSchedulerCycle } from '../lib/scheduler.js';
 
 let isRegistered = false;
 if (bot && !isRegistered) {
@@ -20,10 +19,6 @@ export default async function handler(req, res) {
       if (req.body) {
         await bot.handleUpdate(req.body);
       }
-
-      // Proactive non-blocking check for any due scheduled reminders
-      const targetChatId = process.env.TELEGRAM_CHAT_ID || process.env.AUTHORIZED_USERS?.split(',')[0]?.trim() || '1191760477';
-      runSchedulerCycle(bot, targetChatId).catch((err) => console.warn('[Webhook Scheduler Catch]:', err.message));
 
       return res.status(200).json({ ok: true });
     } catch (err) {
