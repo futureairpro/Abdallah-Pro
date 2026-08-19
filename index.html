@@ -942,8 +942,32 @@
         }
       };
 
-      // 💻 Desktop / Mobile View Mode Toggle
+      // 💻 Desktop / Mobile View Mode Toggle (Expands Telegram Mini App on PC & disabled on Mobile)
       window.toggleDesktopMode = function() {
+        // Detect if user is on mobile
+        const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || 
+                               window.Telegram?.WebApp?.platform === 'android' || 
+                               window.Telegram?.WebApp?.platform === 'ios';
+        
+        if (isMobileDevice) {
+          // Do nothing when clicked from mobile as requested
+          return;
+        }
+
+        // On Laptop / Desktop (Telegram Desktop or Browser):
+        // 1. Expand Telegram WebApp window to full screen
+        try {
+          if (window.Telegram?.WebApp) {
+            if (typeof window.Telegram.WebApp.requestFullscreen === 'function') {
+              window.Telegram.WebApp.requestFullscreen();
+            }
+            if (typeof window.Telegram.WebApp.expand === 'function') {
+              window.Telegram.WebApp.expand();
+            }
+          }
+        } catch (e) {}
+
+        // 2. Toggle Desktop Layout mode
         const isDesktop = document.body.classList.toggle('force-desktop-mode');
         const btnText = document.getElementById('desktop-mode-text');
         const btnIcon = document.getElementById('desktop-mode-icon');

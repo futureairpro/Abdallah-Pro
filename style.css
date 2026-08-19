@@ -1482,15 +1482,14 @@ html, body {
 .wallet-card {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-radius: var(--radius-lg);
-  padding: 22px;
+  border-radius: var(--radius-md);
+  padding: 14px 10px;
   text-align: center;
   box-shadow: var(--shadow-card);
 }
-
-.wallet-icon { font-size: 2.2rem; margin-bottom: 6px; }
-.wallet-name { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px; font-weight: 700; }
-.wallet-amount { font-size: 1.6rem; font-weight: 900; color: var(--accent-primary); }
+.wallet-icon { font-size: 1.5rem; margin-bottom: 4px; }
+.wallet-name { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 3px; font-weight: 700; }
+.wallet-amount { font-size: 1.3rem; font-weight: 900; color: var(--accent-primary); }
 
 .transactions-table-container { 
   overflow-x: auto; 
@@ -1952,80 +1951,81 @@ html, body {
     border-radius: 12px;
   }
 
-  /* 📊 KPI Metrics Grid on Mobile: 2 clean columns */
+  /* 📊 KPI Metrics Grid on Mobile & Laptop Mini App: 2 clean columns */
   .kpi-metrics-grid {
+    display: grid !important;
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 8px !important;
     margin-bottom: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .kpi-card {
-    padding: 12px 10px !important;
+    padding: 10px 12px !important;
     border-radius: var(--radius-md) !important;
-    min-height: 105px !important;
+    min-height: 88px !important;
     display: flex !important;
-    flex-direction: column !important;
+    flex-direction: row !important;
+    align-items: center !important;
     justify-content: space-between !important;
+    gap: 6px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
     position: relative !important;
   }
+
   .kpi-card:last-child {
     grid-column: span 2 !important;
   }
+
+  .kpi-card .kpi-body {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+
   .kpi-card .kpi-label {
     font-size: 0.72rem !important;
     font-weight: 700 !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
-    padding-left: 28px !important;
+    padding-left: 0 !important;
+    margin-bottom: 2px !important;
   }
+
   .kpi-card .kpi-value {
-    font-size: 1.25rem !important;
+    font-size: 1.2rem !important;
     font-weight: 900 !important;
-    margin: 4px 0 !important;
+    margin: 2px 0 !important;
+    line-height: 1.2 !important;
   }
+
   .kpi-card .kpi-unit {
-    font-size: 0.75rem !important;
+    font-size: 0.72rem !important;
   }
+
   .kpi-card .kpi-trend-pill {
     font-size: 0.65rem !important;
     padding: 2px 6px !important;
     width: fit-content !important;
   }
+
   .kpi-card .kpi-icon-box {
-    position: absolute !important;
-    top: 10px !important;
-    left: 10px !important;
-    width: 28px !important;
-    height: 28px !important;
-    font-size: 0.88rem !important;
+    position: static !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    font-size: 1rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     border-radius: var(--radius-sm) !important;
+    flex-shrink: 0 !important;
   }
-
-  .kpi-label {
-    font-size: 0.75rem;
-  }
-
-  .kpi-value {
-    font-size: 1.25rem;
-  }
-
-  .kpi-unit {
-    font-size: 0.75rem;
-  }
-
-  .kpi-trend-pill {
-    font-size: 0.68rem;
-    padding: 2px 6px;
-  }
-
-  .kpi-icon-box {
-    width: 36px;
-    height: 36px;
-    font-size: 1.15rem;
-    border-radius: var(--radius-sm);
-  }
-
+  
   /* Split Cards & General Container Padding */
   .split-card,
   .audit-summary-card,
@@ -2208,7 +2208,8 @@ html, body {
   }
 
   .wallets-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
   }
 
   .habits-secondary-grid {
