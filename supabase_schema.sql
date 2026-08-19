@@ -1,6 +1,37 @@
 -- ==============================================================================
--- 🌟 منظومة رحلة عبدالله (Abdullah's Journey OS) - Master 360° Life OS Schema
+-- 🌟 منظومة رحلة عبدالله (Abdullah's Journey OS) - Master Multi-Tenant Medical OS
 -- ==============================================================================
+
+-- 0. 👥 سجل الطلاب والمستخدمين ونظام الاشتراكات (Multi-Tenant Users)
+create table if not exists public.users (
+  telegram_id bigint primary key,
+  full_name text not null,
+  username text,
+  university text default 'كلية الطب البشري',
+  academic_year text default 'الفرقة الرابعة',
+  academic_group text default 'عام',
+  role text default 'student', -- 'admin' / 'student'
+  subscription_status text default 'trial', -- 'trial' / 'active' / 'expired' / 'lifetime'
+  trial_ends_at timestamp with time zone default (now() + interval '3 days'),
+  subscription_ends_at timestamp with time zone,
+  phone_number text,
+  custom_api_key text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 0.1 💳 سجل عمليات الدفع والاشتراكات (فودافون كاش وإنستا باي)
+create table if not exists public.subscription_payments (
+  id uuid default gen_random_uuid() primary key,
+  telegram_id bigint references public.users(telegram_id) on delete cascade,
+  amount numeric not null default 300,
+  payment_method text not null default 'فودافون كاش',
+  receipt_photo_id text,
+  sender_phone text,
+  status text not null default 'pending', -- 'pending', 'approved', 'rejected'
+  admin_notes text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
 
 -- 1. 🩺 Academic Courses & Modules (الفرقة الرابعة - الترم السابع والثامن)
 create table if not exists public.academic_courses (
