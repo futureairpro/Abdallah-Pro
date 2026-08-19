@@ -1681,7 +1681,8 @@ async function initDashboard() {
     renderWorkSection(),
     renderTasksAndAppointments(),
     renderThoughtsSection(),
-    renderFinanceSection()
+    renderFinanceSection(),
+    loadAdminPortalData()
   ]);
 }
 
@@ -1901,6 +1902,154 @@ window.checkSandboxModeState = checkSandboxModeState;
 window.toggleSandboxModeFromWeb = toggleSandboxModeFromWeb;
 window.enableSandboxModeFromWeb = enableSandboxModeFromWeb;
 window.disableSandboxModeAndRestore = disableSandboxModeAndRestore;
+
+// 👑 Admin Management Hub
+async function loadAdminPortalData() {
+  const adminTabBtn = document.getElementById('nav-item-admin');
+  const urlUserId = new URLSearchParams(window.location.search).get('telegram_id');
+  const tgUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+  const currentUserId = Number(urlUserId || tgUserId || '1191760477');
+
+  if (currentUserId !== 1191760477) {
+    if (adminTabBtn) adminTabBtn.style.display = 'none';
+    return;
+  }
+  if (adminTabBtn) adminTabBtn.style.display = 'flex';
+
+  try {
+    const res = await fetch('/api/dashboard_data?telegram_id=1191760477');
+    const data = await res.json();
+    if (!data.ok || !data.admin) return;
+
+    const { total_students, students, pending_payments } = data.admin;
+
+    // 1. Stats
+    const totalEl = document.getElementById('adminTotalStudents');
+    const activeEl = document.getElementById('adminActiveStudents');
+    const trialEl = document.getElementById('adminTrialStudents');
+    const pendingEl = document.getElementById('adminPendingPaymentsCount');
+
+    if (totalEl) totalEl.textContent = total_students || 0;
+    const activeCount = (students || []).filter(s => s.subscription_status === 'active' || s.subscription_status === 'lifetime').length;
+    const trialCount = (students || []).filter(s => s.subscription_status === 'trial').length;
+
+    if (activeEl) activeEl.textContent = activeCount;
+    if (trialEl) trialEl.textContent = trialCount;
+    if (pendingEl) pendingEl.textContent = (pending_payments || []).length;
+
+    // 2. Pending Payments
+    const payList = document.getElementById('adminPendingPaymentsList');
+    if (payList) {
+      if (pending_payments && pending_payments.length > 0) {
+        payList.innerHTML = pending_payments.map(p => `
+          <div class="list-item" style="padding: 14px; margin-bottom: 10px; background: rgba(30, 41, 59, 0.6); border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div>
+                <b style="font-size: 1rem; color: #fff;">${p.student_name || 'طالب زميل'}</b> (معرف: <code>${p.telegram_id}</code>)
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                  الباقة: <b>${p.plan_type || 'شهر (30 يوم)'}</b> • المبلغ: <b style="color: #34d399;">${p.amount_egp || 30} ج.م</b> • وسيلة الدفع: <b>${p.payment_method || 'فودافون كاش'}</b>
+                </div>
+              </div>
+              <span class="badge badge-warning">معلق ⏳</span>
+            </div>
+            ${p.receipt_image_url ? `<div style="margin: 10px 0;"><a href="${p.receipt_image_url}" target="_blank"><img src="${p.receipt_image_url}" style="max-height: 120px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);" alt="إيصال التحويل"></a></div>` : ''}
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+              <button class="btn btn-sm btn-success" onclick="approveStudentPayment(${p.id}, ${p.telegram_id}, 30)">✅ قبول وتفعيل شهر (30 يوم)</button>
+              <button class="btn btn-sm btn-success" onclick="approveStudentPayment(${p.id}, ${p.telegram_id}, 120)">💎 تفعيل ترم (120 يوم)</button>
+              <button class="btn btn-sm btn-danger" onclick="rejectStudentPayment(${p.id})">❌ رفض</button>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        payList.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 15px;">✨ لا توجد إيصالات تحويل معلقة حالياً.</p>';
+      }
+    }
+
+    // 3. Students Table
+    const tbody = document.getElementById('adminStudentsTableBody');
+    if (tbody) {
+      if (students && students.length > 0) {
+        tbody.innerHTML = students.map(s => {
+          let statusBadge = '<span class="badge badge-success">نشط 🟢</span>';
+          if (s.subscription_status === 'trial') statusBadge = '<span class="badge badge-warning">فترة تجريبية 🎁</span>';
+          else if (s.subscription_status === 'expired') statusBadge = '<span class="badge badge-danger">منتهي 🔴</span>';
+          else if (s.subscription_status === 'lifetime') statusBadge = '<span class="badge badge-primary">مدى الحياة 👑</span>';
+
+          return `
+            <tr>
+              <td><b>${s.full_name || 'طالب زميل'}</b> ${s.username ? `<br><small style="color:var(--text-muted)">@${s.username}</small>` : ''}</td>
+              <td><code>${s.telegram_id}</code></td>
+              <td>${statusBadge}</td>
+              <td><b>${s.days_remaining || 0} يوم</b></td>
+              <td>
+                <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                  <button class="btn btn-xs btn-primary" onclick="modifyStudentSubscription(${s.telegram_id}, 30, 'active')">+30 يوم (شهر)</button>
+                  <button class="btn btn-xs btn-primary" onclick="modifyStudentSubscription(${s.telegram_id}, 120, 'active')">+120 يوم (ترم)</button>
+                  <button class="btn btn-xs btn-success" onclick="modifyStudentSubscription(${s.telegram_id}, 3650, 'lifetime')">👑 مدى الحياة</button>
+                  <button class="btn btn-xs btn-danger" onclick="modifyStudentSubscription(${s.telegram_id}, 0, 'expired')">🚫 إيقاف</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">لا يوجد طلاب مسجلون بعد.</td></tr>';
+      }
+    }
+  } catch (err) {
+    console.error('loadAdminPortalData error:', err);
+  }
+}
+
+async function modifyStudentSubscription(telegramId, days, status) {
+  if (!confirm(`هل أنت متأكد من تعديل اشتراك الطالب (${telegramId})؟`)) return;
+  try {
+    const { data: row } = await db.from('bot_sessions').select('*').eq('chat_id', telegramId).maybeSingle();
+    const sessionData = row?.data || {};
+    const profile = sessionData.profile || {};
+    profile.subscription_status = status;
+    profile.days_remaining = (profile.days_remaining || 0) + days;
+    profile.is_trial = status === 'trial';
+    sessionData.profile = profile;
+
+    await db.from('bot_sessions').upsert({
+      chat_id: telegramId,
+      state: row?.state || 'idle',
+      data: sessionData,
+      updated_at: new Date().toISOString()
+    });
+
+    alert('✅ تم تحديث وتفعيل اشتراك الطالب بنجاح!');
+    await loadAdminPortalData();
+  } catch (e) {
+    alert('❌ خطأ: ' + e.message);
+  }
+}
+
+async function approveStudentPayment(paymentId, telegramId, days) {
+  try {
+    await db.from('subscription_payments').update({ status: 'approved', approved_at: new Date().toISOString() }).eq('id', paymentId);
+    await modifyStudentSubscription(telegramId, days, 'active');
+  } catch (e) {
+    alert('❌ خطأ في الموافقة: ' + e.message);
+  }
+}
+
+async function rejectStudentPayment(paymentId) {
+  if (!confirm('هل أنت متأكد من رفض الإيصال؟')) return;
+  try {
+    await db.from('subscription_payments').update({ status: 'rejected' }).eq('id', paymentId);
+    alert('تم رفض الإيصال.');
+    await loadAdminPortalData();
+  } catch (e) {
+    alert('❌ خطأ: ' + e.message);
+  }
+}
+
+window.loadAdminPortalData = loadAdminPortalData;
+window.modifyStudentSubscription = modifyStudentSubscription;
+window.approveStudentPayment = approveStudentPayment;
+window.rejectStudentPayment = rejectStudentPayment;
 
 // Immediate initialization if already authenticated
 if (typeof localStorage !== 'undefined' && localStorage.getItem('abdallah_journey_auth_token') === 'authenticated_dr_abdallah_secure_key_2026') {

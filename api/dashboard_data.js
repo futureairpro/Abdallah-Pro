@@ -1,7 +1,7 @@
 // 🚀 Telegram Web App Dashboard Data API for Abdullah's Journey & Medical OS
 import { supabase, getUserProfile, ADMIN_CHAT_ID } from '../lib/supabase.js';
 import { getCairoPrayerTimes } from '../lib/prayer_times.js';
-import { generateDynamicMindsetPulse } from '../lib/mindset_pulses.js';
+import { getRandomCuratedCapsule } from '../lib/mindset_pulses.js';
 
 function getCairoToday() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
@@ -22,18 +22,40 @@ export default async function handler(req, res) {
   const today = getCairoToday();
 
   try {
-    // 1. Fetch User Profile
-    const profile = await getUserProfile(numId);
+    // Run ALL database queries in parallel for ultra-fast response
+    const [
+      profile,
+      studyRes,
+      taskRes,
+      finRes,
+      quranRes,
+      fwRes,
+      apptRes,
+      quizRes,
+      engRes,
+      gymRes,
+      wellRes,
+      thoughtRes
+    ] = await Promise.all([
+      getUserProfile(numId),
+      supabase.from('study_sessions').select('*').eq('date', today),
+      supabase.from('daily_tasks').select('*').eq('date', today).order('created_at', { ascending: false }),
+      supabase.from('personal_finance').select('*').eq('date', today).order('created_at', { ascending: false }),
+      supabase.from('quran_logs').select('*').eq('date', today),
+      supabase.from('fasting_and_worship_logs').select('*').eq('date', today).maybeSingle(),
+      supabase.from('appointments_and_reminders').select('*').gte('due_datetime', today).order('due_datetime', { ascending: true }),
+      supabase.from('medical_spaced_quizzes').select('*').order('next_review_at', { ascending: true }).limit(20),
+      supabase.from('english_spaced_flashcards').select('*').order('next_review_at', { ascending: true }).limit(20),
+      supabase.from('fitness_gym_logs').select('*').order('date', { ascending: false }).limit(10),
+      supabase.from('mental_wellness_logs').select('*').order('date', { ascending: false }).limit(10),
+      supabase.from('thoughts_and_wisdom').select('*').order('created_at', { ascending: false }).limit(10)
+    ]);
+
     const userName = profile?.full_name || (numId === ADMIN_CHAT_ID ? 'د. عبدالله (المؤسس)' : 'دكتور زميل');
 
-    // 2. Fetch Today's Study Sessions
-    const { data: studyRows } = await supabase
-      .from('study_sessions')
-      .select('*')
-      .eq('date', today);
-
-    // Filter user sessions
-    const userStudy = (studyRows || []).filter(s => !s.topic?.includes('usr:') ? numId === ADMIN_CHAT_ID : s.topic.includes(`usr:${numId}`)).map(s => ({
+    // 1. Process Study
+    const studyRows = studyRes.data || [];
+    const userStudy = studyRows.filter(s => !s.topic?.includes('usr:') ? numId === ADMIN_CHAT_ID : s.topic.includes(`usr:${numId}`)).map(s => ({
       ...s,
       topic: (s.topic || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
     }));
@@ -61,27 +83,17 @@ export default async function handler(req, res) {
       }
     });
 
-    // 3. Fetch Tasks
-    const { data: taskRows } = await supabase
-      .from('daily_tasks')
-      .select('*')
-      .eq('date', today)
-      .order('created_at', { ascending: false });
-
-    const userTasks = (taskRows || []).filter(t => !t.category?.includes('usr:') ? numId === ADMIN_CHAT_ID : t.category.includes(`usr:${numId}`)).map(t => ({
+    // 2. Process Tasks
+    const taskRows = taskRes.data || [];
+    const userTasks = taskRows.filter(t => !t.category?.includes('usr:') ? numId === ADMIN_CHAT_ID : t.category.includes(`usr:${numId}`)).map(t => ({
       ...t,
       title: (t.title || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim(),
       category: (t.category || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
     }));
 
-    // 4. Fetch Finance
-    const { data: finRows } = await supabase
-      .from('personal_finance')
-      .select('*')
-      .eq('date', today)
-      .order('created_at', { ascending: false });
-
-    const userFinance = (finRows || []).filter(f => !f.description?.includes('usr:') ? numId === ADMIN_CHAT_ID : f.description.includes(`usr:${numId}`)).map(f => ({
+    // 3. Process Finance
+    const finRows = finRes.data || [];
+    const userFinance = finRows.filter(f => !f.description?.includes('usr:') ? numId === ADMIN_CHAT_ID : f.description.includes(`usr:${numId}`)).map(f => ({
       ...f,
       description: (f.description || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim(),
       category: (f.category || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
@@ -94,30 +106,17 @@ export default async function handler(req, res) {
       else todayExpense += Number(f.amount || 0);
     });
 
-    // 5. Fetch Quran & Worship
-    const { data: quranRows } = await supabase
-      .from('quran_logs')
-      .select('*')
-      .eq('date', today);
-    const userQuran = (quranRows || []).filter(q => !q.session_type?.includes('usr:') ? numId === ADMIN_CHAT_ID : q.session_type.includes(`usr:${numId}`)).map(q => ({
+    // 4. Process Quran & Worship
+    const quranRows = quranRes.data || [];
+    const userQuran = quranRows.filter(q => !q.session_type?.includes('usr:') ? numId === ADMIN_CHAT_ID : q.session_type.includes(`usr:${numId}`)).map(q => ({
       ...q,
       session_type: (q.session_type || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
     }));
+    const fwRow = fwRes.data;
 
-    const { data: fwRow } = await supabase
-      .from('fasting_and_worship_logs')
-      .select('*')
-      .eq('date', today)
-      .maybeSingle();
-
-    // 6. Fetch Appointments (12h format)
-    const { data: apptRows } = await supabase
-      .from('appointments_and_reminders')
-      .select('*')
-      .gte('due_datetime', today)
-      .order('due_datetime', { ascending: true });
-
-    const userAppts = (apptRows || []).filter(a => !a.notes?.includes('usr:') ? numId === ADMIN_CHAT_ID : a.notes.includes(`usr:${numId}`)).map(a => {
+    // 5. Process Appointments (12h format)
+    const apptRows = apptRes.data || [];
+    const userAppts = apptRows.filter(a => !a.notes?.includes('usr:') ? numId === ADMIN_CHAT_ID : a.notes.includes(`usr:${numId}`)).map(a => {
       const dt = new Date(a.due_datetime);
       const time12 = !isNaN(dt.getTime())
         ? dt.toLocaleTimeString('ar-EG', { timeZone: 'Africa/Cairo', hour: '2-digit', minute: '2-digit', hour12: true })
@@ -130,55 +129,60 @@ export default async function handler(req, res) {
       };
     });
 
-    // 7. Fetch Medical Quizzes & Flashcards
-    const { data: quizRows } = await supabase
-      .from('medical_spaced_quizzes')
-      .select('*')
-      .order('next_review_at', { ascending: true })
-      .limit(20);
+    // 6. Medical Quizzes & Flashcards
+    const quizRows = quizRes.data || [];
+    const engRows = engRes.data || [];
 
-    const { data: engRows } = await supabase
-      .from('english_spaced_flashcards')
-      .select('*')
-      .order('next_review_at', { ascending: true })
-      .limit(20);
-
-    // 8. Fetch Gym Logs
-    const { data: gymRows } = await supabase
-      .from('fitness_gym_logs')
-      .select('*')
-      .order('date', { ascending: false })
-      .limit(10);
-    const userGym = (gymRows || []).filter(g => !g.muscle_groups?.includes('usr:') ? numId === ADMIN_CHAT_ID : g.muscle_groups.includes(`usr:${numId}`)).map(g => ({
+    // 7. Gym Logs
+    const gymRows = gymRes.data || [];
+    const userGym = gymRows.filter(g => !g.muscle_groups?.includes('usr:') ? numId === ADMIN_CHAT_ID : g.muscle_groups.includes(`usr:${numId}`)).map(g => ({
       ...g,
       muscle_groups: (g.muscle_groups || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
     }));
 
-    // 9. Fetch Wellness Logs
-    const { data: wellRows } = await supabase
-      .from('mental_wellness_logs')
-      .select('*')
-      .order('date', { ascending: false })
-      .limit(10);
-    const userWellness = (wellRows || []).filter(w => !w.ai_therapeutic_feedback?.includes('usr:') ? numId === ADMIN_CHAT_ID : w.ai_therapeutic_feedback.includes(`usr:${numId}`)).map(w => ({
+    // 8. Wellness Logs
+    const wellRows = wellRes.data || [];
+    const userWellness = wellRows.filter(w => !w.ai_therapeutic_feedback?.includes('usr:') ? numId === ADMIN_CHAT_ID : w.ai_therapeutic_feedback.includes(`usr:${numId}`)).map(w => ({
       ...w,
       ai_therapeutic_feedback: (w.ai_therapeutic_feedback || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
     }));
 
-    // 10. Fetch Thoughts
-    const { data: thoughtRows } = await supabase
-      .from('thoughts_and_wisdom')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(10);
-    const userThoughts = (thoughtRows || []).filter(th => !th.content?.includes('usr:') ? numId === ADMIN_CHAT_ID : th.content.includes(`usr:${numId}`)).map(th => ({
+    // 9. Thoughts
+    const thoughtRows = thoughtRes.data || [];
+    const userThoughts = thoughtRows.filter(th => !th.content?.includes('usr:') ? numId === ADMIN_CHAT_ID : th.content.includes(`usr:${numId}`)).map(th => ({
       ...th,
       content: (th.content || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
     }));
 
-    // 11. Fetch Prayers & Mindset Pulse
+    // 10. Admin Data (Only for Dr. Abdullah)
+    let adminData = null;
+    if (numId === ADMIN_CHAT_ID) {
+      const [registeredStudents, pendingPayRes] = await Promise.all([
+        supabase.from('bot_sessions').select('*'),
+        supabase.from('subscription_payments').select('*').eq('status', 'pending').order('created_at', { ascending: false })
+      ]);
+
+      const students = [];
+      (registeredStudents.data || []).forEach(r => {
+        if (r.data?.profile && r.chat_id !== 999999 && r.chat_id !== 777777) {
+          students.push(r.data.profile);
+        }
+      });
+
+      adminData = {
+        total_students: students.length,
+        students: students,
+        pending_payments: pendingPayRes.data || []
+      };
+    }
+
+    // 11. Fetch Prayers & Instant Mindset Pulse
     const prayers = getCairoPrayerTimes();
-    const mindsetPulse = await generateDynamicMindsetPulse(false, userName);
+    const rawCapsule = getRandomCuratedCapsule();
+    const mindsetPulse = {
+      ...rawCapsule,
+      text: (rawCapsule.text || '').replace(/يا عبدالله/g, `يا ${userName}`).replace(/د\. عبدالله/g, userName)
+    };
 
     return res.status(200).json({
       ok: true,
@@ -221,7 +225,8 @@ export default async function handler(req, res) {
       },
       gym: userGym,
       wellness: userWellness,
-      thoughts: userThoughts
+      thoughts: userThoughts,
+      admin: adminData
     });
 
   } catch (err) {

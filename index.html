@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;600;700;800&family=Amiri:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <!-- Supabase Cloud CDN (Universal compatibility for file:/// and https://) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -116,6 +118,11 @@
         <button class="nav-item" data-tab="finance" data-title="الخزنة والمصروفات المالية" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">💵</span>
           <span>الخزنة والمالية</span>
+        </button>
+
+        <button class="nav-item admin-only-tab" id="nav-item-admin" data-tab="admin" data-title="بوابة المشرف وإدارة المشتركين" style="display: none;" onclick="toggleMobileSidebar(false)">
+          <span class="nav-icon">👑</span>
+          <span>إدارة المشتركين</span>
         </button>
       </nav>
 
@@ -854,6 +861,90 @@
           </div>
         </section>
 
+        <!-- ========================================================================= -->
+        <!-- 👑 TAB: بوابة المشرف وإدارة المشتركين والاشتراكات (Admin Control Portal) -->
+        <!-- ========================================================================= -->
+        <section class="tab-pane" id="tab-admin">
+          <div class="content-header">
+            <div>
+              <h2 class="content-title">👑 بوابة إدارة المشتركين والطلاب (Admin Control Hub)</h2>
+              <p class="content-subtitle">التحكم المركزي في حسابات الطلاب، تفعيل الباقات، ومراجعة إيصالات فودافون كاش وإنستاباي.</p>
+            </div>
+            <button class="btn btn-primary" onclick="if(window.loadAdminPortalData) window.loadAdminPortalData();">
+              <span>🔄 تحديث المشتركين</span>
+            </button>
+          </div>
+
+          <!-- Quick Overview Counters -->
+          <div class="stats-grid" style="margin-bottom: 20px;">
+            <div class="stat-card">
+              <div class="stat-icon">👥</div>
+              <div class="stat-info">
+                <div class="stat-label">إجمالي الطلاب المسجلين</div>
+                <div class="stat-value" id="adminTotalStudents">0</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">🟢</div>
+              <div class="stat-info">
+                <div class="stat-label">الاشتراكات النشطة</div>
+                <div class="stat-value text-success" id="adminActiveStudents">0</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">🎁</div>
+              <div class="stat-info">
+                <div class="stat-label">الفترة التجريبية (3 أيام)</div>
+                <div class="stat-value text-warning" id="adminTrialStudents">0</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">💳</div>
+              <div class="stat-info">
+                <div class="stat-label">إيصالات التحويل المعلقة</div>
+                <div class="stat-value text-gold" id="adminPendingPaymentsCount">0</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pending Payments Section -->
+          <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <h3 class="card-title">💳 إيصالات التحويل المعلقة (فودافون كاش / إنستاباي)</h3>
+            </div>
+            <div class="card-body" id="adminPendingPaymentsList">
+              <p style="text-align: center; color: var(--text-muted); padding: 15px;">✨ لا توجد إيصالات تحويل معلقة حالياً.</p>
+            </div>
+          </div>
+
+          <!-- Registered Students Management Table -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">👥 قائمة الطلاب وإدارة الصلاحيات والاشتراكات الحية</h3>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>الطالب</th>
+                      <th>معرف تليجرام</th>
+                      <th>حالة الاشتراك</th>
+                      <th>الأيام المتبقية</th>
+                      <th>إجراءات التفعيل الفوري</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adminStudentsTableBody">
+                    <tr>
+                      <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">جاري جلب بيانات المشتركين...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Footer -->
         <footer class="app-footer">
           <div>منظومة رحلة د. عبدالله © 2026 | التصميم الطبي التنفيذي الملكي (Medical Obsidian & Emerald)</div>
@@ -896,6 +987,14 @@
     function verifyAuth() {
       const overlay = document.getElementById('authLockOverlay');
       const mainContent = document.getElementById('mainAppContent');
+
+      // Auto-authenticate if opened inside Telegram WebApp or with telegram_id
+      const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+      const urlUserId = new URLSearchParams(window.location.search).get('telegram_id');
+      if (tgUser || urlUserId) {
+        localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
+      }
+
       const isAuth = localStorage.getItem(AUTH_STORAGE_KEY) === AUTH_TOKEN_VAL;
 
       if (isAuth) {
