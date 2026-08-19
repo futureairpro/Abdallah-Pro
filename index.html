@@ -421,78 +421,6 @@
             </div>
           </div>
 
-          <!-- 📊 5. Habit Consistency & Discipline Trend Analytics (تحليل الانضباط وتكرار العادات) -->
-          <div class="split-card full-width-card" style="margin-bottom: 24px;">
-            <div class="card-header">
-              <h3>📊 مؤشرات الانضباط ومعدلات الالتزام بالعادات (Discipline & Habit Analytics)</h3>
-              <span class="card-badge" style="color: var(--accent-primary); border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.1);">تحليل تراكمي ذكي</span>
-            </div>
-            
-            <div class="analytics-metrics-grid">
-              
-              <div class="analytics-card">
-                <div class="analytics-card-header">
-                  <span class="analytics-icon">⏱️</span>
-                  <span class="analytics-title">انتظام المذاكرة اليومية</span>
-                </div>
-                <div class="analytics-main-val" id="habitStudyRate" style="color: #94a3b8;">0%</div>
-                <div class="analytics-subtext">الالتزام بالحد الأدنى (3 ساعات يومياً) لموديولات الطب.</div>
-                <div class="progress-bar-bg"><div class="progress-bar-fill" id="habitStudyFill" style="width: 0%;"></div></div>
-              </div>
-
-              <div class="analytics-card">
-                <div class="analytics-card-header">
-                  <span class="analytics-icon">🏋️‍♂️</span>
-                  <span class="analytics-title">معدل ارتياد الجيم واللياقة</span>
-                </div>
-                <div class="analytics-main-val" id="habitGymRate" style="color: #94a3b8;">0%</div>
-                <div class="analytics-subtext">معدل تكرار التمارين وتفادي الخمول والكسل البدني.</div>
-                <div class="progress-bar-bg"><div class="progress-bar-fill" id="habitGymFill" style="width: 0%; background: #38bdf8;"></div></div>
-              </div>
-
-              <div class="analytics-card">
-                <div class="analytics-card-header">
-                  <span class="analytics-icon">📖</span>
-                  <span class="analytics-title">تثبيت ورد القرآن الكريم</span>
-                </div>
-                <div class="analytics-main-val" id="habitQuranRate" style="color: #94a3b8;">0%</div>
-                <div class="analytics-subtext">الانتظام في نصف ساعة تلاوة وتدبر يومياً.</div>
-                <div class="progress-bar-bg"><div class="progress-bar-fill" id="habitQuranFill" style="width: 0%; background: var(--accent-primary);"></div></div>
-              </div>
-
-              <div class="analytics-card">
-                <div class="analytics-card-header">
-                  <span class="analytics-icon">🗣️</span>
-                  <span class="analytics-title">استمرارية الإنجليزية (Anki)</span>
-                </div>
-                <div class="analytics-main-val" id="habitEngRate" style="color: #94a3b8;">0%</div>
-                <div class="analytics-subtext">مراجعة الفلاش كاردز والجمل الطبية بدون انقطاع.</div>
-                <div class="progress-bar-bg"><div class="progress-bar-fill" id="habitEngFill" style="width: 0%; background: var(--accent-gold);"></div></div>
-              </div>
-
-              <div class="analytics-card">
-                <div class="analytics-card-header">
-                  <span class="analytics-icon">🌅</span>
-                  <span class="analytics-title">سكينة وتدبر الفجر</span>
-                </div>
-                <div class="analytics-main-val" id="habitFajrRate" style="color: #94a3b8;">0%</div>
-                <div class="analytics-subtext">ساعة ما بعد الفجر لأذكار الصباح والاستغفار والصفاء.</div>
-                <div class="progress-bar-bg"><div class="progress-bar-fill" id="habitFajrFill" style="width: 0%; background: #fbbf24;"></div></div>
-              </div>
-
-              <div class="analytics-card">
-                <div class="analytics-card-header">
-                  <span class="analytics-icon">🌇</span>
-                  <span class="analytics-title">أذكار وتفريغ العصر</span>
-                </div>
-                <div class="analytics-main-val" id="habitAsrRate" style="color: #94a3b8;">0%</div>
-                <div class="analytics-subtext">ساعة ما بعد العصر لأذكار المساء وتفريغ المشاعر والتفكر.</div>
-                <div class="progress-bar-bg"><div class="progress-bar-fill" id="habitAsrFill" style="width: 0%; background: #a855f7;"></div></div>
-              </div>
-
-            </div>
-          </div>
-
           <!-- 📋 6. Actionable Performance Checklist (جدول فحص الثوابت) -->
           <div class="split-card full-width-card" style="margin-bottom: 24px;">
             <div class="card-header">
@@ -502,32 +430,6 @@
             
             <div class="checklist-grid" id="homeChecklistGrid">
               <!-- Dynamically populated by app.js -->
-            </div>
-          </div>
-
-          <!-- 💵 7. Expense Categorization & Budget Intelligence -->
-          <div class="split-card full-width-card" style="margin-bottom: 24px;">
-            <div class="card-header">
-              <h3>💵 التحليل المالي وتوزيع النفقات (Budget Breakdown)</h3>
-              <span class="card-badge" style="color: #4ade80; border-color: rgba(74, 222, 128, 0.4); background: rgba(74, 222, 128, 0.1);">ذكاء السيولة والخزنة</span>
-            </div>
-            <div class="spending-breakdown-list">
-              <div class="spending-cat-row">
-                <div class="cat-info"><span class="cat-dot" style="background: #3b82f6;"></span><span>🩺 مستلزمات طبية وكتب دراسية:</span></div>
-                <strong class="cat-val" id="expCatMedical">0.00 ج.م</strong>
-              </div>
-              <div class="spending-cat-row">
-                <div class="cat-info"><span class="cat-dot" style="background: #10b981;"></span><span>🥩 تغذية صحية ومكملات جيم:</span></div>
-                <strong class="cat-val" id="expCatGym">0.00 ج.م</strong>
-              </div>
-              <div class="spending-cat-row">
-                <div class="cat-info"><span class="cat-dot" style="background: #f59e0b;"></span><span>🚗 مواصلات وتنقلات شخصية:</span></div>
-                <strong class="cat-val" id="expCatTransport">0.00 ج.م</strong>
-              </div>
-              <div class="spending-cat-row">
-                <div class="cat-info"><span class="cat-dot" style="background: #a855f7;"></span><span>💼 التزامات بيزنس ومشاريع:</span></div>
-                <strong class="cat-val" id="expCatBusiness">0.00 ج.م</strong>
-              </div>
             </div>
           </div>
 
