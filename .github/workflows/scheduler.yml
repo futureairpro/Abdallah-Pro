@@ -1,0 +1,21 @@
+name: 24/7 Automated Life Scheduler & Reminders Dispatcher
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  dispatch_cron:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Continuously Trigger Scheduler API for 4 Minutes
+        run: |
+          echo "Starting continuous scheduler dispatch loop..."
+          END_TIME=$((SECONDS + 240))
+          while [ $SECONDS -lt $END_TIME ]; do
+            curl -s -X GET "https://abdallah-pro.vercel.app/api/cron" || true
+            sleep 25
+          done
+          echo "Dispatcher cycle completed."
