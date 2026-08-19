@@ -17,7 +17,8 @@ export default async function handler(req, res) {
       }
 
       if (req.body) {
-        await bot.handleUpdate(req.body);
+        const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+        await bot.handleUpdate(body);
       }
 
       return res.status(200).json({ ok: true });
@@ -29,16 +30,23 @@ export default async function handler(req, res) {
 
   // 2. Handle GET request for Health Check / Webhook Registration
   if (req.method === 'GET') {
-    const host = req.headers['x-forwarded-host'] || req.headers.host || 'abdallahpro.vercel.app';
+    const host = req.headers['x-forwarded-host'] || req.headers.host || 'abdallah-pro.vercel.app';
     const protocol = req.headers['x-forwarded-proto'] || 'https';
     const webhookUrl = `${protocol}://${host}/api/webhook`;
 
     if (req.query.set_webhook === 'true' && bot) {
       try {
         await bot.telegram.setWebhook(webhookUrl);
+        await bot.telegram.setChatMenuButton({
+          menu_button: {
+            type: 'web_app',
+            text: '📱 لوحة التحكم',
+            web_app: { url: `https://${host}/api/dashboard` }
+          }
+        }).catch(() => {});
         return res.status(200).json({
           status: 'success',
-          message: 'تم تفعيل الـ Webhook الخاص ببوت رحلة عبدالله بنجاح!',
+          message: 'تم تفعيل الـ Webhook الخاص ببوت رحلة عبدالله وزر لوحة التحكم بنجاح!',
           webhookUrl
         });
       } catch (err) {
