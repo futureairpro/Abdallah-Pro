@@ -1959,8 +1959,46 @@ html, body {
   }
 
   .kpi-card {
-    padding: 12px 10px;
-    border-radius: var(--radius-md);
+    padding: 12px 10px !important;
+    border-radius: var(--radius-md) !important;
+    min-height: 105px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    position: relative !important;
+  }
+  .kpi-card:last-child {
+    grid-column: span 2 !important;
+  }
+  .kpi-card .kpi-label {
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    padding-left: 28px !important;
+  }
+  .kpi-card .kpi-value {
+    font-size: 1.25rem !important;
+    font-weight: 900 !important;
+    margin: 4px 0 !important;
+  }
+  .kpi-card .kpi-unit {
+    font-size: 0.75rem !important;
+  }
+  .kpi-card .kpi-trend-pill {
+    font-size: 0.65rem !important;
+    padding: 2px 6px !important;
+    width: fit-content !important;
+  }
+  .kpi-card .kpi-icon-box {
+    position: absolute !important;
+    top: 10px !important;
+    left: 10px !important;
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 0.88rem !important;
+    border-radius: var(--radius-sm) !important;
   }
 
   .kpi-label {
@@ -2160,7 +2198,8 @@ html, body {
 /* 📱 3. Extra-Small Mobile Screens (<= 420px) */
 @media (max-width: 420px) {
   .kpi-metrics-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
   }
 
   .prayers-grid {
