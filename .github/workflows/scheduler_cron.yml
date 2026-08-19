@@ -1,0 +1,16 @@
+name: ⏰ Abdullah Journey OS Cloud Cron Dispatcher
+
+on:
+  schedule:
+    # Runs every 5 minutes 24/7 on GitHub Cloud Runners
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  trigger-cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Abdullah's Journey OS Scheduler
+        run: |
+          echo "Triggering Vercel Cron Endpoint..."
+          curl -s -X GET "https://abdallah-pro.vercel.app/api/cron" || echo "Cron triggered"
