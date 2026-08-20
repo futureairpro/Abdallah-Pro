@@ -19,8 +19,8 @@
   <div class="auth-lock-overlay" id="authLockOverlay">
     <div class="auth-card">
       <div class="auth-avatar">🩺</div>
-      <h1 class="auth-title">منظومة رحلة عبدالله</h1>
-      <p class="auth-subtitle">بوابة الإدارة الذكية — الوصول مصرح حصرياً لـ د. عبدالله</p>
+      <h1 class="auth-title">المنظومة الطبية الذكية</h1>
+      <p class="auth-subtitle">بوابة الإدارة والتحليل الذكي — مرحباً بك في المنظومة الطبية</p>
       
       <form id="authForm" class="auth-form">
         <div class="input-group">
@@ -35,7 +35,7 @@
         </button>
         <div class="auth-error-msg" id="authErrorMsg"></div>
       </form>
-      <div class="auth-footer-note">نظام مشفر ومحمي © 2026 Abdullah's Journey OS</div>
+      <div class="auth-footer-note">نظام مشفر ومحمي © 2026 Smart Medical Life OS</div>
     </div>
   </div>
 
@@ -51,8 +51,8 @@
         <div class="sidebar-brand">
           <div class="brand-icon-box">🩺</div>
           <div class="brand-text">
-            <h1 id="sidebarAppTitle">منظومة د. عبدالله</h1>
-            <span id="sidebarAppSubtitle">Abdullah OS • الفرقة 4 • امتياز 450/450 🎯</span>
+            <h1 id="sidebarAppTitle">المنظومة الطبية الذكية</h1>
+            <span id="sidebarAppSubtitle">المنظومة الذكية لإدارة الحياة والدراسة 🎯</span>
           </div>
         </div>
         <!-- Close button for mobile drawer -->
@@ -211,11 +211,11 @@
                 </div>
                 <div class="target-badge-pill" style="margin: 0;">
                   <span class="live-dot"></span>
-                  <span>🎯 الهدف الأكاديمي: امتياز (450/450)</span>
+                  <span id="homeAcademicBadge">🎯 الهدف الأكاديمي: امتياز وتفوق مستمر</span>
                 </div>
               </div>
-              <h1 class="exec-title" id="homeWelcomeTitle">مرحباً بك يا د. عبدالله 🩺✨</h1>
-              <p class="exec-desc" id="homeWelcomeDesc">تقرير "الزتونة" الشامل — رصد تحليلي دقيق لمستوى أدائك اليومي، صعودك وهبوطك، ما أنجزته وما تأخرت فيه، والسيولة النقدية مع توجيه ذكي للحفاظ على شعلة الانضباط.</p>
+              <h1 class="exec-title" id="homeWelcomeTitle">مرحباً بك في المنظومة الذكية 🩺✨</h1>
+              <p class="exec-desc" id="homeWelcomeDesc">تقريرك الشامل — رصد تحليلي دقيق لمستوى أدائك اليومي، صعودك وهبوطك، وسجل إنجازاتك الدراسية مع توجيه ذكي للحفاظ على شعلة الانضباط.</p>
               
               <!-- 📅 Time Period Filter Tabs -->
               <div class="time-filter-controls">
@@ -872,9 +872,14 @@
 
       // Store globally so app.js can use it for all DB queries
       window.CURRENT_USER_ID = Number(tgUserId || urlUserId || ADMIN_ID);
-      window.CURRENT_USER_NAME = tgUser?.first_name || null;
+      window.CURRENT_USER_NAME = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : null;
       window.IS_ADMIN = (window.CURRENT_USER_ID === ADMIN_ID);
       window.IS_TELEGRAM_USER = !!(tgUserId || urlUserId);
+
+      // Fast initial synchronous personalization
+      if (typeof window.applyUserPersonalization === 'function') {
+        window.applyUserPersonalization();
+      }
 
       // ─── Telegram Mini App Setup ────────────────────────────────────────
       if (window.Telegram?.WebApp) {

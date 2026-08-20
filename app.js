@@ -743,6 +743,8 @@ async function applyUserPersonalization() {
 
   const welcomeDesc = document.getElementById('homeWelcomeDesc');
 
+  const academicBadge = document.getElementById('homeAcademicBadge');
+
   const adminNav = document.getElementById('nav-item-admin');
 
   if (uid === 1191760477) {
@@ -757,7 +759,11 @@ async function applyUserPersonalization() {
 
     if (welcomeDesc) welcomeDesc.textContent = 'تقرير "الزتونة" الشامل — رصد تحليلي دقيق لمستوى أدائك اليومي، صعودك وهبوطك، ما أنجزته وما تأخرت فيه، والسيولة النقدية مع توجيه ذكي للحفاظ على شعلة الانضباط.';
 
+    if (academicBadge) academicBadge.textContent = '🎯 الهدف الأكاديمي: امتياز (450/450)';
+
     if (adminNav) adminNav.style.display = 'flex';
+
+    document.title = "منظومة د. عبدالله | Abdullah's Journey OS";
 
     return;
 
@@ -771,6 +777,8 @@ async function applyUserPersonalization() {
 
   let university = null;
 
+  let academicYear = null;
+
   try {
 
     const { data: row } = await db.from('bot_sessions').select('*').eq('chat_id', uid).maybeSingle();
@@ -781,9 +789,31 @@ async function applyUserPersonalization() {
 
       university = row.data.profile.university || null;
 
+      academicYear = row.data.profile.academic_year || null;
+
     }
 
   } catch (e) {}
+
+  if (!studentName || !university) {
+
+    try {
+
+      const { data: uRow } = await db.from('users').select('*').eq('telegram_id', uid).maybeSingle();
+
+      if (uRow) {
+
+        studentName = uRow.full_name || studentName;
+
+        university = uRow.university || university;
+
+        academicYear = uRow.academic_year || academicYear;
+
+      }
+
+    } catch (e) {}
+
+  }
 
   if (!studentName && window.Telegram?.WebApp?.initDataUnsafe?.user) {
 
@@ -795,15 +825,21 @@ async function applyUserPersonalization() {
 
   if (studentName) {
 
-    const displayName = studentName.startsWith('د.') ? studentName : `د. ${studentName}`;
+    const cleanName = studentName.trim();
+
+    const displayName = (cleanName.startsWith('د.') || cleanName.startsWith('د/')) ? cleanName : `د. ${cleanName}`;
 
     if (sidebarTitle) sidebarTitle.textContent = `منظومة ${displayName}`;
 
-    if (sidebarSubtitle) sidebarSubtitle.textContent = university ? `${university} • المنظومة الذكية 🎯` : 'المنظومة الذكية لإدارة الحياة والدراسة 🎯';
+    if (sidebarSubtitle) sidebarSubtitle.textContent = university ? `${university} • المنظومة الذكية 🎯` : (academicYear ? `${academicYear} • المنظومة الذكية 🎯` : 'المنظومة الذكية لإدارة الحياة والدراسة 🎯');
 
     if (welcomeTitle) welcomeTitle.textContent = `مرحباً بك يا ${displayName} 🩺✨`;
 
     if (welcomeDesc) welcomeDesc.textContent = 'تقريرك الشامل — رصد تحليلي دقيق لمستوى أدائك اليومي، صعودك وهبوطك، وسجل إنجازاتك الدراسية مع توجيه ذكي للحفاظ على شعلة الانضباط.';
+
+    if (academicBadge) academicBadge.textContent = '🎯 الهدف الأكاديمي: امتياز وتفوق مستمر';
+
+    document.title = `منظومة ${displayName} | المنظومة الطبية الذكية`;
 
   } else {
 
@@ -815,9 +851,15 @@ async function applyUserPersonalization() {
 
     if (welcomeDesc) welcomeDesc.textContent = 'تقريرك الشامل — رصد تحليلي دقيق لمستوى أدائك اليومي وسجل إنجازاتك الدراسية.';
 
+    if (academicBadge) academicBadge.textContent = '🎯 الهدف الأكاديمي: امتياز وتفوق مستمر';
+
+    document.title = 'المنظومة الطبية الذكية | Smart Medical OS';
+
   }
 
 }
+
+window.applyUserPersonalization = applyUserPersonalization;
 
 // 🏠 0. Executive Home Overview & Strategic AI Performance Audit
 
@@ -3058,6 +3100,8 @@ async function renderFinanceSection() {
 let tabsInitialized = false;
 
 async function initDashboard() {
+
+  await applyUserPersonalization();
 
   if (!tabsInitialized) {
 
