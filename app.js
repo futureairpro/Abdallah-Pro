@@ -3469,76 +3469,83 @@ async function loadAdminPortalData() {
 
     // 3. Students Table
 
-    const tbody = document.getElementById('adminStudentsTableBody');
+        const tbody = document.getElementById('adminStudentsTableBody');
+    const cardsContainer = document.getElementById('adminStudentsCardsContainer');
 
-    if (tbody) {
+    if (students && students.length > 0) {
+      const getBadge = (s) => {
+        if (s.subscription_status === 'trial') return '<span class="badge" style="background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3); padding:4px 10px; border-radius:20px; font-weight:700;">فترة تجريبية 🎁</span>';
+        if (s.subscription_status === 'expired') return '<span class="badge" style="background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:4px 10px; border-radius:20px; font-weight:700;">منتهي 🔴</span>';
+        if (s.subscription_status === 'lifetime') return '<span class="badge" style="background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:4px 10px; border-radius:20px; font-weight:700;">مدى الحياة 👑</span>';
+        return '<span class="badge" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:4px 10px; border-radius:20px; font-weight:700;">نشط 🟢</span>';
+      };
 
-      if (students && students.length > 0) {
-
+      // 1. Desktop Table
+      if (tbody) {
         tbody.innerHTML = students.map(s => {
-
-          let statusBadge = '<span class="badge" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:4px 10px; border-radius:20px; font-weight:700;">نشط 🟢</span>';
-
-          if (s.subscription_status === 'trial') statusBadge = '<span class="badge" style="background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3); padding:4px 10px; border-radius:20px; font-weight:700;">فترة تجريبية 🎁</span>';
-
-          else if (s.subscription_status === 'expired') statusBadge = '<span class="badge" style="background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:4px 10px; border-radius:20px; font-weight:700;">منتهي 🔴</span>';
-
-          else if (s.subscription_status === 'lifetime') statusBadge = '<span class="badge" style="background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:4px 10px; border-radius:20px; font-weight:700;">مدى الحياة 👑</span>';
-
+          const tid = s.telegram_id || '—';
+          const daysStr = typeof s.days_remaining === 'number' ? `${s.days_remaining} يوم` : s.days_remaining;
           return `
-
             <tr>
-
               <td>
-
                 <b style="color:#fff; font-size:0.95rem;">${s.full_name || 'طالب زميل'}</b>
-
                 ${s.username ? `<br><small style="color:var(--text-muted)">@${s.username}</small>` : ''}
-
               </td>
-
-              <td><code>${s.telegram_id}</code></td>
-
-              <td>${statusBadge}</td>
-
-              <td><b style="color:#fff; font-size:0.95rem;">${s.days_remaining || 0} يوم</b></td>
-
+              <td><code>${tid}</code></td>
+              <td>${getBadge(s)}</td>
+              <td><b style="color:#fff; font-size:0.95rem;">${daysStr}</b></td>
               <td>
-
                 <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
-
-                  <button class="btn-action-emerald" style="background:linear-gradient(135deg,#059669,#10b981); color:#fff; border:1px solid rgba(52,211,153,0.4); border-radius:8px; padding:6px 10px; font-size:0.75rem; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(16,185,129,0.3);" onclick="modifyStudentSubscription(${s.telegram_id}, 30, 'active')">🎁 +30 يوم (شهر)</button>
-
-                  <button class="btn-action-sky" style="background:linear-gradient(135deg,#0284c7,#0ea5e9); color:#fff; border:1px solid rgba(56,189,248,0.4); border-radius:8px; padding:6px 10px; font-size:0.75rem; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(56,189,248,0.3);" onclick="modifyStudentSubscription(${s.telegram_id}, 120, 'active')">💎 +120 يوم (ترم)</button>
-
-                  <button class="btn-action-gold" style="background:linear-gradient(135deg,#d97706,#f59e0b); color:#fff; border:1px solid rgba(251,191,36,0.4); border-radius:8px; padding:6px 10px; font-size:0.75rem; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(251,191,36,0.3);" onclick="modifyStudentSubscription(${s.telegram_id}, 3650, 'lifetime')">👑 مدى الحياة</button>
-
-                  <button class="btn-action-rose" style="background:linear-gradient(135deg,#dc2626,#ef4444); color:#fff; border:1px solid rgba(248,113,113,0.4); border-radius:8px; padding:6px 10px; font-size:0.75rem; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(239,68,68,0.3);" onclick="modifyStudentSubscription(${s.telegram_id}, 0, 'expired')">🚫 إيقاف الحساب</button>
-
+                  <button class="btn-action-emerald" style="padding:6px 10px; font-size:0.75rem;" onclick="modifyStudentSubscription(${tid}, 30, 'active')">🎁 +30 يوم</button>
+                  <button class="btn-action-sky" style="padding:6px 10px; font-size:0.75rem;" onclick="modifyStudentSubscription(${tid}, 120, 'active')">💎 +120 يوم</button>
+                  <button class="btn-action-gold" style="padding:6px 10px; font-size:0.75rem;" onclick="modifyStudentSubscription(${tid}, 3650, 'lifetime')">👑 مدى الحياة</button>
+                  <button class="btn-action-rose" style="padding:6px 10px; font-size:0.75rem;" onclick="modifyStudentSubscription(${tid}, 0, 'expired')">🚫 إيقاف</button>
                 </div>
-
               </td>
-
             </tr>
-
           `;
-
         }).join('');
-
-      } else {
-
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">لا يوجد طلاب مسجلون بعد.</td></tr>';
-
       }
 
+      // 2. Mobile Cards Grid
+      if (cardsContainer) {
+        cardsContainer.innerHTML = students.map(s => {
+          const tid = s.telegram_id || '—';
+          const daysStr = typeof s.days_remaining === 'number' ? `${s.days_remaining} يوم` : s.days_remaining;
+          return `
+            <div class="student-admin-card">
+              <div class="student-card-header">
+                <div class="student-info-box">
+                  <div class="student-avatar-badge">🩺</div>
+                  <div>
+                    <div class="student-name-text">${s.full_name || 'طالب زميل'}</div>
+                    ${s.username ? `<span class="student-username-text">@${s.username}</span>` : ''}
+                  </div>
+                </div>
+                ${getBadge(s)}
+              </div>
+              <div class="student-card-meta">
+                <div><span>🆔 المعرف:</span> <code>${tid}</code></div>
+                <div><span>⏳ الصلاحية:</span> <b style="color:#34d399;">${daysStr}</b></div>
+              </div>
+              <div class="student-card-actions-grid">
+                <button class="btn-action-emerald" onclick="modifyStudentSubscription(${tid}, 30, 'active')">🎁 +30 يوم (شهر)</button>
+                <button class="btn-action-sky" onclick="modifyStudentSubscription(${tid}, 120, 'active')">💎 +120 يوم (ترم)</button>
+                <button class="btn-action-gold" onclick="modifyStudentSubscription(${tid}, 3650, 'lifetime')">👑 مدى الحياة</button>
+                <button class="btn-action-rose" onclick="modifyStudentSubscription(${tid}, 0, 'expired')">🚫 إيقاف الحساب</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    } else {
+      if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">لا يوجد طلاب مسجلون بعد.</td></tr>';
+      if (cardsContainer) cardsContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">لا يوجد طلاب مسجلون بعد.</div>';
     }
 
   } catch (err) {
-
     console.error('loadAdminPortalData error:', err);
-
   }
-
 }
 
 async function modifyStudentSubscription(telegramId, days, status) {

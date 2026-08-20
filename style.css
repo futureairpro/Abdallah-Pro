@@ -2262,3 +2262,142 @@ body.force-desktop-mode .kpi-metrics-grid {
 body.force-desktop-mode .content-split-grid {
   grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)) !important;
 }
+
+
+/* ==============================================================================
+   👑 Admin Portal Mobile Responsive Student Cards
+   ============================================================================== */
+.desktop-admin-table-container {
+  display: block;
+  overflow-x: auto;
+}
+
+.mobile-admin-cards-container {
+  display: none;
+}
+
+.student-admin-card {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.student-info-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.student-avatar-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.student-name-text {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.student-username-text {
+  font-size: 0.75rem;
+  color: var(--accent-primary);
+  display: block;
+}
+
+.student-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.student-card-meta code {
+  color: var(--accent-gold);
+  font-weight: 700;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.student-card-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.student-card-actions-grid button {
+  padding: 8px 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.student-card-actions-grid button:active {
+  transform: scale(0.96);
+}
+
+.btn-action-emerald {
+  background: linear-gradient(135deg, #059669, #10b981) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+}
+
+.btn-action-sky {
+  background: linear-gradient(135deg, #0284c7, #0ea5e9) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3) !important;
+}
+
+.btn-action-gold {
+  background: linear-gradient(135deg, #d97706, #f59e0b) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3) !important;
+}
+
+.btn-action-rose {
+  background: linear-gradient(135deg, #dc2626, #ef4444) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+}
+
+@media (max-width: 768px) {
+  .desktop-admin-table-container {
+    display: none !important;
+  }
+  .mobile-admin-cards-container {
+    display: flex !important;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+  }
+}

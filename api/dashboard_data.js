@@ -164,8 +164,25 @@ export default async function handler(req, res) {
 
       const students = [];
       (registeredStudents.data || []).forEach(r => {
-        if (r.data?.profile && r.chat_id !== 999999 && r.chat_id !== 777777) {
-          students.push(r.data.profile);
+        const cid = Number(r.chat_id);
+        if (cid && cid !== 999999 && cid !== 888888 && cid !== 777777) {
+          const p = r.data?.profile || {};
+          const nowMs = Date.now();
+          const subEnd = p.subscription_ends_at ? new Date(p.subscription_ends_at).getTime() : 0;
+          const trialEnd = p.trial_ends_at ? new Date(p.trial_ends_at).getTime() : 0;
+          const targetEnd = subEnd || trialEnd;
+          const daysRem = targetEnd > nowMs ? Math.ceil((targetEnd - nowMs) / (24 * 3600 * 1000)) : (cid === ADMIN_CHAT_ID ? 3650 : 0);
+
+          students.push({
+            telegram_id: Number(p.telegram_id || cid),
+            full_name: p.full_name || (cid === ADMIN_CHAT_ID ? 'د. عبدالله' : 'طالب زميل'),
+            username: p.username || null,
+            university: p.university || 'كلية الطب البشري',
+            role: p.role || (cid === ADMIN_CHAT_ID ? 'admin' : 'student'),
+            subscription_status: p.subscription_status || (cid === ADMIN_CHAT_ID ? 'lifetime' : 'active'),
+            days_remaining: p.subscription_status === 'lifetime' ? 'دائم 👑' : daysRem,
+            is_active: p.is_active !== false
+          });
         }
       });
 
