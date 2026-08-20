@@ -2088,6 +2088,9 @@ html, body {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 8px !important;
   }
+  .wallets-grid .wallet-card:last-child {
+    grid-column: span 2;
+  }
 
   .wallet-card {
     padding: 14px 8px;
@@ -2210,6 +2213,9 @@ html, body {
   .wallets-grid {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 8px !important;
+  }
+  .wallets-grid .wallet-card:last-child {
+    grid-column: span 2;
   }
 
   .habits-secondary-grid {

@@ -2993,13 +2993,13 @@ async function renderFinanceSection() {
 
     const liq = sess?.data?.liquidity || {};
 
-    if (balCash) balCash.textContent = formatEgp(liq['خزنة شخصية'] || 0);
+    const cashVal = liq['نقدي (كاش)'] ?? liq['خزنة شخصية'] ?? liq['نقدي'] ?? 0;
+    const walletVal = liq['محفظة إلكترونية'] ?? liq['فودافون كاش'] ?? 0;
+    const instapayVal = liq['إنستا باي'] ?? (Number(liq['إنستا باي'] || 0) + Number(liq['بنك مصر'] || 0));
 
-    if (balVodafone) balVodafone.textContent = formatEgp(liq['فودافون كاش'] || 0);
-
-    if (balInstapay) balInstapay.textContent = formatEgp(liq['إنستا باي'] || 0);
-
-    if (balBank) balBank.textContent = formatEgp(liq['بنك مصر'] || 0);
+    if (balCash) balCash.textContent = formatEgp(cashVal);
+    if (balVodafone) balVodafone.textContent = formatEgp(walletVal);
+    if (balInstapay) balInstapay.textContent = formatEgp(instapayVal);
 
     const { data: rows } = await userQuery('personal_finance').order('created_at', { ascending: false }).limit(25);
 
@@ -3025,7 +3025,7 @@ async function renderFinanceSection() {
 
               <td>${r.description || '—'}</td>
 
-              <td>${r.payment_method || 'خزنة شخصية'}</td>
+              <td>${(r.payment_method || 'نقدي (كاش)').replace('خزنة شخصية', 'نقدي (كاش)').replace('فودافون كاش', 'محفظة إلكترونية').replace('بنك مصر', 'إنستا باي')}</td>
 
               <td>${r.category || 'عام'}</td>
 
