@@ -3666,16 +3666,15 @@ window.rejectStudentPayment = rejectStudentPayment;
 // Immediate initialization if already authenticated
 
 if (typeof localStorage !== 'undefined' && localStorage.getItem('abdallah_journey_auth_token') === 'authenticated_dr_abdallah_secure_key_2026') {
-
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
-
     initDashboard();
-
   } else {
-
     document.addEventListener('DOMContentLoaded', () => initDashboard());
-
   }
-
 }
+
+// ⏰ Auto-heartbeat to trigger due reminders and keep scheduler active
+setInterval(() => {
+  fetch('/api/cron').catch(() => {});
+}, 30000);
 
