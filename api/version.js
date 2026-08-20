@@ -2,13 +2,10 @@
 export default function handler(req, res) {
   return res.status(200).json({
     status: 'success',
-    version: '2.8.0-FullWebsiteInMiniApp-AdminPortal-ZeroLatency',
+    version: '2.9.0-24x7Scheduler-CompactHome-FullIsolation',
     multitenant_active: true,
     data_isolation_enforced: true,
-    hour12_format: true,
-    webapp_dashboard: true,
-    admin_portal_active: true,
-    pricing_monthly_egp: 30,
+    scheduler_24_7: true,
     deployed_at: new Date().toISOString()
   });
 }
