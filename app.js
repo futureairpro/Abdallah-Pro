@@ -817,17 +817,17 @@ function cleanRowUserTags(r) {
 function userQuery(tableName) {
   return {
     _tableName: tableName,
-    _eqDate: null,
-    _gteDate: null,
-    _orderField: 'created_at',
+    _eqFilters: {},
+    _gteFilters: {},
+    _orderField: null,
     _orderAsc: false,
     _limitCount: null,
     eq(field, val) {
-      if (field === 'date') this._eqDate = val;
+      this._eqFilters[field] = val;
       return this;
     },
     gte(field, val) {
-      if (field === 'date') this._gteDate = val;
+      this._gteFilters[field] = val;
       return this;
     },
     order(field, { ascending = false } = {}) {
@@ -851,9 +851,15 @@ function userQuery(tableName) {
       try {
         const uid = getUID();
         let query = db.from(this._tableName).select('*');
-        if (this._eqDate) query = query.eq('date', this._eqDate);
-        else if (this._gteDate) query = query.gte('date', this._gteDate);
-        if (this._orderField) query = query.order(this._orderField, { ascending: this._orderAsc });
+        for (const [f, v] of Object.entries(this._eqFilters)) {
+          query = query.eq(f, v);
+        }
+        for (const [f, v] of Object.entries(this._gteFilters)) {
+          query = query.gte(f, v);
+        }
+        if (this._orderField) {
+          query = query.order(this._orderField, { ascending: this._orderAsc });
+        }
         
         const { data: rows, error } = await query;
         if (error || !rows) {
@@ -2781,20 +2787,20 @@ async function renderFastingAndSunnah() {
     setStatus('ishaStatus', p.isha);
 
     // Fasting & Sunnah Logs
-
     const { data: fwToday } = await userQuery('fasting_and_worship_logs').eq('date', today).maybeSingle();
 
-    if (fwToday) {
+    const sunanCount = Number(fwToday?.sunan_rawatib_count ?? pDb?.sunan_rawatib ?? uSess?.data?.sunan_today ?? 0);
+    if (sunanBoxVal) sunanBoxVal.textContent = `${sunanCount} / 12 ركعة`;
 
-      if (sunanBoxVal) sunanBoxVal.textContent = `${fwToday.sunan_rawatib_count || 0} / 12 ركعة`;
+    const isAdhkarM = Boolean(fwToday?.adhkar_morning || pDb?.adhkar_morning || uSess?.data?.adhkar_morning);
+    const isAdhkarE = Boolean(fwToday?.adhkar_evening || pDb?.adhkar_evening || uSess?.data?.adhkar_evening);
+    if (adhkarBoxVal) adhkarBoxVal.textContent = `صباح: ${isAdhkarM ? '✅' : '⚪'} | مساء: ${isAdhkarE ? '✅' : '⚪'}`;
 
-      if (adhkarBoxVal) adhkarBoxVal.textContent = `صباح: ${fwToday.adhkar_morning ? '✅' : '⚪'} | مساء: ${fwToday.adhkar_evening ? '✅' : '⚪'}`;
+    const isDuha = Boolean(fwToday?.duha_prayer_done || uSess?.data?.duha_prayer_done);
+    if (duhaBoxVal) duhaBoxVal.textContent = isDuha ? '✅ صليت الضحى' : 'لم تسجل ⚪';
 
-      if (duhaBoxVal) duhaBoxVal.textContent = fwToday.duha_prayer_done ? '✅ صليت الضحى' : 'لم تسجل ⚪';
-
-      if (qiyamBoxVal) qiyamBoxVal.textContent = fwToday.witr_prayer_done ? '✅ صليت الوتر والقيام' : 'لم تسجل ⚪';
-
-    }
+    const isWitr = Boolean(fwToday?.witr_prayer_done || pDb?.qiyam_night || uSess?.data?.witr_prayer_done);
+    if (qiyamBoxVal) qiyamBoxVal.textContent = isWitr ? '✅ صليت الوتر والقيام' : 'لم تسجل ⚪';
 
     const { data: fwHistory } = await userQuery('fasting_and_worship_logs').order('date', { ascending: false }).limit(6);
 
