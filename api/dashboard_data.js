@@ -206,15 +206,33 @@ export default async function handler(req, res) {
       ]);
 
       const students = [];
+      const nowMs = Date.now();
       (registeredStudents.data || []).forEach(r => {
         const cid = Number(r.chat_id);
         if (cid && cid !== 999999 && cid !== 888888 && cid !== 777777) {
           const p = r.data?.profile || {};
-          const nowMs = Date.now();
           const subEnd = p.subscription_ends_at ? new Date(p.subscription_ends_at).getTime() : 0;
-          const trialEnd = p.trial_ends_at ? new Date(p.trial_ends_at).getTime() : 0;
-          const targetEnd = subEnd || trialEnd;
-          const daysRem = targetEnd > nowMs ? Math.ceil((targetEnd - nowMs) / (24 * 3600 * 1000)) : (cid === ADMIN_CHAT_ID ? 3650 : 0);
+          const trialEnd = p.trial_ends_at ? new Date(p.trial_ends_at).getTime() : (nowMs + 3 * 24 * 3600 * 1000);
+
+          let status = p.subscription_status || 'trial';
+          let daysRem = 0;
+          let isActive = false;
+
+          if (cid === ADMIN_CHAT_ID || status === 'lifetime') {
+            status = 'lifetime';
+            daysRem = 'دائم 👑';
+            isActive = true;
+          } else if (status === 'active' && subEnd > nowMs) {
+            daysRem = Math.max(1, Math.ceil((subEnd - nowMs) / (24 * 3600 * 1000)));
+            isActive = true;
+          } else if (status === 'trial' && trialEnd > nowMs) {
+            daysRem = Math.max(1, Math.ceil((trialEnd - nowMs) / (24 * 3600 * 1000)));
+            isActive = true;
+          } else {
+            status = 'expired';
+            daysRem = 0;
+            isActive = false;
+          }
 
           students.push({
             telegram_id: Number(p.telegram_id || cid),
@@ -222,9 +240,9 @@ export default async function handler(req, res) {
             username: p.username || null,
             university: p.university || 'كلية الطب البشري',
             role: p.role || (cid === ADMIN_CHAT_ID ? 'admin' : 'student'),
-            subscription_status: p.subscription_status || (cid === ADMIN_CHAT_ID ? 'lifetime' : 'active'),
-            days_remaining: p.subscription_status === 'lifetime' ? 'دائم 👑' : daysRem,
-            is_active: p.is_active !== false
+            subscription_status: status,
+            days_remaining: daysRem,
+            is_active: isActive
           });
         }
       });
