@@ -10,6 +10,21 @@ if (bot && !isRegistered) {
   isRegistered = true;
 }
 
+const processedUpdates = new Map();
+
+function isUpdateDuplicate(updateId) {
+  if (!updateId) return false;
+  const now = Date.now();
+  for (const [id, time] of processedUpdates.entries()) {
+    if (now - time > 120000) processedUpdates.delete(id);
+  }
+  if (processedUpdates.has(updateId)) {
+    return true;
+  }
+  processedUpdates.set(updateId, now);
+  return false;
+}
+
 export default async function handler(req, res) {
   // 1. Handle Telegram Update POST
   if (req.method === 'POST') {
@@ -20,6 +35,9 @@ export default async function handler(req, res) {
 
       if (req.body) {
         const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+        if (body?.update_id && isUpdateDuplicate(body.update_id)) {
+          return res.status(200).json({ ok: true, duplicate: true });
+        }
         await bot.handleUpdate(body);
       }
 
