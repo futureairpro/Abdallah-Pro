@@ -2749,30 +2749,36 @@ async function renderFastingAndSunnah() {
   try {
 
     // 5 Prayers Status
+    const { data: pDb } = await userQuery('prayers_and_habits').eq('date', today).maybeSingle();
+    const { data: uSess } = await db.from('bot_sessions').select('*').eq('chat_id', getUID()).maybeSingle();
+    const sessPrayers = uSess?.data?.prayers_today || {};
 
-    const { data: p } = await userQuery('prayers_and_habits').eq('date', today).maybeSingle();
+    const p = {
+      fajr: sessPrayers.fajr || pDb?.fajr,
+      dhuhr: sessPrayers.dhuhr || pDb?.dhuhr,
+      asr: sessPrayers.asr || pDb?.asr,
+      maghrib: sessPrayers.maghrib || pDb?.maghrib,
+      isha: sessPrayers.isha || pDb?.isha
+    };
 
-    if (p) {
+    const formatStatus = (val) => {
+      if (!val || val === 'لم يُسجل' || val === 'لم تسجل') return 'لم تسجل ⚪';
+      if (val.includes('مسجد') || val.includes('جماعة') || val.includes('حاضر') || val.includes('صليت') || val.includes('تم')) {
+        return `✅ ${val.replace('🟢', '').trim()}`;
+      }
+      return val;
+    };
 
-      const setStatus = (id, val) => {
+    const setStatus = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = formatStatus(val);
+    };
 
-        const el = document.getElementById(id);
-
-        if (el) el.textContent = val || 'لم يُسجل ⚪';
-
-      };
-
-      setStatus('fajrStatus', p.fajr);
-
-      setStatus('dhuhrStatus', p.dhuhr);
-
-      setStatus('asrStatus', p.asr);
-
-      setStatus('maghribStatus', p.maghrib);
-
-      setStatus('ishaStatus', p.isha);
-
-    }
+    setStatus('fajrStatus', p.fajr);
+    setStatus('dhuhrStatus', p.dhuhr);
+    setStatus('asrStatus', p.asr);
+    setStatus('maghribStatus', p.maghrib);
+    setStatus('ishaStatus', p.isha);
 
     // Fasting & Sunnah Logs
 
