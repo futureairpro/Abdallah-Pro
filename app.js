@@ -3309,6 +3309,119 @@ async function renderFinanceSection() {
 
 }
 
+// ✏️ Modal Controller for Setting / Editing Starting Wallets & Liquidity Balances
+let currentEditingWallet = null;
+
+window.openWalletEditModal = function(walletName, elementId, icon = '💵') {
+  currentEditingWallet = walletName;
+  const modal = document.getElementById('walletModalOverlay');
+  const titleText = document.getElementById('walletModalTitleText');
+  const iconEl = document.getElementById('walletModalIcon');
+  const inputEl = document.getElementById('walletModalInput');
+  const currentEl = document.getElementById(elementId);
+
+  if (titleText) titleText.textContent = `تعديل وتعيين رصيد ${walletName}`;
+  if (iconEl) iconEl.textContent = icon;
+
+  let currentVal = 0;
+  if (currentEl) {
+    const rawNum = currentEl.textContent.replace(/[^\d\.]/g, '').trim();
+    currentVal = parseFloat(rawNum) || 0;
+  }
+
+  if (inputEl) {
+    inputEl.value = currentVal || '';
+    inputEl.placeholder = '0';
+  }
+
+  if (modal) {
+    modal.style.display = 'flex';
+    setTimeout(() => {
+      if (inputEl) {
+        inputEl.focus();
+        inputEl.select();
+      }
+    }, 80);
+  }
+};
+
+window.closeWalletModal = function(e) {
+  if (e && e.target && e.target.id !== 'walletModalOverlay' && !e.target.classList.contains('wallet-modal-close') && !e.target.classList.contains('btn-wallet-cancel')) {
+    return;
+  }
+  const modal = document.getElementById('walletModalOverlay');
+  if (modal) modal.style.display = 'none';
+  currentEditingWallet = null;
+};
+
+window.saveWalletBalanceFromModal = async function() {
+  if (!currentEditingWallet) return;
+  const inputEl = document.getElementById('walletModalInput');
+  const saveBtn = document.getElementById('btnSaveWalletBalance');
+  const valStr = inputEl?.value?.trim() || '0';
+  const newAmount = parseFloat(valStr);
+
+  if (isNaN(newAmount) || newAmount < 0) {
+    alert('يرجى إدخال مبلغ مالي صحيح (0 أو أكثر).');
+    return;
+  }
+
+  const originalText = saveBtn ? saveBtn.innerHTML : '';
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span>⏳ جاري الحفظ...</span>';
+  }
+
+  try {
+    const uid = getUID();
+    const { data: sess } = await db.from('bot_sessions').select('*').eq('chat_id', uid).maybeSingle();
+    const sessData = sess?.data || {};
+    if (!sessData.liquidity) sessData.liquidity = {};
+
+    sessData.liquidity[currentEditingWallet] = newAmount;
+
+    // Handle key aliases for 100% database compatibility
+    if (currentEditingWallet === 'نقدي (كاش)') {
+      sessData.liquidity['خزنة شخصية'] = newAmount;
+      sessData.liquidity['نقدي'] = newAmount;
+    } else if (currentEditingWallet === 'محفظة إلكترونية') {
+      sessData.liquidity['فودافون كاش'] = newAmount;
+    } else if (currentEditingWallet === 'إنستا باي') {
+      sessData.liquidity['بنك مصر'] = 0;
+    }
+
+    const { error } = await db.from('bot_sessions').upsert({
+      chat_id: uid,
+      state: sess?.state || 'idle',
+      data: sessData,
+      updated_at: new Date().toISOString()
+    });
+
+    if (error) throw error;
+
+    // Re-render finance UI immediately
+    await renderFinanceSection();
+
+    const modal = document.getElementById('walletModalOverlay');
+    if (modal) modal.style.display = 'none';
+    currentEditingWallet = null;
+
+    if (typeof showToast === 'function') {
+      showToast(`✅ تم تحديث رصيد ${currentEditingWallet} إلى ${formatEgp(newAmount)} بنجاح!`);
+    } else {
+      alert(`✅ تم تحديث رصيد ${currentEditingWallet} إلى ${formatEgp(newAmount)} بنجاح!`);
+    }
+  } catch (err) {
+    console.error('saveWalletBalance error:', err);
+    alert('❌ حدث خطأ أثناء حفظ الرصيد: ' + err.message);
+  } finally {
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = originalText;
+    }
+  }
+};
+
 // 🚀 Dashboard Init & Live Data Refresh
 
 let tabsInitialized = false;
