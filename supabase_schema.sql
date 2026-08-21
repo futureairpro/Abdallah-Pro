@@ -9,7 +9,10 @@ create table if not exists public.users (
   username text,
   university text default 'كلية الطب البشري',
   academic_year text default 'الفرقة الرابعة',
+  semester text default 'الترم الأول',
   academic_group text default 'عام',
+  custom_courses jsonb default '[]'::jsonb,
+  preferences jsonb default '{"academic":true,"english":true,"schedule":true,"islamic":true,"wellness":true,"finance":true,"gym":false,"content":false,"work":false}'::jsonb,
   role text default 'student', -- 'admin' / 'student'
   subscription_status text default 'trial', -- 'trial' / 'active' / 'expired' / 'lifetime'
   trial_ends_at timestamp with time zone default (now() + interval '3 days'),
@@ -33,7 +36,7 @@ create table if not exists public.subscription_payments (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- 1. 🩺 Academic Courses & Modules (الفرقة الرابعة - الترم السابع والثامن)
+-- 1. 🩺 Academic Courses & Modules (الكتالوج العام للمقررات الطبية)
 create table if not exists public.academic_courses (
   id uuid default gen_random_uuid() primary key,
   semester int not null,
@@ -53,6 +56,7 @@ create table if not exists public.academic_courses (
 -- 2. 📅 جدول السكاشن والمحاضرات الجامعية الأسبوعي الثابت
 create table if not exists public.academic_schedule (
   id uuid default gen_random_uuid() primary key,
+  telegram_id bigint references public.users(telegram_id) on delete cascade,
   course_code text not null,
   title text not null,
   day_of_week text not null,
