@@ -1,5 +1,5 @@
 // 🚀 Telegram Web App Dashboard Data API for Abdullah's Journey & Medical OS
-import { supabase, getUserProfile, getUserActiveCourses, DEFAULT_USER_PREFERENCES, ADMIN_CHAT_ID } from '../lib/supabase.js';
+import { supabase, getUserProfile, getUserActiveCourses, getUserMedicalQuizzes, DEFAULT_USER_PREFERENCES, ADMIN_CHAT_ID } from '../lib/supabase.js';
 import { getCairoPrayerTimes } from '../lib/prayer_times.js';
 import { getRandomCuratedCapsule } from '../lib/mindset_pulses.js';
 
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       quranRes,
       fwRes,
       apptRes,
-      quizRes,
+      userMedQuizzes,
       engRes,
       gymRes,
       wellRes,
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
       supabase.from('quran_logs').select('*').eq('date', today),
       supabase.from('fasting_and_worship_logs').select('*').eq('date', today).maybeSingle(),
       supabase.from('appointments_and_reminders').select('*').gte('due_datetime', today).order('due_datetime', { ascending: true }),
-      supabase.from('medical_spaced_quizzes').select('*').order('next_review_at', { ascending: true }).limit(20),
+      getUserMedicalQuizzes(numId),
       supabase.from('english_spaced_flashcards').select('*').order('next_review_at', { ascending: true }).limit(20),
       supabase.from('fitness_gym_logs').select('*').order('date', { ascending: false }).limit(10),
       supabase.from('mental_wellness_logs').select('*').order('date', { ascending: false }).limit(10),
@@ -129,7 +129,15 @@ export default async function handler(req, res) {
     });
 
     // 6. Medical Quizzes & Flashcards
-    const quizRows = quizRes.data || [];
+    const quizRows = (userMedQuizzes || []).map(q => ({
+      course_code: q.course_code || 'MED',
+      topic: q.clean_topic || q.topic || 'سؤال موديول',
+      question: q.question,
+      correct_answer: q.answer_and_explanation || q.correct_answer || 'موضحة بالمرجع',
+      explanation: q.answer_and_explanation || q.explanation || '',
+      doctor_pearl: q.doctor_pearl || null,
+      repetition_level: q.repetition_level || 0
+    }));
     const engRows = engRes.data || [];
 
     // 7. Gym Logs
