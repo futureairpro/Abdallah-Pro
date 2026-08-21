@@ -1,5 +1,5 @@
 // 🚀 Telegram Web App Dashboard Data API for Abdullah's Journey & Medical OS
-import { supabase, getUserProfile, ADMIN_CHAT_ID } from '../lib/supabase.js';
+import { supabase, getUserProfile, getUserActiveCourses, DEFAULT_USER_PREFERENCES, ADMIN_CHAT_ID } from '../lib/supabase.js';
 import { getCairoPrayerTimes } from '../lib/prayer_times.js';
 import { getRandomCuratedCapsule } from '../lib/mindset_pulses.js';
 
@@ -25,6 +25,7 @@ export default async function handler(req, res) {
     // Run ALL database queries in parallel for ultra-fast response
     const [
       profile,
+      activeCourses,
       studyRes,
       taskRes,
       finRes,
@@ -38,6 +39,7 @@ export default async function handler(req, res) {
       thoughtRes
     ] = await Promise.all([
       getUserProfile(numId),
+      getUserActiveCourses(numId),
       supabase.from('study_sessions').select('*').eq('date', today),
       supabase.from('daily_tasks').select('*').eq('date', today).order('created_at', { ascending: false }),
       supabase.from('personal_finance').select('*').eq('date', today).order('created_at', { ascending: false }),
@@ -62,14 +64,11 @@ export default async function handler(req, res) {
 
     let totalStudyMins = 0;
     let totalStudyPages = 0;
-    const moduleBreakdown = {
-      'CAD402': 0,
-      'PED401': 0,
-      'RSD403': 0,
-      'HVD404': 0,
-      'SKL 7': 0,
-      'أخرى': 0
-    };
+    const moduleBreakdown = {};
+    (activeCourses || []).forEach(c => {
+      moduleBreakdown[c.code] = 0;
+    });
+    moduleBreakdown['أخرى'] = 0;
 
     userStudy.forEach(s => {
       const mins = Number(s.duration_minutes || 0);
@@ -79,7 +78,7 @@ export default async function handler(req, res) {
       if (moduleBreakdown[code] !== undefined) {
         moduleBreakdown[code] += mins;
       } else {
-        moduleBreakdown['أخرى'] += mins;
+        moduleBreakdown['أخرى'] = (moduleBreakdown['أخرى'] || 0) + mins;
       }
     });
 
@@ -209,7 +208,11 @@ export default async function handler(req, res) {
         role: profile?.role || (numId === ADMIN_CHAT_ID ? 'admin' : 'student'),
         subscription_status: profile?.subscription_status || (numId === ADMIN_CHAT_ID ? 'lifetime' : 'trial'),
         days_remaining: profile?.days_remaining || 3,
-        is_active: profile?.is_active ?? true
+        is_active: profile?.is_active ?? true,
+        academic_year: profile?.academic_year || 'الفرقة الرابعة',
+        semester: profile?.semester || 'الترم الأول',
+        preferences: profile?.preferences || DEFAULT_USER_PREFERENCES,
+        active_courses: activeCourses || []
       },
       today,
       prayers: prayers.times12,

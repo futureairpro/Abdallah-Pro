@@ -40,6 +40,130 @@ const db = new Proxy({}, {
 
 });
 
+const DEFAULT_USER_PREFERENCES = {
+  academic: true,    // 🩺 كويزات ومذاكرة الطب (Locked True)
+  english: true,     // 🗣️ مدرب وفلاش كاردز الإنجليزية
+  schedule: true,    // 📅 جدول السكاشن والغياب
+  islamic: true,     // 🕌 القسم الروحي (القرآن، الصيام، الأذكار، الصلوات)
+  wellness: true,    // 🧠 الفضفضة والاتزان النفسي
+  finance: true,     // 💵 الخزنة والمصروفات الشخصية
+  gym: false,        // 🏋️‍♂️ الجيم واللياقة البدنية
+  content: false,    // 🎬 صناعة المحتوى والمونتاج
+  work: false        // 💼 مشاريع البيزنس والشغل
+};
+
+const PRESET_COURSES_BY_YEAR = {
+  'الفرقة الأولى': {
+    'الترم الأول': [
+      { code: 'ANAT101', title: 'Anatomy 1 (تشريح عام)' },
+      { code: 'PHYS101', title: 'Physiology 1 (علم وظائف الأعضاء)' },
+      { code: 'HIST101', title: 'Histology 1 (علم الأنسجة)' },
+      { code: 'BIOC101', title: 'Biochemistry 1 (كيمياء حيوية)' }
+    ],
+    'الترم الثاني': [
+      { code: 'ANAT102', title: 'Anatomy 2 (تشريح أحشاء وأطراف)' },
+      { code: 'PHYS102', title: 'Physiology 2 (فسيولوجي أجهزة)' },
+      { code: 'HIST102', title: 'Histology 2 (هستولوجي خاص)' },
+      { code: 'BIOC102', title: 'Biochemistry 2 (جينات وبيوكيمستري)' }
+    ]
+  },
+  'الفرقة الثانية': {
+    'الترم الأول': [
+      { code: 'PATH201', title: 'General Pathology (علم الأمراض العام)' },
+      { code: 'PHAR201', title: 'General Pharmacology (علم الأدوية العام)' },
+      { code: 'MICR201', title: 'Microbiology & Immunology (ميكروبيولوجي ومناعة)' },
+      { code: 'PARA201', title: 'Parasitology (طفيليات)' }
+    ],
+    'الترم الثاني': [
+      { code: 'PATH202', title: 'Systemic Pathology (باثولوجي أجهزة)' },
+      { code: 'PHAR202', title: 'Systemic Pharmacology (فارما أجهزة)' },
+      { code: 'MICR202', title: 'Systemic Microbiology (ميكرو أجهزة)' },
+      { code: 'COMM202', title: 'Community Medicine (طب المجتمع)' }
+    ]
+  },
+  'الفرقة الثالثة': {
+    'الترم الأول': [
+      { code: 'SURG301', title: 'General Surgery 1 (مقدمة الجراحة العامة)' },
+      { code: 'IMED301', title: 'Internal Medicine 1 (مقدمة الباطنة العامة)' },
+      { code: 'FORE301', title: 'Forensic Medicine & Tox (طب شرعي وسموم)' },
+      { code: 'OPHT301', title: 'Ophthalmology (طب وجراحة العيون)' }
+    ],
+    'الترم الثاني': [
+      { code: 'SURG302', title: 'General Surgery 2 (جراحة سريرية)' },
+      { code: 'IMED302', title: 'Internal Medicine 2 (باطنة سريرية)' },
+      { code: 'ENT302', title: 'ENT (أنف وأذن وحنجرة)' },
+      { code: 'PMR302', title: 'Physical Medicine & Rehab (تأهيل وعلاج طبيعي)' }
+    ]
+  },
+  'الفرقة الرابعة': {
+    'الترم الأول': [
+      { code: 'PED401', title: 'Pediatrics 1 (طب الأطفال 1)' },
+      { code: 'CAD402', title: 'Cardiac Disorders (أمراض القلب والأوعية)' },
+      { code: 'RSD403', title: 'Respiratory Disorders (أمراض الجهاز التنفسي)' },
+      { code: 'HVD404', title: 'Hematological Disorders (أمراض الدم والأوعية)' },
+      { code: 'SKL 7', title: 'Clinical Skills 7 (المهارات الإكلينيكية)' }
+    ],
+    'الترم الثاني': [
+      { code: 'PED402', title: 'Pediatrics 2 (طب الأطفال المتقدم)' },
+      { code: 'GIT402', title: 'Gastroenterology & Hepatology (باطنة وجهاز هضمي)' },
+      { code: 'NEPH403', title: 'Nephrology & Urology (كلى ومسالك)' },
+      { code: 'ENDO404', title: 'Endocrine & Metabolic (غدد صماء وسكر)' },
+      { code: 'SKL 8', title: 'Clinical Skills 8 (المهارات الإكلينيكية 8)' }
+    ]
+  },
+  'الفرقة الخامسة': {
+    'الترم الأول': [
+      { code: 'MED501', title: 'Advanced Internal Medicine (باطنة متقدمة ورعاية)' },
+      { code: 'SURG501', title: 'Advanced General Surgery (جراحة عامة وتخصصية)' },
+      { code: 'OBGY501', title: 'Obstetrics & Gynecology 1 (نساء وتوليد 1)' },
+      { code: 'PEDI501', title: 'Clinical Pediatrics (أطفال إكلينيكي)' }
+    ],
+    'الترم الثاني': [
+      { code: 'OBGY502', title: 'Obstetrics & Gynecology 2 (نساء وتوليد متقدم)' },
+      { code: 'ORTH502', title: 'Orthopedics & Traumatology (عظام وكسور)' },
+      { code: 'NEUR502', title: 'Neurology & Neurosurgery (مخ وأعصاب)' },
+      { code: 'EMER502', title: 'Emergency & Critical Care (طوارئ وعناية مركزة)' }
+    ]
+  },
+  'الامتياز': {
+    'الترم الأول': [
+      { code: 'ROT_SURG', title: 'Surgery Rotation (راوند الجراحة العامة)' },
+      { code: 'ROT_IMED', title: 'Internal Medicine Rotation (راوند الباطنة العامة)' },
+      { code: 'ROT_PEDI', title: 'Pediatrics Rotation (راوند الأطفال)' },
+      { code: 'ROT_OBGY', title: 'OB/GYN Rotation (راوند النساء والتوليد)' },
+      { code: 'ROT_EMER', title: 'Emergency Rotation (راوند الطوارئ والحوادث)' }
+    ]
+  }
+};
+
+function getCourseIcon(title = '', code = '') {
+  const t = (title + ' ' + code).toLowerCase();
+  if (t.includes('pediat') || t.includes('أطفال')) return '👶';
+  if (t.includes('card') || t.includes('قلب')) return '🫀';
+  if (t.includes('resp') || t.includes('صدر') || t.includes('تنفس')) return '🫁';
+  if (t.includes('hemat') || t.includes('دم')) return '🩸';
+  if (t.includes('skill') || t.includes('مهار')) return '🩺';
+  if (t.includes('gastro') || t.includes('هضم') || t.includes('كبد') || t.includes('git')) return '🫄';
+  if (t.includes('neph') || t.includes('كلى') || t.includes('مسالك')) return '🫘';
+  if (t.includes('endo') || t.includes('غدد') || t.includes('سكر')) return '🧬';
+  if (t.includes('path') || t.includes('أمراض')) return '🔬';
+  if (t.includes('phar') || t.includes('أدوي')) return '💊';
+  if (t.includes('micr') || t.includes('مناع') || t.includes('ميكرو')) return '🦠';
+  if (t.includes('para') || t.includes('طفيلي')) return '🪱';
+  if (t.includes('anat') || t.includes('تشريح')) return '🦴';
+  if (t.includes('phys') || t.includes('وظائف')) return '⚡';
+  if (t.includes('hist') || t.includes('أنسجة')) return '🧪';
+  if (t.includes('bioc') || t.includes('كيمياء')) return '⚗️';
+  if (t.includes('surg') || t.includes('جراح')) return '🔪';
+  if (t.includes('obgy') || t.includes('نساء') || t.includes('توليد')) return '🤰';
+  if (t.includes('emer') || t.includes('طوارئ') || t.includes('حوادث')) return '🚨';
+  if (t.includes('orth') || t.includes('عظام')) return '🩻';
+  if (t.includes('neur') || t.includes('أعصاب') || t.includes('مخ')) return '🧠';
+  if (t.includes('opht') || t.includes('عيون')) return '👁️';
+  if (t.includes('ent') || t.includes('أنف')) return '👂';
+  return '📚';
+}
+
 // Cairo Prayer Times Engine
 
 function getCairoPrayerTimes(date = new Date()) {
@@ -774,87 +898,85 @@ async function applyUserPersonalization() {
   if (adminNav) adminNav.style.display = 'none';
 
   let studentName = window.CURRENT_USER_NAME;
-
   let university = null;
-
-  let academicYear = null;
+  let academicYear = 'الفرقة الرابعة';
+  let semester = 'الترم الأول';
+  let customCourses = [];
+  let preferences = { ...DEFAULT_USER_PREFERENCES };
 
   try {
-
     const { data: row } = await db.from('bot_sessions').select('*').eq('chat_id', uid).maybeSingle();
-
     if (row?.data?.profile) {
-
       studentName = row.data.profile.full_name || studentName;
-
       university = row.data.profile.university || null;
-
-      academicYear = row.data.profile.academic_year || null;
-
+      academicYear = row.data.profile.academic_year || academicYear;
+      semester = row.data.profile.semester || semester;
+      customCourses = row.data.profile.custom_courses || customCourses;
+      if (row.data.profile.preferences) {
+        preferences = { ...preferences, ...row.data.profile.preferences };
+      }
     }
-
   } catch (e) {}
 
   if (!studentName || !university) {
-
     try {
-
       const { data: uRow } = await db.from('users').select('*').eq('telegram_id', uid).maybeSingle();
-
       if (uRow) {
-
         studentName = uRow.full_name || studentName;
-
         university = uRow.university || university;
-
         academicYear = uRow.academic_year || academicYear;
-
+        semester = uRow.semester || semester;
+        customCourses = uRow.custom_courses || customCourses;
+        if (uRow.preferences) {
+          preferences = { ...preferences, ...uRow.preferences };
+        }
       }
-
     } catch (e) {}
-
   }
 
   if (!studentName && window.Telegram?.WebApp?.initDataUnsafe?.user) {
-
     const u = window.Telegram.WebApp.initDataUnsafe.user;
-
     studentName = [u.first_name, u.last_name].filter(Boolean).join(' ');
-
   }
 
+  // Calculate active courses for this user
+  const presetList = (PRESET_COURSES_BY_YEAR[academicYear] && PRESET_COURSES_BY_YEAR[academicYear][semester])
+    || PRESET_COURSES_BY_YEAR['الفرقة الرابعة']['الترم الأول'];
+  window.USER_ACTIVE_COURSES = [...presetList, ...(customCourses || [])];
+  window.USER_PREFERENCES = preferences;
+
+  // Apply visibility to sidebar tabs dynamically
+  const setTabVis = (tabName, isVisible) => {
+    const btn = document.querySelector(`.nav-item[data-tab="${tabName}"]`);
+    if (btn) btn.style.display = isVisible ? 'flex' : 'none';
+  };
+
+  setTabVis('english', preferences.english !== false);
+  setTabVis('quran', preferences.islamic !== false);
+  setTabVis('fasting', preferences.islamic !== false);
+  setTabVis('wellness', preferences.wellness !== false);
+  setTabVis('gym', preferences.gym === true);
+  setTabVis('content', preferences.content === true);
+  setTabVis('work', preferences.work === true);
+  setTabVis('finance', preferences.finance !== false);
+
   if (studentName) {
-
     const cleanName = studentName.trim();
-
     const displayName = (cleanName.startsWith('د.') || cleanName.startsWith('د/')) ? cleanName : `د. ${cleanName}`;
 
     if (sidebarTitle) sidebarTitle.textContent = `منظومة ${displayName}`;
-
-    if (sidebarSubtitle) sidebarSubtitle.textContent = university ? `${university} • المنظومة الذكية 🎯` : (academicYear ? `${academicYear} • المنظومة الذكية 🎯` : 'المنظومة الذكية لإدارة الحياة والدراسة 🎯');
-
+    if (sidebarSubtitle) sidebarSubtitle.textContent = university ? `${university} • ${academicYear} (${semester}) 🎯` : `${academicYear} (${semester}) • المنظومة الذكية 🎯`;
     if (welcomeTitle) welcomeTitle.textContent = `مرحباً بك يا ${displayName} 🩺✨`;
-
-    if (welcomeDesc) welcomeDesc.textContent = 'تقريرك الشامل — رصد تحليلي دقيق لمستوى أدائك اليومي، صعودك وهبوطك، وسجل إنجازاتك الدراسية مع توجيه ذكي للحفاظ على شعلة الانضباط.';
-
-    if (academicBadge) academicBadge.textContent = '🎯 الهدف الأكاديمي: امتياز وتفوق مستمر';
-
+    if (welcomeDesc) welcomeDesc.textContent = `تقريرك الشامل — رصد تحليلي دقيق لمستوى أدائك اليومي وسجل موديولاتك النشطة لـ ${academicYear} (${semester}).`;
+    if (academicBadge) academicBadge.textContent = `🎯 الهدف الأكاديمي: امتياز في ${academicYear}`;
     document.title = `منظومة ${displayName} | المنظومة الطبية الذكية`;
-
   } else {
-
     if (sidebarTitle) sidebarTitle.textContent = 'المنظومة الطبية الذكية';
-
     if (sidebarSubtitle) sidebarSubtitle.textContent = 'Smart Medical Life OS 🎯';
-
     if (welcomeTitle) welcomeTitle.textContent = 'مرحباً بك في المنظومة الذكية 🩺✨';
-
     if (welcomeDesc) welcomeDesc.textContent = 'تقريرك الشامل — رصد تحليلي دقيق لمستوى أدائك اليومي وسجل إنجازاتك الدراسية.';
-
     if (academicBadge) academicBadge.textContent = '🎯 الهدف الأكاديمي: امتياز وتفوق مستمر';
-
     document.title = 'المنظومة الطبية الذكية | Smart Medical OS';
-
   }
 
 }
@@ -1936,47 +2058,55 @@ async function renderHomeOverview(period = activeHomePeriod) {
     }
 
     // Dynamic Modules Tracker on Home
-
     const homeModulesContainer = document.getElementById('homeModulesProgressGrid');
-
     if (homeModulesContainer) {
-
       const { data: allStudyRows } = await userQuery('study_sessions');
 
-      const moduleStats = {
+      const activeCourses = window.USER_ACTIVE_COURSES || [
+        { code: 'PED401', title: 'Pediatric 1 (طب الأطفال 1)' },
+        { code: 'CAD402', title: 'Cardiac Disorders (أمراض القلب)' },
+        { code: 'RSD403', title: 'Respiratory Disorders (أمراض الصدر)' },
+        { code: 'HVD404', title: 'Hematological Disorders (أمراض الدم)' },
+        { code: 'SKL 7', title: 'Clinical Skills 7 (المهارات الإكلينيكية)' }
+      ];
 
-        'CAD402': { name: 'Cardiac Disorders (أمراض القلب)', icon: '🫀', hours: 0, count: 0, lastTopic: '', lastDate: '' },
-
-        'PED401': { name: 'Pediatric 1 (طب الأطفال 1)', icon: '👶', hours: 0, count: 0, lastTopic: '', lastDate: '' },
-
-        'HVD404': { name: 'Hematological Disorders (أمراض الدم)', icon: '🩸', hours: 0, count: 0, lastTopic: '', lastDate: '' },
-
-        'RSD403': { name: 'Respiratory Disorders (أمراض الصدر)', icon: '🫁', hours: 0, count: 0, lastTopic: '', lastDate: '' },
-
-        'SKL 7':  { name: 'Clinical Skills 7 (المهارات الإكلينيكية)', icon: '🩺', hours: 0, count: 0, lastTopic: '', lastDate: '' }
-
-      };
+      const moduleStats = {};
+      activeCourses.forEach(c => {
+        const code = c.code.toUpperCase();
+        moduleStats[code] = {
+          name: c.title,
+          icon: getCourseIcon(c.title, c.code),
+          hours: 0,
+          mins: 0,
+          credits: 5,
+          count: 0,
+          lastTopic: '',
+          lastDate: ''
+        };
+      });
 
       (allStudyRows || []).forEach(s => {
-
-        const code = (s.course_code || 'CAD402').trim().toUpperCase();
-
-        if (moduleStats[code]) {
-
-          moduleStats[code].hours += (Number(s.duration_minutes) || 0) / 60;
-
-          moduleStats[code].count++;
-
-          if (!moduleStats[code].lastTopic || (s.date && s.date >= moduleStats[code].lastDate)) {
-
-            moduleStats[code].lastTopic = s.topic || 'مذاكرة';
-
-            moduleStats[code].lastDate = s.date || '';
-
-          }
-
+        const code = (s.course_code || 'MOD').trim().toUpperCase();
+        if (!moduleStats[code]) {
+          moduleStats[code] = {
+            name: s.topic || `موديول [${code}]`,
+            icon: getCourseIcon(s.topic || '', code),
+            hours: 0,
+            mins: 0,
+            credits: 5,
+            count: 0,
+            lastTopic: '',
+            lastDate: ''
+          };
         }
-
+        const mins = Number(s.duration_minutes || 0);
+        moduleStats[code].hours += mins / 60;
+        moduleStats[code].mins += mins;
+        moduleStats[code].count++;
+        if (!moduleStats[code].lastTopic || (s.date && s.date >= moduleStats[code].lastDate)) {
+          moduleStats[code].lastTopic = s.topic || 'مذاكرة';
+          moduleStats[code].lastDate = s.date || '';
+        }
       });
 
       let modHtml = '';
@@ -2104,49 +2234,57 @@ async function renderAcademicSection() {
     const { data: sessions } = await userQuery('study_sessions').order('created_at', { ascending: false });
 
     // Group study time by module
+    const activeCourses = window.USER_ACTIVE_COURSES || [
+      { code: 'PED401', title: 'Pediatric 1 (طب الأطفال 1)' },
+      { code: 'CAD402', title: 'Cardiac Disorders (أمراض القلب والأوعية)' },
+      { code: 'HVD404', title: 'Hematological Disorders (أمراض الدم والأوعية)' },
+      { code: 'RSD403', title: 'Respiratory Disorders (أمراض الجهاز التنفسي)' },
+      { code: 'SKL 7', title: 'Clinical Skills 7 (المهارات الإكلينيكية)' }
+    ];
 
-    const moduleStats = {
-
-      'CAD402': { name: 'Cardiac Disorders (أمراض القلب)', icon: '🫀', credits: 5, mins: 0, count: 0, lastTopic: '', lastDur: 0, lastDate: '' },
-
-      'PED401': { name: 'Pediatric 1 (طب الأطفال 1)', icon: '👶', credits: 5, mins: 0, count: 0, lastTopic: '', lastDur: 0, lastDate: '' },
-
-      'HVD404': { name: 'Hematological Disorders (أمراض الدم والأوعية)', icon: '🩸', credits: 4, mins: 0, count: 0, lastTopic: '', lastDur: 0, lastDate: '' },
-
-      'RSD403': { name: 'Respiratory Disorders (أمراض الصدر)', icon: '🫁', credits: 3, mins: 0, count: 0, lastTopic: '', lastDur: 0, lastDate: '' },
-
-      'SKL 7':  { name: 'Clinical Skills 7 (المهارات الإكلينيكية)', icon: '🩺', credits: 1, mins: 0, count: 0, lastTopic: '', lastDur: 0, lastDate: '' }
-
-    };
+    const moduleStats = {};
+    activeCourses.forEach(c => {
+      const code = c.code.toUpperCase();
+      moduleStats[code] = {
+        name: c.title,
+        icon: getCourseIcon(c.title, c.code),
+        credits: 5,
+        mins: 0,
+        count: 0,
+        lastTopic: '',
+        lastDur: 0,
+        lastDate: ''
+      };
+    });
 
     let grandTotalMins = 0;
 
     (sessions || []).forEach(s => {
-
-      const code = (s.course_code || 'CAD402').trim().toUpperCase();
-
+      const code = (s.course_code || 'MOD').trim().toUpperCase();
       const dur = Number(s.duration_minutes || 0);
-
       grandTotalMins += dur;
 
-      if (moduleStats[code]) {
-
-        moduleStats[code].mins += dur;
-
-        moduleStats[code].count++;
-
-        if (!moduleStats[code].lastTopic || (s.date && s.date >= moduleStats[code].lastDate)) {
-
-          moduleStats[code].lastTopic = s.topic || 'مذاكرة';
-
-          moduleStats[code].lastDur = dur;
-
-          moduleStats[code].lastDate = s.date || '';
-
-        }
-
+      if (!moduleStats[code]) {
+        moduleStats[code] = {
+          name: s.topic || `موديول [${code}]`,
+          icon: getCourseIcon(s.topic || '', code),
+          credits: 5,
+          mins: 0,
+          count: 0,
+          lastTopic: '',
+          lastDur: 0,
+          lastDate: ''
+        };
       }
 
+      moduleStats[code].mins += dur;
+      moduleStats[code].count++;
+
+      if (!moduleStats[code].lastTopic || (s.date && s.date >= moduleStats[code].lastDate)) {
+        moduleStats[code].lastTopic = s.topic || 'مذاكرة';
+        moduleStats[code].lastDur = dur;
+        moduleStats[code].lastDate = s.date || '';
+      }
     });
 
     if (overallBadge) {

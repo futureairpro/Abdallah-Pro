@@ -332,14 +332,11 @@ export default async function handler(req, res) {
   <div class="tab-content" id="tab-medical">
     <div class="app-card">
       <div class="card-title">
-        <span>🩺 موديولات الفرقة الرابعة (450 درجة)</span>
+        <span id="academicYearTitle">🩺 الموديولات الأكاديمية النشطة</span>
         <span class="icon">🏥</span>
       </div>
-      <div class="list-stack">
-        <div class="list-item"><div class="item-left"><span>🫀</span><div><div class="item-title">CAD402 - أمراض القلب والأوعية</div><div class="item-sub">Cardiovascular Medicine</div></div></div><span class="badge-pill">نشط</span></div>
-        <div class="list-item"><div class="item-left"><span>👶</span><div><div class="item-title">PED401 - طب الأطفال وحديثي الولادة</div><div class="item-sub">Pediatrics & Neonatology</div></div></div><span class="badge-pill">نشط</span></div>
-        <div class="list-item"><div class="item-left"><span>🫁</span><div><div class="item-title">RSD403 - الجهاز التنفسي والصدري</div><div class="item-sub">Respiratory Medicine</div></div></div><span class="badge-pill">قريباً</span></div>
-        <div class="list-item"><div class="item-left"><span>🩸</span><div><div class="item-title">HVD404 - أمراض الدم والأورام</div><div class="item-sub">Hematology & Oncology</div></div></div><span class="badge-pill">قريباً</span></div>
+      <div class="list-stack" id="academicModulesList">
+        <p style="font-size: 0.8rem; color: #94a3b8; text-align: center;">جاري تحميل الموديولات...</p>
       </div>
     </div>
 
@@ -538,8 +535,42 @@ export default async function handler(req, res) {
           document.getElementById('userAcademic').textContent = 'المؤسس والمدير • منظومة رحلة عبدالله 👑';
           document.getElementById('badgeText').textContent = 'المدير 👑';
         } else {
-          document.getElementById('userAcademic').textContent = 'الفرقة الرابعة • كلية الطب البشري 🩺';
-          document.getElementById('badgeText').textContent = 'طالب نشط';
+          document.getElementById('userAcademic').textContent = `${data.user?.academic_year || 'الفرقة الرابعة'} (${data.user?.semester || 'الترم الأول'}) • كلية الطب البشري 🩺`;
+          document.getElementById('badgeText').textContent = data.user?.subscription_status === 'trial' ? 'فترة تجريبية' : 'طالب نشط';
+        }
+
+        // Tab visibility based on preferences
+        if (data.user?.preferences) {
+          const p = data.user.preferences;
+          const setBtn = (tab, show) => {
+            const b = document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`);
+            if (b) b.style.display = show ? 'flex' : 'none';
+          };
+          setBtn('english', p.english !== false);
+          setBtn('quran', p.islamic !== false);
+          setBtn('fasting', p.islamic !== false);
+          setBtn('wellness', p.wellness !== false);
+          setBtn('gym', p.gym === true);
+          setBtn('finance', p.finance !== false);
+        }
+
+        // Render Active Courses
+        const yrTitle = document.getElementById('academicYearTitle');
+        if (yrTitle) yrTitle.textContent = `🩺 موديولات ${data.user?.academic_year || 'الفرقة الرابعة'} (${data.user?.semester || 'الترم الأول'})`;
+        const modStack = document.getElementById('academicModulesList');
+        if (modStack && data.user?.active_courses?.length > 0) {
+          modStack.innerHTML = data.user.active_courses.map(c => `
+            <div class="list-item">
+              <div class="item-left">
+                <span>🩺</span>
+                <div>
+                  <div class="item-title">[${c.code}] ${c.title}</div>
+                  <div class="item-sub">${data.user?.academic_year || 'موديول أكاديمي'}</div>
+                </div>
+              </div>
+              <span class="badge-pill">نشط</span>
+            </div>
+          `).join('');
         }
 
         // 2. Prayers (12h)
