@@ -774,21 +774,27 @@ function getUID() {
 
 function cleanUserTag(str) {
   if (!str || typeof str !== 'string') return str;
-  return str.replace(/^\[usr:\d+\]\s*/, '').trim();
+  return str.replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim();
 }
 
 function userMatchesRow(row, uid) {
   if (!row) return false;
-  const tag = `[usr:${uid}]`;
+  const numUid = Number(uid || 1191760477);
+  const tag = `usr:${numUid}`;
+  
+  if (row.telegram_id && Number(row.telegram_id) === numUid) return true;
+
   const textFields = [
     row.description, row.content, row.topic, row.surah_name,
     row.workout_type, row.title, row.session_title, row.term_or_sentence,
-    row.question, row.notes, row.book_title, row.project_name, row.case_title
+    row.question, row.notes, row.book_title, row.project_name, row.case_title,
+    row.venting_content, row.muscle_groups, row.category, row.ai_therapeutic_feedback,
+    row.daily_reflection, row.session_type
   ];
-  const hasThisUserTag = textFields.some(t => typeof t === 'string' && t.startsWith(tag));
+  const hasThisUserTag = textFields.some(t => typeof t === 'string' && t.includes(tag));
   
-  if (uid === 1191760477) {
-    const hasAnyUserTag = textFields.some(t => typeof t === 'string' && t.startsWith('[usr:'));
+  if (numUid === 1191760477) {
+    const hasAnyUserTag = textFields.some(t => typeof t === 'string' && t.includes('usr:'));
     return hasThisUserTag || !hasAnyUserTag;
   }
   return hasThisUserTag;
@@ -797,7 +803,12 @@ function userMatchesRow(row, uid) {
 function cleanRowUserTags(r) {
   if (!r) return r;
   const clean = { ...r };
-  ['description', 'content', 'topic', 'surah_name', 'workout_type', 'title', 'session_title', 'term_or_sentence', 'question', 'notes', 'book_title', 'project_name', 'case_title'].forEach(k => {
+  [
+    'description', 'content', 'topic', 'surah_name', 'workout_type',
+    'title', 'session_title', 'term_or_sentence', 'question', 'notes',
+    'book_title', 'project_name', 'case_title', 'venting_content',
+    'muscle_groups', 'category', 'ai_therapeutic_feedback', 'daily_reflection', 'session_type'
+  ].forEach(k => {
     if (typeof clean[k] === 'string') clean[k] = cleanUserTag(clean[k]);
   });
   return clean;
@@ -827,6 +838,14 @@ function userQuery(tableName) {
     limit(cnt) {
       this._limitCount = cnt;
       return this;
+    },
+    async maybeSingle() {
+      const res = await this;
+      return { data: (res.data && res.data.length > 0) ? res.data[0] : null };
+    },
+    async single() {
+      const res = await this;
+      return { data: (res.data && res.data.length > 0) ? res.data[0] : null };
     },
     async then(resolve, reject) {
       try {

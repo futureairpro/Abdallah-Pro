@@ -57,9 +57,14 @@ export default async function handler(req, res) {
 
     // 1. Process Study
     const studyRows = studyRes.data || [];
-    const userStudy = studyRows.filter(s => !s.topic?.includes('usr:') ? numId === ADMIN_CHAT_ID : s.topic.includes(`usr:${numId}`)).map(s => ({
+    const userStudy = studyRows.filter(s => {
+      const hasTag = (s.topic?.includes(`usr:${numId}`) || s.notes?.includes(`usr:${numId}`));
+      const hasAnyTag = (s.topic?.includes('usr:') || s.notes?.includes('usr:'));
+      return numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+    }).map(s => ({
       ...s,
-      topic: (s.topic || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
+      topic: (s.topic || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim(),
+      notes: (s.notes || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
     }));
 
     let totalStudyMins = 0;
@@ -84,7 +89,11 @@ export default async function handler(req, res) {
 
     // 2. Process Tasks
     const taskRows = taskRes.data || [];
-    const userTasks = taskRows.filter(t => !t.category?.includes('usr:') ? numId === ADMIN_CHAT_ID : t.category.includes(`usr:${numId}`)).map(t => ({
+    const userTasks = taskRows.filter(t => {
+      const hasTag = (t.category?.includes(`usr:${numId}`) || t.title?.includes(`usr:${numId}`));
+      const hasAnyTag = (t.category?.includes('usr:') || t.title?.includes('usr:'));
+      return numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+    }).map(t => ({
       ...t,
       title: (t.title || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim(),
       category: (t.category || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
@@ -92,7 +101,11 @@ export default async function handler(req, res) {
 
     // 3. Process Finance
     const finRows = finRes.data || [];
-    const userFinance = finRows.filter(f => !f.description?.includes('usr:') ? numId === ADMIN_CHAT_ID : f.description.includes(`usr:${numId}`)).map(f => ({
+    const userFinance = finRows.filter(f => {
+      const hasTag = (f.description?.includes(`usr:${numId}`) || f.category?.includes(`usr:${numId}`));
+      const hasAnyTag = (f.description?.includes('usr:') || f.category?.includes('usr:'));
+      return numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+    }).map(f => ({
       ...f,
       description: (f.description || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim(),
       category: (f.category || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
@@ -107,15 +120,24 @@ export default async function handler(req, res) {
 
     // 4. Process Quran & Worship
     const quranRows = quranRes.data || [];
-    const userQuran = quranRows.filter(q => !q.session_type?.includes('usr:') ? numId === ADMIN_CHAT_ID : q.session_type.includes(`usr:${numId}`)).map(q => ({
+    const userQuran = quranRows.filter(q => {
+      const hasTag = (q.session_type?.includes(`usr:${numId}`) || q.notes?.includes(`usr:${numId}`) || q.surah_name?.includes(`usr:${numId}`));
+      const hasAnyTag = (q.session_type?.includes('usr:') || q.notes?.includes('usr:') || q.surah_name?.includes('usr:'));
+      return numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+    }).map(q => ({
       ...q,
-      session_type: (q.session_type || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
+      session_type: (q.session_type || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim(),
+      notes: (q.notes || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
     }));
     const fwRow = fwRes.data;
 
     // 5. Process Appointments (12h format)
     const apptRows = apptRes.data || [];
-    const userAppts = apptRows.filter(a => !a.notes?.includes('usr:') ? numId === ADMIN_CHAT_ID : a.notes.includes(`usr:${numId}`)).map(a => {
+    const userAppts = apptRows.filter(a => {
+      const hasTag = (a.notes?.includes(`usr:${numId}`) || a.title?.includes(`usr:${numId}`));
+      const hasAnyTag = (a.notes?.includes('usr:') || a.title?.includes('usr:'));
+      return numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+    }).map(a => {
       const dt = new Date(a.due_datetime);
       const time12 = !isNaN(dt.getTime())
         ? dt.toLocaleTimeString('ar-EG', { timeZone: 'Africa/Cairo', hour: '2-digit', minute: '2-digit', hour12: true })
@@ -142,21 +164,35 @@ export default async function handler(req, res) {
 
     // 7. Gym Logs
     const gymRows = gymRes.data || [];
-    const userGym = gymRows.filter(g => !g.muscle_groups?.includes('usr:') ? numId === ADMIN_CHAT_ID : g.muscle_groups.includes(`usr:${numId}`)).map(g => ({
+    const userGym = gymRows.filter(g => {
+      const hasTag = (g.muscle_groups?.includes(`usr:${numId}`) || g.workout_type?.includes(`usr:${numId}`));
+      const hasAnyTag = (g.muscle_groups?.includes('usr:') || g.workout_type?.includes('usr:'));
+      return numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+    }).map(g => ({
       ...g,
+      workout_type: (g.workout_type || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim(),
       muscle_groups: (g.muscle_groups || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
     }));
 
     // 8. Wellness Logs
     const wellRows = wellRes.data || [];
-    const userWellness = wellRows.filter(w => !w.ai_therapeutic_feedback?.includes('usr:') ? numId === ADMIN_CHAT_ID : w.ai_therapeutic_feedback.includes(`usr:${numId}`)).map(w => ({
+    const userWellness = wellRows.filter(w => {
+      const hasTag = (w.venting_content?.includes(`usr:${numId}`) || w.ai_therapeutic_feedback?.includes(`usr:${numId}`));
+      const hasAnyTag = (w.venting_content?.includes('usr:') || w.ai_therapeutic_feedback?.includes('usr:'));
+      return numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+    }).map(w => ({
       ...w,
+      venting_content: (w.venting_content || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim(),
       ai_therapeutic_feedback: (w.ai_therapeutic_feedback || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
     }));
 
     // 9. Thoughts
     const thoughtRows = thoughtRes.data || [];
-    const userThoughts = thoughtRows.filter(th => !th.content?.includes('usr:') ? numId === ADMIN_CHAT_ID : th.content.includes(`usr:${numId}`)).map(th => ({
+    const userThoughts = thoughtRows.filter(th => {
+      const hasTag = (th.content?.includes(`usr:${numId}`) || th.category?.includes(`usr:${numId}`));
+      const hasAnyTag = (th.content?.includes('usr:') || th.category?.includes('usr:'));
+      return numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+    }).map(th => ({
       ...th,
       content: (th.content || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
     }));
