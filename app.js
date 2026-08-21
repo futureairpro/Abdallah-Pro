@@ -166,120 +166,165 @@ function getCourseIcon(title = '', code = '') {
 
 // Cairo Prayer Times Engine
 
+// Cairo Live & Accurate Prayer Times Engine
+const CLIENT_PRAYER_CACHE = new Map();
+
+async function initLiveCairoPrayers(date = new Date()) {
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const y = date.getFullYear();
+  const dateStr = `${d}-${m}-${y}`;
+  const dateKey = `${y}-${m}-${d}`;
+
+  try {
+    const cached = localStorage.getItem(`cairo_prayers_${dateKey}`);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      CLIENT_PRAYER_CACHE.set(dateKey, parsed);
+      return parsed;
+    }
+
+    const res = await fetch(`https://api.aladhan.com/v1/timingsByCity/${dateStr}?city=Cairo&country=Egypt&method=5`);
+    if (res.ok) {
+      const data = await res.json();
+      const t = data.data?.timings;
+      if (t) {
+        const cleanTime = (val) => val.split(' ')[0].trim();
+        const times = {
+          fajr: cleanTime(t.Fajr),
+          sunrise: cleanTime(t.Sunrise),
+          dhuhr: cleanTime(t.Dhuhr),
+          asr: cleanTime(t.Asr),
+          maghrib: cleanTime(t.Maghrib),
+          isha: cleanTime(t.Isha)
+        };
+
+        const format12H = tStr => {
+          if (!tStr) return '';
+          const [hStr, mStr] = tStr.split(':');
+          let h = parseInt(hStr, 10);
+          const sfx = h >= 12 ? 'م' : 'ص';
+          h = h % 12;
+          if (h === 0) h = 12;
+          return `${String(h).padStart(2, '0')}:${mStr} ${sfx}`;
+        };
+
+        const prayerObj = {
+          fajr: times.fajr,
+          sunrise: times.sunrise,
+          dhuhr: times.dhuhr,
+          asr: times.asr,
+          maghrib: times.maghrib,
+          isha: times.isha,
+          formatted: {
+            fajr: format12H(times.fajr),
+            sunrise: format12H(times.sunrise),
+            dhuhr: format12H(times.dhuhr),
+            asr: format12H(times.asr),
+            maghrib: format12H(times.maghrib),
+            isha: format12H(times.isha)
+          }
+        };
+
+        CLIENT_PRAYER_CACHE.set(dateKey, prayerObj);
+        localStorage.setItem(`cairo_prayers_${dateKey}`, JSON.stringify(prayerObj));
+        return prayerObj;
+      }
+    }
+  } catch (_) {}
+  return null;
+}
+
+try {
+  initLiveCairoPrayers().catch(() => {});
+} catch (_) {}
+
 function getCairoPrayerTimes(date = new Date()) {
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const y = date.getFullYear();
+  const dateKey = `${y}-${m}-${d}`;
+
+  if (CLIENT_PRAYER_CACHE.has(dateKey)) {
+    return CLIENT_PRAYER_CACHE.get(dateKey);
+  }
+
+  const cachedStorage = typeof localStorage !== 'undefined' ? localStorage.getItem(`cairo_prayers_${dateKey}`) : null;
+  if (cachedStorage) {
+    try {
+      const parsed = JSON.parse(cachedStorage);
+      CLIENT_PRAYER_CACHE.set(dateKey, parsed);
+      return parsed;
+    } catch (_) {}
+  }
 
   const CAIRO_LAT = 30.0444;
-
   const CAIRO_LNG = 31.2357;
-
   const degToRad = d => (d * Math.PI) / 180.0;
-
   const radToDeg = r => (r * 180.0) / Math.PI;
 
   const startOfYear = new Date(date.getFullYear(), 0, 0);
-
   const diff = (date - startOfYear) + ((startOfYear.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000);
-
   const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
 
   const b = (2 * Math.PI * (dayOfYear - 81)) / 365;
-
   const eot = 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
-
   const declination = 23.45 * Math.sin(degToRad((360 / 365) * (dayOfYear - 81)));
 
   let timezoneOffset = 3;
-
   const solarNoon = 12 + timezoneOffset - (CAIRO_LNG / 15) - (eot / 60);
 
   function getHourAngle(angle, isAboveHorizon = false) {
-
     const latRad = degToRad(CAIRO_LAT);
-
     const decRad = degToRad(declination);
-
     const targetAngleRad = degToRad(angle);
 
     const cosH = isAboveHorizon
-
       ? (Math.sin(targetAngleRad) - Math.sin(latRad) * Math.sin(decRad)) / (Math.cos(latRad) * Math.cos(decRad))
-
       : (-Math.sin(targetAngleRad) - Math.sin(latRad) * Math.sin(decRad)) / (Math.cos(latRad) * Math.cos(decRad));
 
     if (cosH > 1 || cosH < -1) return null;
-
     return radToDeg(Math.acos(cosH)) / 15.0;
-
   }
 
   const fajrHA = getHourAngle(19.5, false) || 1.6;
-
   const sunriseHA = getHourAngle(0.833, false) || 1.4;
-
   const asrAltitude = radToDeg(Math.atan(1 / (1 + Math.tan(Math.abs(degToRad(CAIRO_LAT) - degToRad(declination))))));
-
   const asrHA = getHourAngle(asrAltitude, true) || 1.1;
-
   const maghribHA = sunriseHA;
-
   const ishaHA = getHourAngle(17.5, false) || 1.5;
 
   const toTimeStr = hDec => {
-
     const totalM = Math.round(hDec * 60);
-
     const h = Math.floor(totalM / 60) % 24;
-
-    const m = totalM % 60;
-
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-
+    const mn = totalM % 60;
+    return `${String(h).padStart(2, '0')}:${String(mn).padStart(2, '0')}`;
   };
 
   const format12H = tStr => {
-
     if (!tStr) return '';
-
     const [hStr, mStr] = tStr.split(':');
-
     let h = parseInt(hStr, 10);
-
     const sfx = h >= 12 ? 'م' : 'ص';
-
     h = h % 12;
-
     if (h === 0) h = 12;
-
     return `${String(h).padStart(2, '0')}:${mStr} ${sfx}`;
-
   };
 
   const tFajr = toTimeStr(solarNoon - fajrHA);
-
   const tSunrise = toTimeStr(solarNoon - sunriseHA);
-
   const tDhuhr = toTimeStr(solarNoon + (1 / 60));
-
   const tAsr = toTimeStr(solarNoon + asrHA);
-
-  const tMaghrib = toTimeStr(solarNoon + maghribHA + (2 / 60));
-
+  const tMaghrib = toTimeStr(solarNoon + maghribHA); // Exact sunset
   const tIsha = toTimeStr(solarNoon + ishaHA);
 
   return {
-
     fajr: tFajr, sunrise: tSunrise, dhuhr: tDhuhr, asr: tAsr, maghrib: tMaghrib, isha: tIsha,
-
     formatted: {
-
       fajr: format12H(tFajr), sunrise: format12H(tSunrise), dhuhr: format12H(tDhuhr),
-
       asr: format12H(tAsr), maghrib: format12H(tMaghrib), isha: format12H(tIsha)
-
     }
-
   };
-
 }
 
 function formatEgp(num) {
