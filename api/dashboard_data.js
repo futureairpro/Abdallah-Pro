@@ -212,7 +212,9 @@ export default async function handler(req, res) {
         if (cid && cid !== 999999 && cid !== 888888 && cid !== 777777) {
           const p = r.data?.profile || {};
           const subEnd = p.subscription_ends_at ? new Date(p.subscription_ends_at).getTime() : 0;
-          const trialEnd = p.trial_ends_at ? new Date(p.trial_ends_at).getTime() : (nowMs + 3 * 24 * 3600 * 1000);
+          const trialEnd = p.trial_ends_at
+            ? new Date(p.trial_ends_at).getTime()
+            : (p.created_at ? new Date(p.created_at).getTime() + 3 * 24 * 3600 * 1000 : 0);
 
           let status = p.subscription_status || 'trial';
           let daysRem = 0;
