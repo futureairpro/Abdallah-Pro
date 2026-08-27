@@ -301,19 +301,22 @@
                 </div>
               </div>
               
-              <!-- Filter Tabs: [كل الأيام] [اليوم] [الأمس] [قبل أمس] [عرض بالكامل] -->
-              <div class="time-filter-controls" style="margin: 0;">
+              <!-- Filter Tabs: [كل الأيام] [اليوم] [الأمس] [قبل أمس] [📅 اختيار تاريخ] [عرض بالكامل] -->
+              <div class="time-filter-controls" style="margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                 <span style="font-size: 0.82rem; color: var(--text-secondary); margin-left: 4px;">تاريخ النشاط:</span>
                 <button type="button" class="time-filter-btn active" id="btnActAll" onclick="filterHomeActivities('all')">🌐 كل الأيام</button>
                 <button type="button" class="time-filter-btn" id="btnActToday" onclick="filterHomeActivities('today')">اليوم</button>
                 <button type="button" class="time-filter-btn" id="btnActYesterday" onclick="filterHomeActivities('yesterday')">الأمس</button>
                 <button type="button" class="time-filter-btn" id="btnActBeforeYesterday" onclick="filterHomeActivities('before_yesterday')">قبل أمس</button>
-                <button type="button" class="time-filter-btn" id="btnActFull" onclick="filterHomeActivities('all')">📜 عرض بالكامل</button>
+                <div class="custom-date-picker-wrap" style="display: inline-flex; align-items: center;">
+                  <input type="date" id="actCustomDatePicker" class="custom-date-input" onchange="filterHomeActivities('custom', this.value)" title="اختر تاريخاً محدداً" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 8px; padding: 4px 8px; font-size: 0.8rem; outline: none; cursor: pointer;">
+                </div>
+                <button type="button" class="time-filter-btn" id="btnActFull" onclick="openFullActivityModal()" style="background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); color: #10b981; font-weight: 700;">📜 عرض بالكامل</button>
               </div>
             </div>
 
             <!-- Table Container -->
-            <div class="transactions-table-container">
+            <div class="transactions-table-container" style="max-height: 460px; overflow-y: auto;">
               <table class="data-table">
                 <thead>
                   <tr>
@@ -327,6 +330,9 @@
                   <tr><td colspan="4" class="text-center">جاري تحميل سجل النشاطات الحية...</td></tr>
                 </tbody>
               </table>
+              <div id="homeActivityLoadMoreWrap" style="text-align: center; padding: 12px 0; display: none;">
+                <button type="button" class="time-filter-btn" id="btnHomeActivityLoadMore" onclick="showMoreHomeActivities()" style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35); color: #34d399; font-weight: 700; padding: 6px 18px; border-radius: 8px; cursor: pointer;">⬇️ عرض المزيد من النشاطات</button>
+              </div>
             </div>
           </div>
 
@@ -431,7 +437,7 @@
 
           <!-- 📚 PROMINENT LIVE STUDY SESSIONS LEDGER (سجل جلسات المذاكرة المباشر) -->
           <div class="split-card full-width-card" style="margin-bottom: 24px;">
-            <div class="card-header">
+            <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-size: 1.4rem;">📚</span>
                 <div>
@@ -439,9 +445,17 @@
                   <p style="margin: 2px 0 0; color: var(--text-secondary); font-size: 0.8rem;">كل جلسة تسجلها عبر الفويس أو البوت تظهر هنا فوراً بالتفصيل والمدة</p>
                 </div>
               </div>
-              <span class="card-badge" id="sessionsCount">0 جلسات</span>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <div class="time-filter-controls" style="margin: 0;">
+                  <button type="button" class="time-filter-btn active" id="btnStudyAll" onclick="filterStudySessions('all')">كل الأيام</button>
+                  <button type="button" class="time-filter-btn" id="btnStudyToday" onclick="filterStudySessions('today')">اليوم</button>
+                  <button type="button" class="time-filter-btn" id="btnStudyYesterday" onclick="filterStudySessions('yesterday')">الأمس</button>
+                  <input type="date" id="studyCustomDatePicker" class="custom-date-input" onchange="filterStudySessions('custom', this.value)" title="اختر تاريخاً محدداً" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 8px; padding: 4px 8px; font-size: 0.78rem; outline: none; cursor: pointer;">
+                </div>
+                <span class="card-badge" id="sessionsCount">0 جلسات</span>
+              </div>
             </div>
-            <div class="sessions-list" id="studySessionsList">
+            <div class="sessions-list" id="studySessionsList" style="max-height: 440px; overflow-y: auto;">
               <div class="empty-state">لا توجد جلسات مذاكرة مسجلة اليوم. أرسل فويس للبوت لتسجيل أول جلسة!</div>
             </div>
           </div>
@@ -526,11 +540,25 @@
           </div>
 
           <div class="split-card full-width-card" style="margin-bottom: 24px;">
-            <div class="card-header">
-              <h3>🕌 سجل جلسات التلاوة وتثبيت الحفظ المباشر</h3>
-              <span class="card-badge" id="quranTotalSessionsBadge">0 جلسات</span>
+            <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.4rem;">🕌</span>
+                <div>
+                  <h3 style="margin: 0; font-size: 1.12rem;">سجل جلسات التلاوة وتثبيت الحفظ المباشر</h3>
+                  <p style="margin: 2px 0 0; color: var(--text-secondary); font-size: 0.8rem;">توثيق الأوراد، صفحات التلاوة، وتقييم جودة الإتقان</p>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <div class="time-filter-controls" style="margin: 0;">
+                  <button type="button" class="time-filter-btn active" id="btnQuranAll" onclick="filterQuranSessions('all')">كل الأيام</button>
+                  <button type="button" class="time-filter-btn" id="btnQuranToday" onclick="filterQuranSessions('today')">اليوم</button>
+                  <button type="button" class="time-filter-btn" id="btnQuranYesterday" onclick="filterQuranSessions('yesterday')">الأمس</button>
+                  <input type="date" id="quranCustomDatePicker" class="custom-date-input" onchange="filterQuranSessions('custom', this.value)" title="اختر تاريخاً محدداً" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 8px; padding: 4px 8px; font-size: 0.78rem; outline: none; cursor: pointer;">
+                </div>
+                <span class="card-badge" id="quranTotalSessionsBadge">0 جلسات</span>
+              </div>
             </div>
-            <div class="quran-list" id="quranLogsList">
+            <div class="quran-list" id="quranLogsList" style="max-height: 440px; overflow-y: auto;">
               <div class="empty-state">لم يتم تسجيل ورد قرآني بعد. أرسل فويس بالورد اليومي لتوثيقه فوراً!</div>
             </div>
           </div>
@@ -657,11 +685,19 @@
 
           <div class="content-split-grid">
             <div class="split-card">
-              <div class="card-header">
+              <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                 <h3>📋 المهام اليومية وأهداف التركيز</h3>
-                <span class="card-badge" id="tasksBadge">0 مهام</span>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <div class="time-filter-controls" style="margin: 0;">
+                    <button type="button" class="time-filter-btn active" id="btnTasksAll" onclick="filterTasksList('all')">الكل</button>
+                    <button type="button" class="time-filter-btn" id="btnTasksToday" onclick="filterTasksList('today')">اليوم</button>
+                    <button type="button" class="time-filter-btn" id="btnTasksYesterday" onclick="filterTasksList('yesterday')">الأمس</button>
+                    <input type="date" id="tasksCustomDatePicker" class="custom-date-input" onchange="filterTasksList('custom', this.value)" title="اختر تاريخاً محدداً" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 8px; padding: 3px 6px; font-size: 0.76rem; outline: none; cursor: pointer;">
+                  </div>
+                  <span class="card-badge" id="tasksBadge">0 مهام</span>
+                </div>
               </div>
-              <div class="tasks-list" id="tasksList">
+              <div class="tasks-list" id="tasksList" style="max-height: 420px; overflow-y: auto;">
                 <div class="empty-state">لا توجد مهام مسجلة اليوم.</div>
               </div>
             </div>
@@ -671,7 +707,7 @@
                 <h3>⏰ المواعيد والتنبيهات المجدولة</h3>
                 <span class="card-badge" id="apptsBadge">0 مواعيد</span>
               </div>
-              <div class="appointments-list" id="appointmentsList">
+              <div class="appointments-list" id="appointmentsList" style="max-height: 420px; overflow-y: auto;">
                 <div class="empty-state">لا توجد مواعيد مجدولة.</div>
               </div>
             </div>
@@ -714,8 +750,14 @@
           </div>
 
           <div class="split-card full-width-card" style="margin-top: 20px;">
-            <div class="card-header">
+            <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
               <h3>📑 سجل الحركات والمصروفات الأخيرة</h3>
+              <div class="time-filter-controls" style="margin: 0;">
+                <button type="button" class="time-filter-btn active" id="btnFinanceAll" onclick="filterFinanceList('all')">كل الأيام</button>
+                <button type="button" class="time-filter-btn" id="btnFinanceToday" onclick="filterFinanceList('today')">اليوم</button>
+                <button type="button" class="time-filter-btn" id="btnFinanceYesterday" onclick="filterFinanceList('yesterday')">الأمس</button>
+                <input type="date" id="financeCustomDatePicker" class="custom-date-input" onchange="filterFinanceList('custom', this.value)" title="اختر تاريخاً محدداً" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 8px; padding: 3px 6px; font-size: 0.78rem; outline: none; cursor: pointer;">
+              </div>
             </div>
             <div class="transactions-table-container">
               <table class="data-table">
@@ -1142,6 +1184,64 @@
       <div class="wallet-modal-footer">
         <button type="button" class="btn-wallet-cancel" onclick="closeWalletModal()">إلغاء</button>
         <button type="button" class="btn-wallet-save" id="btnSaveWalletBalance" onclick="saveWalletBalanceFromModal()">✅ حفظ وتحديث الرصيد</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📜 Modal: السجل الشامل للنشاطات والعمليات (Full Activity Ledger View) -->
+  <div id="fullActivityModalOverlay" class="wallet-modal-overlay" style="display: none; z-index: 100000;" onclick="closeFullActivityModal(event)">
+    <div class="wallet-modal-content" style="max-width: 950px; width: 96%; max-height: 90vh; display: flex; flex-direction: column;" onclick="event.stopPropagation()">
+      <div class="wallet-modal-header" style="flex-shrink: 0;">
+        <div class="wallet-modal-title">
+          <span>📜</span>
+          <span>السجل الشامل للنشاطات والعمليات الموثقة</span>
+        </div>
+        <button type="button" class="wallet-modal-close" onclick="closeFullActivityModal()">&times;</button>
+      </div>
+      
+      <!-- Controls inside Modal: Search & Filters -->
+      <div style="padding: 14px 18px 8px; flex-shrink: 0; background: var(--bg-card-inner); border-bottom: 1px solid var(--border-card);">
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+          <input type="text" id="modalActivitySearch" placeholder="🔍 ابحث في النشاطات، الموديولات، السور، المصاريف..." oninput="filterFullActivityModal()" style="flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 8px; padding: 8px 14px; font-size: 0.88rem; outline: none;">
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center;">
+          <div class="time-filter-controls" style="margin: 0; display: flex; flex-wrap: wrap; gap: 4px;">
+            <button type="button" class="time-filter-btn active" id="btnModalCatAll" onclick="setModalCategoryFilter('all')">الكل</button>
+            <button type="button" class="time-filter-btn" id="btnModalCatMedical" onclick="setModalCategoryFilter('medical')">🩺 طب ومذاكرة</button>
+            <button type="button" class="time-filter-btn" id="btnModalCatQuran" onclick="setModalCategoryFilter('quran')">📖 قرآن</button>
+            <button type="button" class="time-filter-btn" id="btnModalCatTasks" onclick="setModalCategoryFilter('tasks')">🎯 مهام</button>
+            <button type="button" class="time-filter-btn" id="btnModalCatFinance" onclick="setModalCategoryFilter('finance')">💵 مالية</button>
+            <button type="button" class="time-filter-btn" id="btnModalCatAppts" onclick="setModalCategoryFilter('appts')">⏰ مواعيد</button>
+          </div>
+          <div class="time-filter-controls" style="margin: 0; display: flex; align-items: center; gap: 6px;">
+            <button type="button" class="time-filter-btn active" id="btnModalDateAll" onclick="setModalDateFilter('all')">كل الأيام</button>
+            <button type="button" class="time-filter-btn" id="btnModalDateToday" onclick="setModalDateFilter('today')">اليوم</button>
+            <button type="button" class="time-filter-btn" id="btnModalDateYesterday" onclick="setModalDateFilter('yesterday')">الأمس</button>
+            <input type="date" id="modalCustomDatePicker" class="custom-date-input" onchange="setModalDateFilter('custom', this.value)" title="اختر تاريخاً محدداً" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 8px; padding: 3px 6px; font-size: 0.76rem; outline: none; cursor: pointer;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Table Body (Scrollable) -->
+      <div style="flex: 1; overflow-y: auto; padding: 0 16px 16px;" class="scrollable-list">
+        <table class="data-table" style="margin-top: 10px;">
+          <thead>
+            <tr>
+              <th style="width: 20%;">التاريخ والوقت</th>
+              <th style="width: 18%;">القيمة / الإنجاز</th>
+              <th style="width: 42%;">البيان والتفاصيل</th>
+              <th style="width: 20%;">القسم / الحالة</th>
+            </tr>
+          </thead>
+          <tbody id="modalActivityTableBody">
+            <tr><td colspan="4" class="text-center">جاري تحميل السجل الشامل...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="wallet-modal-footer" style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.84rem; color: var(--text-secondary);" id="modalActivityCountBadge">عرض 0 نشاط</span>
+        <button type="button" class="btn-wallet-cancel" onclick="closeFullActivityModal()">إغلاق ✖</button>
       </div>
     </div>
   </div>

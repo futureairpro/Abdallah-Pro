@@ -64,6 +64,15 @@ html, body {
 .transactions-table-container,
 .scrollable-list,
 .scrollable-card-body,
+.sessions-list,
+.quran-list,
+.tasks-list,
+.appointments-list,
+.cases-list,
+.attendance-list,
+.skills-grid,
+.work-projects-grid,
+.thoughts-grid,
 .courses-grid,
 .prayers-grid {
   overflow-x: auto !important;
@@ -71,11 +80,20 @@ html, body {
   max-height: 480px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: rgba(16, 185, 129, 0.35) rgba(255, 255, 255, 0.02);
+  scrollbar-color: rgba(16, 185, 129, 0.45) rgba(255, 255, 255, 0.04);
 }
 
 .transactions-table-container::-webkit-scrollbar,
 .scrollable-list::-webkit-scrollbar,
+.sessions-list::-webkit-scrollbar,
+.quran-list::-webkit-scrollbar,
+.tasks-list::-webkit-scrollbar,
+.appointments-list::-webkit-scrollbar,
+.cases-list::-webkit-scrollbar,
+.attendance-list::-webkit-scrollbar,
+.skills-grid::-webkit-scrollbar,
+.work-projects-grid::-webkit-scrollbar,
+.thoughts-grid::-webkit-scrollbar,
 .courses-grid::-webkit-scrollbar,
 .prayers-grid::-webkit-scrollbar {
   width: 6px;
@@ -83,15 +101,33 @@ html, body {
 }
 .transactions-table-container::-webkit-scrollbar-track,
 .scrollable-list::-webkit-scrollbar-track,
+.sessions-list::-webkit-scrollbar-track,
+.quran-list::-webkit-scrollbar-track,
+.tasks-list::-webkit-scrollbar-track,
+.appointments-list::-webkit-scrollbar-track,
+.cases-list::-webkit-scrollbar-track,
+.attendance-list::-webkit-scrollbar-track,
+.skills-grid::-webkit-scrollbar-track,
+.work-projects-grid::-webkit-scrollbar-track,
+.thoughts-grid::-webkit-scrollbar-track,
 .courses-grid::-webkit-scrollbar-track,
 .prayers-grid::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.03);
 }
 .transactions-table-container::-webkit-scrollbar-thumb,
 .scrollable-list::-webkit-scrollbar-thumb,
+.sessions-list::-webkit-scrollbar-thumb,
+.quran-list::-webkit-scrollbar-thumb,
+.tasks-list::-webkit-scrollbar-thumb,
+.appointments-list::-webkit-scrollbar-thumb,
+.cases-list::-webkit-scrollbar-thumb,
+.attendance-list::-webkit-scrollbar-thumb,
+.skills-grid::-webkit-scrollbar-thumb,
+.work-projects-grid::-webkit-scrollbar-thumb,
+.thoughts-grid::-webkit-scrollbar-thumb,
 .courses-grid::-webkit-scrollbar-thumb,
 .prayers-grid::-webkit-scrollbar-thumb {
-  background: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.5);
   border-radius: 6px;
 }
 
@@ -2668,4 +2704,33 @@ body.force-desktop-mode .content-split-grid {
 .footer-copyright {
   font-size: 0.78rem;
   color: var(--text-muted);
+}
+
+/* 📅 Date Picker Dark Styling */
+.custom-date-input {
+  color-scheme: dark;
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  color: #f8fafc !important;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.custom-date-input:focus,
+.custom-date-input:hover {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
+}
+
+.custom-date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.8) sepia(100%) saturate(300%) hue-rotate(110deg);
+  opacity: 0.85;
+}
+
+.custom-date-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }

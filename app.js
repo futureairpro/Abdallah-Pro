@@ -715,43 +715,48 @@ window.setTimePeriodFilter = function(period) {
 };
 
 // 🔔 Unified Activity Feed State & Filter Engine (Matching Image 5)
-
 window._cachedAllEvents = [];
-
 window._currentActivityFilter = 'all';
+window._activityCustomDate = null;
+window._activityPageSize = 12;
 
-window.filterHomeActivities = function(filterType) {
-
+window.filterHomeActivities = function(filterType, customDateVal = null) {
   window._currentActivityFilter = filterType;
+  if (filterType === 'custom' && customDateVal) {
+    window._activityCustomDate = customDateVal;
+  } else if (filterType !== 'custom') {
+    window._activityCustomDate = null;
+    const dateInput = document.getElementById('actCustomDatePicker');
+    if (dateInput) dateInput.value = '';
+  }
+
+  window._activityPageSize = 12;
 
   // Update UI Button active states
-
   const btnAll = document.getElementById('btnActAll');
-
   const btnToday = document.getElementById('btnActToday');
-
   const btnYesterday = document.getElementById('btnActYesterday');
-
   const btnBefore = document.getElementById('btnActBeforeYesterday');
-
   const btnFull = document.getElementById('btnActFull');
 
   if (btnAll) btnAll.classList.toggle('active', filterType === 'all');
-
   if (btnToday) btnToday.classList.toggle('active', filterType === 'today');
-
   if (btnYesterday) btnYesterday.classList.toggle('active', filterType === 'yesterday');
-
   if (btnBefore) btnBefore.classList.toggle('active', filterType === 'before_yesterday');
+  if (btnFull) btnFull.classList.remove('active');
 
-  if (btnFull) btnFull.classList.toggle('active', filterType === 'all');
-
-  renderHomeActivityTable(filterType);
-
+  renderHomeActivityTable(filterType, window._activityCustomDate);
 };
 
-function renderHomeActivityTable(filterType = window._currentActivityFilter || 'all') {
+window.showMoreHomeActivities = function() {
+  window._activityPageSize += 12;
+  renderHomeActivityTable(window._currentActivityFilter, window._activityCustomDate);
+};
+
+function renderHomeActivityTable(filterType = window._currentActivityFilter || 'all', customDateVal = window._activityCustomDate) {
   const tableBody = document.getElementById('homeActivityTableBody');
+  const loadMoreWrap = document.getElementById('homeActivityLoadMoreWrap');
+  const loadMoreBtn = document.getElementById('btnHomeActivityLoadMore');
   if (!tableBody) return;
 
   const todayStr = getCairoToday();
@@ -776,6 +781,7 @@ function renderHomeActivityTable(filterType = window._currentActivityFilter || '
     if (filterType === 'today') return evDate === todayStr;
     if (filterType === 'yesterday') return evDate === yesterdayStr;
     if (filterType === 'before_yesterday') return evDate === beforeYesterdayStr;
+    if (filterType === 'custom' && customDateVal) return evDate === customDateVal;
     return true; // 'all'
   });
 
@@ -784,13 +790,17 @@ function renderHomeActivityTable(filterType = window._currentActivityFilter || '
     if (filterType === 'today') emptyMsg = 'لا توجد نشاطات مسجلة اليوم حتى الآن. أرسل فويس للبوت لتوثيقها فوراً!';
     else if (filterType === 'yesterday') emptyMsg = 'لا توجد نشاطات مسجلة بالأمس.';
     else if (filterType === 'before_yesterday') emptyMsg = 'لا توجد نشاطات مسجلة قبل أمس.';
+    else if (filterType === 'custom') emptyMsg = `لا توجد نشاطات مسجلة في تاريخ ${customDateVal}.`;
 
-    tableBody.innerHTML = `<tr><td colspan="4" class="text-center" style="padding: 16px; color: var(--text-muted); font-size: 0.85rem;">` + emptyMsg + `</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="4" class="text-center" style="padding: 18px; color: var(--text-muted); font-size: 0.85rem;">${emptyMsg}</td></tr>`;
+    if (loadMoreWrap) loadMoreWrap.style.display = 'none';
     return;
   }
 
+  const visibleEvents = filtered.slice(0, window._activityPageSize || 12);
+
   let html = '';
-  filtered.forEach(ev => {
+  visibleEvents.forEach(ev => {
     const isNegative = ev.category === 'المالية والخزنة' && (ev.actionType === 'مصروف' || ev.actionType === 'expense');
     const valColor = isNegative ? '#f43f5e' : (ev.valColor || '#10b981');
     const badgeClass = isNegative ? 'badge-expense' : 'badge-income';
@@ -805,6 +815,396 @@ function renderHomeActivityTable(filterType = window._currentActivityFilter || '
     `;
   });
 
+  tableBody.innerHTML = html;
+
+  if (loadMoreWrap) {
+    if (filtered.length > visibleEvents.length) {
+      loadMoreWrap.style.display = 'block';
+      if (loadMoreBtn) {
+        loadMoreBtn.innerHTML = `⬇️ عرض المزيد (+${filtered.length - visibleEvents.length} نشاطات أخرى)`;
+      }
+    } else {
+      loadMoreWrap.style.display = 'none';
+    }
+  }
+}
+
+// 📜 Full Activity Modal Controller
+window._modalCatFilter = 'all';
+window._modalDateFilter = 'all';
+window._modalCustomDate = null;
+
+window.openFullActivityModal = function() {
+  const modal = document.getElementById('fullActivityModalOverlay');
+  if (modal) {
+    modal.style.display = 'flex';
+    filterFullActivityModal();
+  }
+};
+
+window.closeFullActivityModal = function(e) {
+  if (e && e.target && e.target.id !== 'fullActivityModalOverlay' && !e.target.classList.contains('wallet-modal-close') && !e.target.classList.contains('btn-wallet-cancel')) {
+    return;
+  }
+  const modal = document.getElementById('fullActivityModalOverlay');
+  if (modal) modal.style.display = 'none';
+};
+
+window.setModalCategoryFilter = function(cat) {
+  window._modalCatFilter = cat;
+  const cats = ['all', 'medical', 'quran', 'tasks', 'finance', 'appts'];
+  cats.forEach(c => {
+    const el = document.getElementById('btnModalCat' + c.charAt(0).toUpperCase() + c.slice(1));
+    if (el) el.classList.toggle('active', c === cat);
+  });
+  filterFullActivityModal();
+};
+
+window.setModalDateFilter = function(dateFilter, customDateVal = null) {
+  window._modalDateFilter = dateFilter;
+  if (dateFilter === 'custom' && customDateVal) {
+    window._modalCustomDate = customDateVal;
+  } else if (dateFilter !== 'custom') {
+    window._modalCustomDate = null;
+    const dateInput = document.getElementById('modalCustomDatePicker');
+    if (dateInput) dateInput.value = '';
+  }
+
+  const dates = ['all', 'today', 'yesterday'];
+  dates.forEach(d => {
+    const el = document.getElementById('btnModalDate' + d.charAt(0).toUpperCase() + d.slice(1));
+    if (el) el.classList.toggle('active', d === dateFilter);
+  });
+
+  filterFullActivityModal();
+};
+
+window.filterFullActivityModal = function() {
+  const tableBody = document.getElementById('modalActivityTableBody');
+  const countBadge = document.getElementById('modalActivityCountBadge');
+  const searchInput = document.getElementById('modalActivitySearch');
+  const query = (searchInput?.value || '').trim().toLowerCase();
+
+  if (!tableBody) return;
+
+  const todayStr = getCairoToday();
+  const dToday = new Date(todayStr);
+  const past1 = new Date(dToday);
+  past1.setDate(dToday.getDate() - 1);
+  const yesterdayStr = past1.toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
+
+  let events = (window._cachedAllEvents || []).filter(ev => {
+    // 1. Category Filter
+    if (window._modalCatFilter === 'medical' && !ev.category?.includes('الطب')) return false;
+    if (window._modalCatFilter === 'quran' && !ev.category?.includes('القرآن')) return false;
+    if (window._modalCatFilter === 'tasks' && !ev.category?.includes('المهام')) return false;
+    if (window._modalCatFilter === 'finance' && !ev.category?.includes('المالية')) return false;
+    if (window._modalCatFilter === 'appts' && !ev.category?.includes('المواعيد')) return false;
+
+    // 2. Date Filter
+    let evDate = ev.dateStr;
+    if (!evDate && ev.createdAt) {
+      try {
+        evDate = new Date(ev.createdAt).toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
+      } catch (e) {}
+    }
+    if (window._modalDateFilter === 'today' && evDate !== todayStr) return false;
+    if (window._modalDateFilter === 'yesterday' && evDate !== yesterdayStr) return false;
+    if (window._modalDateFilter === 'custom' && window._modalCustomDate && evDate !== window._modalCustomDate) return false;
+
+    // 3. Search Query Filter
+    if (query) {
+      const matchTitle = (ev.title || '').toLowerCase().includes(query);
+      const matchSub = (ev.subtext || '').toLowerCase().includes(query);
+      const matchCat = (ev.category || '').toLowerCase().includes(query);
+      const matchAct = (ev.actionType || '').toLowerCase().includes(query);
+      if (!matchTitle && !matchSub && !matchCat && !matchAct) return false;
+    }
+
+    return true;
+  });
+
+  if (countBadge) {
+    countBadge.textContent = `عرض ${events.length} من إجمالي ${window._cachedAllEvents?.length || 0} نشاط`;
+  }
+
+  if (events.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="4" class="text-center" style="padding: 24px; color: var(--text-muted);">لا توجد نتائج مطابقة لبحثك أو فلترك.</td></tr>`;
+    return;
+  }
+
+  let html = '';
+  events.forEach(ev => {
+    const isNegative = ev.category === 'المالية والخزنة' && (ev.actionType === 'مصروف' || ev.actionType === 'expense');
+    const valColor = isNegative ? '#f43f5e' : (ev.valColor || '#10b981');
+    const badgeClass = isNegative ? 'badge-expense' : 'badge-income';
+
+    html += `
+      <tr>
+        <td style="color: #94a3b8; font-size: 0.78rem; font-weight: 700; white-space: nowrap;">${ev.formattedTime}</td>
+        <td><b style="color: ${valColor}; font-size: 0.9rem; font-family: var(--font-en); direction: ltr; display: inline-block;">${ev.valOrDuration || '—'}</b></td>
+        <td>
+          <span style="color: #fff; font-weight: 700; font-size: 0.86rem; display: block;">${ev.title}</span>
+          ${ev.subtext ? `<small style="color: var(--text-secondary); font-size: 0.76rem; display: block; margin-top: 2px;">${ev.subtext}</small>` : ''}
+        </td>
+        <td><span class="${badgeClass}">${ev.icon || '📌'} ${ev.actionType || ev.category}</span></td>
+      </tr>
+    `;
+  });
+
+  tableBody.innerHTML = html;
+};
+
+// 🩺 Interactive Date Filter Helpers for Specific Tabs
+window._cachedStudyRows = [];
+window._currentStudyFilter = 'all';
+window._customStudyDate = null;
+window.filterStudySessions = function(filterType, customDateVal = null) {
+  window._currentStudyFilter = filterType;
+  window._customStudyDate = filterType === 'custom' ? customDateVal : null;
+  const btnAll = document.getElementById('btnStudyAll');
+  const btnToday = document.getElementById('btnStudyToday');
+  const btnYesterday = document.getElementById('btnStudyYesterday');
+  if (btnAll) btnAll.classList.toggle('active', filterType === 'all');
+  if (btnToday) btnToday.classList.toggle('active', filterType === 'today');
+  if (btnYesterday) btnYesterday.classList.toggle('active', filterType === 'yesterday');
+  renderStudySessionsListFiltered();
+};
+
+window._cachedQuranRows = [];
+window._currentQuranFilter = 'all';
+window._customQuranDate = null;
+window.filterQuranSessions = function(filterType, customDateVal = null) {
+  window._currentQuranFilter = filterType;
+  window._customQuranDate = filterType === 'custom' ? customDateVal : null;
+  const btnAll = document.getElementById('btnQuranAll');
+  const btnToday = document.getElementById('btnQuranToday');
+  const btnYesterday = document.getElementById('btnQuranYesterday');
+  if (btnAll) btnAll.classList.toggle('active', filterType === 'all');
+  if (btnToday) btnToday.classList.toggle('active', filterType === 'today');
+  if (btnYesterday) btnYesterday.classList.toggle('active', filterType === 'yesterday');
+  renderQuranSessionsListFiltered();
+};
+
+window._cachedTasksRows = [];
+window._currentTasksFilter = 'all';
+window._customTasksDate = null;
+window.filterTasksList = function(filterType, customDateVal = null) {
+  window._currentTasksFilter = filterType;
+  window._customTasksDate = filterType === 'custom' ? customDateVal : null;
+  const btnAll = document.getElementById('btnTasksAll');
+  const btnToday = document.getElementById('btnTasksToday');
+  const btnYesterday = document.getElementById('btnTasksYesterday');
+  if (btnAll) btnAll.classList.toggle('active', filterType === 'all');
+  if (btnToday) btnToday.classList.toggle('active', filterType === 'today');
+  if (btnYesterday) btnYesterday.classList.toggle('active', filterType === 'yesterday');
+  renderTasksListFiltered();
+};
+
+window._cachedFinanceRows = [];
+window._currentFinanceFilter = 'all';
+window._customFinanceDate = null;
+window.filterFinanceList = function(filterType, customDateVal = null) {
+  window._currentFinanceFilter = filterType;
+  window._customFinanceDate = filterType === 'custom' ? customDateVal : null;
+  const btnAll = document.getElementById('btnFinanceAll');
+  const btnToday = document.getElementById('btnFinanceToday');
+  const btnYesterday = document.getElementById('btnFinanceYesterday');
+  if (btnAll) btnAll.classList.toggle('active', filterType === 'all');
+  if (btnToday) btnToday.classList.toggle('active', filterType === 'today');
+  if (btnYesterday) btnYesterday.classList.toggle('active', filterType === 'yesterday');
+  renderFinanceListFiltered();
+};
+
+function renderStudySessionsListFiltered() {
+  const sessionsEl = document.getElementById('studySessionsList');
+  const sessionsCountEl = document.getElementById('sessionsCount');
+  if (!sessionsEl) return;
+
+  const todayStr = getCairoToday();
+  const dToday = new Date(todayStr);
+  const past1 = new Date(dToday);
+  past1.setDate(dToday.getDate() - 1);
+  const yesterdayStr = past1.toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
+
+  const filtered = (window._cachedStudyRows || []).filter(s => {
+    let sDate = s.date;
+    if (!sDate && s.created_at) {
+      try { sDate = new Date(s.created_at).toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' }); } catch (_) {}
+    }
+    if (window._currentStudyFilter === 'today') return sDate === todayStr;
+    if (window._currentStudyFilter === 'yesterday') return sDate === yesterdayStr;
+    if (window._currentStudyFilter === 'custom' && window._customStudyDate) return sDate === window._customStudyDate;
+    return true;
+  });
+
+  if (sessionsCountEl) sessionsCountEl.textContent = `${filtered.length} جلسات`;
+
+  if (!filtered || filtered.length === 0) {
+    let msg = 'لا توجد جلسات مذاكرة مسجلة في هذا التاريخ.';
+    if (window._currentStudyFilter === 'today') msg = 'لا توجد جلسات مذاكرة مسجلة اليوم. أرسل فويس للبوت لتوثيق جلستك!';
+    sessionsEl.innerHTML = `<div class="empty-state">${msg}</div>`;
+    return;
+  }
+
+  let sHtml = '';
+  filtered.forEach(s => {
+    const durMins = Number(s.duration_minutes || 0);
+    let durText = durMins >= 60 ? `${(durMins / 60).toFixed(1).replace('.0', '')} ${durMins === 60 ? 'ساعة' : durMins === 120 ? 'ساعتين' : durMins >= 180 && durMins <= 600 ? 'ساعات' : 'ساعة'} (${durMins} دقيقة)` : `${durMins} دقيقة`;
+
+    sHtml += `
+      <div class="session-item" style="border-right: 4px solid var(--accent-primary); background: var(--bg-card-inner); padding: 14px 16px; margin-bottom: 8px;">
+        <div class="item-top-row">
+          <span class="item-title" style="font-size: 1.05rem;">🩺 <b>[${s.course_code || 'MOD'}]</b> ${s.topic || 'جلسة مذاكرة'} ${s.was_rescheduled ? '🔄 (مؤجل)' : ''}</span>
+          <span class="task-status-badge status-done" style="font-size: 0.85rem; padding: 4px 10px;">⏱️ ${durText}</span>
+        </div>
+        <div class="item-desc" style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; font-size: 0.84rem;">
+          <span>📅 <b>التاريخ:</b> ${formatRelativeDate(s.date, s.created_at)}</span>
+          ${s.pages_covered ? `<span>📄 <b>الصفحات:</b> ${s.pages_covered} صفحة</span>` : ''}
+          ${s.comprehension_rating ? `<span>🧠 <b>الاستيعاب:</b> ${'⭐'.repeat(s.comprehension_rating)}</span>` : ''}
+          ${s.session_type ? `<span>🏷️ <b>النوع:</b> ${s.session_type}</span>` : ''}
+        </div>
+        ${s.notes ? `<div style="font-size: 0.82rem; color: #cbd5e1; margin-top: 6px;">💬 <i>${s.notes}</i></div>` : ''}
+      </div>
+    `;
+  });
+  sessionsEl.innerHTML = sHtml;
+}
+
+function renderQuranSessionsListFiltered() {
+  const quranListEl = document.getElementById('quranLogsList');
+  const quranBadgeEl = document.getElementById('quranTotalSessionsBadge');
+  if (!quranListEl) return;
+
+  const todayStr = getCairoToday();
+  const dToday = new Date(todayStr);
+  const past1 = new Date(dToday);
+  past1.setDate(dToday.getDate() - 1);
+  const yesterdayStr = past1.toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
+
+  const filtered = (window._cachedQuranRows || []).filter(q => {
+    let qDate = q.date;
+    if (!qDate && q.created_at) {
+      try { qDate = new Date(q.created_at).toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' }); } catch (_) {}
+    }
+    if (window._currentQuranFilter === 'today') return qDate === todayStr;
+    if (window._currentQuranFilter === 'yesterday') return qDate === yesterdayStr;
+    if (window._currentQuranFilter === 'custom' && window._customQuranDate) return qDate === window._customQuranDate;
+    return true;
+  });
+
+  if (quranBadgeEl) quranBadgeEl.textContent = `${filtered.length} جلسات`;
+
+  if (!filtered || filtered.length === 0) {
+    quranListEl.innerHTML = `<div class="empty-state">لم يتم تسجيل ورد قرآني في هذه الفترة. أرسل فويس بالورد اليومي لتوثيقه!</div>`;
+    return;
+  }
+
+  let html = '';
+  filtered.forEach(l => {
+    const starCount = Math.max(1, Math.min(5, Number(l.quality_rating || 5)));
+    html += `
+      <div class="quran-item" style="padding: 12px 14px; margin-bottom: 8px;">
+        <div class="item-top-row">
+          <span class="item-title">🕌 سورة ${l.surah_name || 'الورد اليومي'} (${l.session_type || 'تلاوة'})</span>
+          <span class="item-date">📅 ${formatRelativeDate(l.date, l.created_at)}</span>
+        </div>
+        <div class="item-desc">
+          <span>📖 <b>الصفحات:</b> ${l.pages_count || 1} صفحة</span> |
+          <span>⭐ <b>الإتقان:</b> ${'⭐'.repeat(starCount)}</span>
+          ${l.notes ? ` | <span>📝 <i>${l.notes}</i></span>` : ''}
+        </div>
+      </div>
+    `;
+  });
+  quranListEl.innerHTML = html;
+}
+
+function renderTasksListFiltered() {
+  const tasksEl = document.getElementById('tasksList');
+  const tasksBadge = document.getElementById('tasksBadge');
+  if (!tasksEl) return;
+
+  const todayStr = getCairoToday();
+  const dToday = new Date(todayStr);
+  const past1 = new Date(dToday);
+  past1.setDate(dToday.getDate() - 1);
+  const yesterdayStr = past1.toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
+
+  const filtered = (window._cachedTasksRows || []).filter(t => {
+    let tDate = t.date;
+    if (!tDate && t.created_at) {
+      try { tDate = new Date(t.created_at).toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' }); } catch (_) {}
+    }
+    if (window._currentTasksFilter === 'today') return tDate === todayStr;
+    if (window._currentTasksFilter === 'yesterday') return tDate === yesterdayStr;
+    if (window._currentTasksFilter === 'custom' && window._customTasksDate) return tDate === window._customTasksDate;
+    return true;
+  });
+
+  if (tasksBadge) tasksBadge.textContent = `${filtered.length} مهام`;
+
+  if (!filtered || filtered.length === 0) {
+    tasksEl.innerHTML = `<div class="empty-state">لا توجد مهام مسجلة في هذا التاريخ.</div>`;
+    return;
+  }
+
+  let tHtml = '';
+  filtered.forEach(t => {
+    const isDone = t.status === 'تم الإنجاز' || t.status === 'مكتملة';
+    tHtml += `
+      <div class="task-item" style="padding: 12px 14px; margin-bottom: 8px;">
+        <div class="item-top-row">
+          <span class="item-title">${isDone ? '✅' : '⏳'} ${t.title}</span>
+          <span class="task-status-badge ${isDone ? 'status-done' : 'status-pending'}">${t.status}</span>
+        </div>
+        <div class="item-desc">🏷️ ${t.category || 'عام'} • 📅 ${formatRelativeDate(t.date, t.created_at)}</div>
+      </div>
+    `;
+  });
+  tasksEl.innerHTML = tHtml;
+}
+
+function renderFinanceListFiltered() {
+  const tableBody = document.getElementById('financeTableBody');
+  if (!tableBody) return;
+
+  const todayStr = getCairoToday();
+  const dToday = new Date(todayStr);
+  const past1 = new Date(dToday);
+  past1.setDate(dToday.getDate() - 1);
+  const yesterdayStr = past1.toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
+
+  const filtered = (window._cachedFinanceRows || []).filter(r => {
+    let rDate = r.date;
+    if (!rDate && r.created_at) {
+      try { rDate = new Date(r.created_at).toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' }); } catch (_) {}
+    }
+    if (window._currentFinanceFilter === 'today') return rDate === todayStr;
+    if (window._currentFinanceFilter === 'yesterday') return rDate === yesterdayStr;
+    if (window._currentFinanceFilter === 'custom' && window._customFinanceDate) return rDate === window._customFinanceDate;
+    return true;
+  });
+
+  if (!filtered || filtered.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding: 20px; color: var(--text-muted);">لا توجد حركات مالية مسجلة في هذا التاريخ.</td></tr>`;
+    return;
+  }
+
+  let html = '';
+  filtered.forEach(r => {
+    const isExp = r.type === 'مصروف' || r.type === 'expense';
+    html += `
+      <tr>
+        <td>${formatRelativeDate(r.date, r.created_at)}</td>
+        <td><span class="${isExp ? 'badge-expense' : 'badge-income'}">${r.type || 'مصروف'}</span></td>
+        <td><b style="color: ${isExp ? '#f43f5e' : '#4ade80'};">${formatEgp(r.amount)}</b></td>
+        <td>${r.description || '—'}</td>
+        <td>${(r.payment_method || 'نقدي (كاش)').replace('خزنة شخصية', 'نقدي (كاش)').replace('فودافون كاش', 'محفظة إلكترونية').replace('بنك مصر', 'إنستا باي')}</td>
+        <td>${r.category || 'عام'}</td>
+      </tr>
+    `;
+  });
   tableBody.innerHTML = html;
 }
 
@@ -2041,39 +2441,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
 
       });
 
-      (recentThoughts || []).forEach(th => {
 
-        allEvents.push({
-
-          icon: '💡',
-
-          category: 'بنك الخواطر',
-
-          catBg: 'rgba(245, 158, 11, 0.12)',
-
-          catColor: 'var(--accent-gold)',
-
-          catBorder: 'rgba(245, 158, 11, 0.3)',
-
-          actionType: 'خاطرة وفكرة',
-
-          title: `خاطرة: "${th.content.slice(0, 50)}..."`,
-
-          subtext: `🏷️ التصنيف: <b>${th.category || 'انضباط'}</b>`,
-
-          valOrDuration: '💡 حكمة',
-
-          valColor: 'var(--accent-gold)',
-
-          dateStr: th.date,
-
-          createdAt: th.created_at,
-
-          formattedTime: formatRelativeDate(th.date, th.created_at)
-
-        });
-
-      });
 
       (recentAttendance || []).forEach(a => {
 
@@ -2418,60 +2786,8 @@ async function renderAcademicSection() {
     }
 
     // 2. Render Prominent Live Study Sessions Ledger
-
-    if (sessions && sessions.length > 0) {
-
-      if (sessionsCountEl) sessionsCountEl.textContent = `${sessions.length} جلسات مسجلة`;
-
-      let sHtml = '';
-
-      sessions.forEach(s => {
-
-        const durMins = Number(s.duration_minutes || 0);
-
-        let durText = durMins >= 60 ? `${(durMins / 60).toFixed(1).replace('.0', '')} ${durMins === 60 ? 'ساعة' : durMins === 120 ? 'ساعتين' : durMins >= 180 && durMins <= 600 ? 'ساعات' : 'ساعة'} (${durMins} دقيقة)` : `${durMins} دقيقة`;
-
-        sHtml += `
-
-          <div class="session-item" style="border-right: 4px solid var(--accent-primary); background: var(--bg-card-inner); padding: 16px; margin-bottom: 8px;">
-
-            <div class="item-top-row">
-
-              <span class="item-title" style="font-size: 1.08rem;">🩺 <b>[${s.course_code || 'CAD402'}]</b> ${s.topic || 'جلسة مذاكرة'} ${s.was_rescheduled ? '🔄 (مؤجل)' : ''}</span>
-
-              <span class="task-status-badge status-done" style="font-size: 0.85rem; padding: 4px 10px;">⏱️ ${durText}</span>
-
-            </div>
-
-            <div class="item-desc" style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; font-size: 0.88rem;">
-
-              <span>📅 <b>التاريخ:</b> ${formatRelativeDate(s.date, s.created_at)}</span>
-
-              ${s.pages_covered ? `<span>📄 <b>الصفحات:</b> ${s.pages_covered} صفحة</span>` : ''}
-
-              ${s.comprehension_rating ? `<span>🧠 <b>الاستيعاب:</b> ${'⭐'.repeat(s.comprehension_rating)}</span>` : ''}
-
-              ${s.session_type ? `<span>🏷️ <b>النوع:</b> ${s.session_type}</span>` : ''}
-
-            </div>
-
-            ${s.reschedule_reason ? `<div style="font-size: 0.82rem; color: var(--accent-gold); margin-top: 6px;">⚠️ <b>سبب التأجيل:</b> ${s.reschedule_reason}</div>` : ''}
-
-            ${s.notes ? `<div style="font-size: 0.82rem; color: #cbd5e1; margin-top: 6px;">💬 <i>${s.notes}</i></div>` : ''}
-
-          </div>
-
-        `;
-
-      });
-
-      if (sessionsEl) sessionsEl.innerHTML = sHtml;
-
-    } else {
-
-      if (sessionsEl) sessionsEl.innerHTML = `<div class="empty-state">لا توجد جلسات مذاكرة مسجلة اليوم. أرسل فويس للبوت وسيقوم بتوثيق جلستك فوراً!</div>`;
-
-    }
+    window._cachedStudyRows = sessions || [];
+    renderStudySessionsListFiltered();
 
     // 3. Clinical Cases
 
@@ -2728,57 +3044,24 @@ async function renderEnglishSection() {
 // 📖 3. Quran Logs
 
 async function renderQuranSection() {
-
-  const quranListEl = document.getElementById('quranLogsList');
-
   const totalQuranSessionsEl = document.getElementById('totalQuranSessions');
-
   const totalQuranPagesEl = document.getElementById('totalQuranPages');
 
   try {
-
-    const { data: logs } = await userQuery('quran_logs').order('created_at', { ascending: false }).limit(10);
+    const { data: logs } = await userQuery('quran_logs').order('created_at', { ascending: false });
 
     let totalPages = 0;
-
     if (logs && logs.length > 0) {
-
       logs.forEach(l => totalPages += Number(l.pages_count || 1));
-
       if (totalQuranSessionsEl) totalQuranSessionsEl.innerHTML = `${logs.length} <span class="stat-unit">جلسة</span>`;
-
       if (totalQuranPagesEl) totalQuranPagesEl.textContent = `${totalPages} صفحة مراجعة وحفظ`;
-
-      let html = '';
-
-      logs.forEach(l => {
-
-        const starCount = Math.max(1, Math.min(5, Number(l.quality_rating || 5)));
-
-        html += `
-
-          <div class="quran-item">
-
-            <div class="item-top-row"><span class="item-title">🕌 سورة ${l.surah_name} (${l.session_type})</span><span class="item-date">📅 ${formatRelativeDate(l.date, l.created_at)}</span></div>
-
-            <div class="item-desc">📌 <b>حالة الحفظ:</b> ${l.mastery_status || 'متقن'} | ${'⭐'.repeat(starCount)}${l.from_page ? ` | 📄 صفحة ${l.from_page}` : ''}</div>
-
-          </div>
-
-        `;
-
-      });
-
-      if (quranListEl) quranListEl.innerHTML = html;
-
     }
 
+    window._cachedQuranRows = logs || [];
+    renderQuranSessionsListFiltered();
   } catch (err) {
-
     console.warn('renderQuranSection error:', err);
-
   }
-
 }
 
 // 🌙 4. Fasting, Sunnah & Adhkar
@@ -3106,151 +3389,66 @@ async function renderWorkSection() {
 // 🎯 9. Tasks & Appointments
 
 async function renderTasksAndAppointments() {
-
-  const tasksEl = document.getElementById('tasksList');
-
   const apptsEl = document.getElementById('appointmentsList');
-
-  const tasksBadge = document.getElementById('tasksBadge');
-
   const apptsBadge = document.getElementById('apptsBadge');
 
-  const today = getCairoToday();
-
   try {
-
-    const { data: tasks } = await userQuery('daily_tasks').eq('date', today).order('created_at', { ascending: false });
-
-    if (tasks && tasks.length > 0) {
-
-      if (tasksBadge) tasksBadge.textContent = `${tasks.length} مهام`;
-
-      let tHtml = '';
-
-      tasks.forEach(t => {
-
-        const isDone = t.status === 'تم الإنجاز';
-
-        tHtml += `
-
-          <div class="task-item">
-
-            <div class="item-top-row">
-
-              <span class="item-title">${isDone ? '✅' : '🟡'} ${t.title}</span>
-
-              <span class="task-status-badge ${isDone ? 'status-done' : 'status-pending'}">${t.status}</span>
-
-            </div>
-
-            <div class="item-desc">⏱️ الهدف: ${t.target_duration_mins || 0} دقيقة | 🏷️ ${t.category} • 📅 ${formatRelativeDate(t.date, t.created_at)}</div>
-
-          </div>
-
-        `;
-
-      });
-
-      if (tasksEl) tasksEl.innerHTML = tHtml;
-
-    }
+    const { data: tasks } = await userQuery('daily_tasks').order('created_at', { ascending: false });
+    window._cachedTasksRows = tasks || [];
+    renderTasksListFiltered();
 
     const { data: appts } = await userQuery('appointments_and_reminders').order('due_datetime', { ascending: true }).limit(8);
 
     if (appts && appts.length > 0) {
-
       if (apptsBadge) apptsBadge.textContent = `${appts.length} مواعيد`;
-
       let aHtml = '';
-
       appts.forEach(a => {
-
         aHtml += `
-
           <div class="appt-item">
-
             <div class="item-top-row"><span class="item-title">🔔 ${a.title}</span><span class="item-date">📅 ${formatRelativeDate(a.date, a.due_datetime || a.created_at)}</span></div>
-
             ${a.notes ? `<div class="item-desc">📝 ${a.notes}</div>` : ''}
-
           </div>
-
         `;
-
       });
-
       if (apptsEl) apptsEl.innerHTML = aHtml;
-
+    } else {
+      if (apptsEl) apptsEl.innerHTML = `<div class="empty-state">لا توجد مواعيد مجدولة.</div>`;
     }
-
   } catch (err) {
-
     console.warn('renderTasksAndAppointments error:', err);
-
   }
-
 }
 
 // 💡 10. Thoughts & Wisdom
-
 async function renderThoughtsSection() {
-
   const grid = document.getElementById('thoughtsGrid');
-
   try {
-
     const { data: thoughts } = await userQuery('thoughts_and_wisdom').order('created_at', { ascending: false }).limit(9);
-
     if (thoughts && thoughts.length > 0 && grid) {
-
       let html = '';
-
       thoughts.forEach(th => {
-
         html += `
-
           <div class="thought-card">
-
             <div class="thought-content">“${th.content}”</div>
-
             <div class="thought-footer"><span class="thought-cat">🏷️ ${th.category}</span><span class="thought-date">📅 ${formatRelativeDate(th.date, th.created_at)}</span></div>
-
           </div>
-
         `;
-
       });
-
       grid.innerHTML = html;
-
     }
-
   } catch (err) {
-
     console.warn('renderThoughtsSection error:', err);
-
   }
-
 }
 
 // 💵 11. Finance & Wallets
-
 async function renderFinanceSection() {
-
-  const tableBody = document.getElementById('financeTableBody');
-
   const balCash = document.getElementById('balCash');
-
   const balVodafone = document.getElementById('balVodafone');
-
   const balInstapay = document.getElementById('balInstapay');
 
-  const balBank = document.getElementById('balBank');
-
   try {
-
     const { data: sess } = await db.from('bot_sessions').select('*').eq('chat_id', getUID()).maybeSingle();
-
     const liq = sess?.data?.liquidity || {};
 
     const cashVal = liq['نقدي (كاش)'] ?? liq['خزنة شخصية'] ?? liq['نقدي'] ?? 0;
@@ -3261,56 +3459,12 @@ async function renderFinanceSection() {
     if (balVodafone) balVodafone.textContent = formatEgp(walletVal);
     if (balInstapay) balInstapay.textContent = formatEgp(instapayVal);
 
-    const { data: rows } = await userQuery('personal_finance').order('created_at', { ascending: false }).limit(25);
-
-    if (tableBody) {
-
-      if (rows && rows.length > 0) {
-
-        let html = '';
-
-        rows.forEach(r => {
-
-          const isExp = r.type === 'مصروف' || r.type === 'expense';
-
-          html += `
-
-            <tr>
-
-              <td>${formatRelativeDate(r.date, r.created_at)}</td>
-
-              <td><span class="${isExp ? 'badge-expense' : 'badge-income'}">${r.type || 'مصروف'}</span></td>
-
-              <td><b style="color: ${isExp ? '#f43f5e' : '#4ade80'};">${formatEgp(r.amount)}</b></td>
-
-              <td>${r.description || '—'}</td>
-
-              <td>${(r.payment_method || 'نقدي (كاش)').replace('خزنة شخصية', 'نقدي (كاش)').replace('فودافون كاش', 'محفظة إلكترونية').replace('بنك مصر', 'إنستا باي')}</td>
-
-              <td>${r.category || 'عام'}</td>
-
-            </tr>
-
-          `;
-
-        });
-
-        tableBody.innerHTML = html;
-
-      } else {
-
-        tableBody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding: 24px; color: var(--text-muted);">لا توجد حركات مالية مسجلة بعد. أرسل فويس للبوت لتوثيق المصروف فوراً!</td></tr>`;
-
-      }
-
-    }
-
+    const { data: rows } = await userQuery('personal_finance').order('created_at', { ascending: false });
+    window._cachedFinanceRows = rows || [];
+    renderFinanceListFiltered();
   } catch (err) {
-
     console.warn('renderFinanceSection error:', err);
-
   }
-
 }
 
 // ✏️ Modal Controller for Setting / Editing Starting Wallets & Liquidity Balances
