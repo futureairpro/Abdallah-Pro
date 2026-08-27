@@ -4055,8 +4055,5 @@ if (typeof localStorage !== 'undefined' && localStorage.getItem('abdallah_journe
   }
 }
 
-// ⏰ Auto-heartbeat to trigger due reminders and keep scheduler active
-setInterval(() => {
-  fetch('/api/cron').catch(() => {});
-}, 30000);
+
 
