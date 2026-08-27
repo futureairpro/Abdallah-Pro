@@ -1012,7 +1012,11 @@ async function applyUserPersonalization() {
   // Calculate active courses for this user
   const presetList = (PRESET_COURSES_BY_YEAR[academicYear] && PRESET_COURSES_BY_YEAR[academicYear][semester])
     || PRESET_COURSES_BY_YEAR['الفرقة الرابعة']['الترم الأول'];
-  window.USER_ACTIVE_COURSES = [...presetList, ...(customCourses || [])];
+  if (Array.isArray(customCourses) && customCourses.length > 0) {
+    window.USER_ACTIVE_COURSES = customCourses;
+  } else {
+    window.USER_ACTIVE_COURSES = presetList;
+  }
   window.USER_PREFERENCES = preferences;
 
   // Apply visibility to sidebar tabs dynamically
