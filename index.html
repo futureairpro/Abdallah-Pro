@@ -915,17 +915,17 @@
       // ─── Detect Identity ───────────────────────────────────────────────
       const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
       const tgUserId = tgUser?.id ? Number(tgUser.id) : null;
-      const urlUserId = Number(new URLSearchParams(window.location.search).get('telegram_id')) || null;
-      const ADMIN_IDS = [8925138241, 1191760477];
-      const ADMIN_ID = 8925138241;
+      const ADMIN_ID = 1191760477;
+      const storedUid = Number(localStorage.getItem('abdallah_journey_user_id')) || null;
 
-      // Store globally so app.js can use it for all DB queries
-      window.CURRENT_USER_ID = Number(tgUserId || urlUserId || storedUid || ADMIN_ID);
+      // STRICT USER ID: Never default to admin ID for unknown users!
+      const detectedId = Number(tgUserId || urlUserId || (storedUid && storedUid !== ADMIN_ID ? storedUid : null) || 0);
+      window.CURRENT_USER_ID = detectedId;
       if (tgUserId || urlUserId) {
         try { localStorage.setItem('abdallah_journey_user_id', window.CURRENT_USER_ID); } catch (_) {}
       }
       window.CURRENT_USER_NAME = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : null;
-      window.IS_ADMIN = ADMIN_IDS.includes(window.CURRENT_USER_ID);
+      window.IS_ADMIN = (window.CURRENT_USER_ID === ADMIN_ID);
       window.IS_TELEGRAM_USER = !!(tgUserId || urlUserId || storedUid);
 
       // Fast initial synchronous personalization

@@ -501,7 +501,7 @@ export default async function handler(req, res) {
 
     // Determine current user ID
     const urlParams = new URLSearchParams(window.location.search);
-    const userId = urlParams.get('telegram_id') || tg?.initDataUnsafe?.user?.id || '8925138241';
+    const userId = urlParams.get('telegram_id') || tg?.initDataUnsafe?.user?.id || '';
 
     function switchTab(tabId, btnEl) {
       if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');

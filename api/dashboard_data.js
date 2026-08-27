@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const telegramId = req.query.telegram_id || req.query.user_id || '8925138241';
+  const telegramId = req.query.telegram_id || req.query.user_id || '0';
   const numId = Number(telegramId);
   const today = getCairoToday();
 

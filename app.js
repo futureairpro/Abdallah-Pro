@@ -1215,11 +1215,11 @@ function renderFinanceListFiltered() {
 // ─────────────────────────────────────────────────────────────
 function isAdminUserUID(id) {
   const num = Number(id);
-  return num === 8925138241 || num === 1191760477;
+  return num === 1191760477;
 }
 
 function getUID() {
-  return window.CURRENT_USER_ID || 8925138241;
+  return window.CURRENT_USER_ID || 0;
 }
 
 function cleanUserTag(str) {
@@ -1229,7 +1229,8 @@ function cleanUserTag(str) {
 
 function userMatchesRow(row, uid) {
   if (!row) return false;
-  const numUid = Number(uid || 8925138241);
+  const numUid = Number(uid || window.CURRENT_USER_ID || 0);
+  if (!numUid) return false;
   const tag = `usr:${numUid}`;
   
   if (row.telegram_id && Number(row.telegram_id) === numUid) return true;
@@ -1243,7 +1244,7 @@ function userMatchesRow(row, uid) {
   ];
   const hasThisUserTag = textFields.some(t => typeof t === 'string' && t.includes(tag));
   
-  if (isAdminUserUID(numUid)) {
+  if (numUid === 1191760477) {
     const hasAnyUserTag = textFields.some(t => typeof t === 'string' && t.includes('usr:'));
     return hasThisUserTag || !hasAnyUserTag;
   }
@@ -3951,7 +3952,7 @@ async function loadAdminPortalData() {
 
   const tgUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
 
-  const currentUserId = Number(urlUserId || tgUserId || (window.IS_ADMIN ? '8925138241' : '0'));
+  const currentUserId = Number(urlUserId || tgUserId || (window.IS_ADMIN ? 1191760477 : 0));
 
   if (!isAdminUserUID(currentUserId)) {
 
