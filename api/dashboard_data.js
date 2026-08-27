@@ -1,5 +1,5 @@
 // 🚀 Telegram Web App Dashboard Data API for Abdullah's Journey & Medical OS
-import { supabase, getUserProfile, getUserActiveCourses, getUserMedicalQuizzes, DEFAULT_USER_PREFERENCES, ADMIN_CHAT_ID } from '../lib/supabase.js';
+import { supabase, getUserProfile, getUserActiveCourses, getUserMedicalQuizzes, DEFAULT_USER_PREFERENCES, ADMIN_CHAT_ID, isAdminUser } from '../lib/supabase.js';
 import { getCairoPrayerTimes } from '../lib/prayer_times.js';
 import { getRandomCuratedCapsule } from '../lib/mindset_pulses.js';
 
@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const telegramId = req.query.telegram_id || req.query.user_id || '1191760477';
+  const telegramId = req.query.telegram_id || req.query.user_id || '8925138241';
   const numId = Number(telegramId);
   const today = getCairoToday();
 
@@ -53,14 +53,14 @@ export default async function handler(req, res) {
       supabase.from('thoughts_and_wisdom').select('*').order('created_at', { ascending: false }).limit(10)
     ]);
 
-    const userName = profile?.full_name || (numId === ADMIN_CHAT_ID ? 'د. عبدالله (المؤسس)' : 'دكتور زميل');
+    const userName = profile?.full_name || (isAdminUser(numId) ? 'د. عبدالله (المؤسس)' : 'دكتور زميل');
 
     // 1. Process Study
     const studyRows = studyRes.data || [];
     const userStudy = studyRows.filter(s => {
       const hasTag = (s.topic?.includes(`usr:${numId}`) || s.notes?.includes(`usr:${numId}`));
       const hasAnyTag = (s.topic?.includes('usr:') || s.notes?.includes('usr:'));
-      return numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+      return isAdminUser(numId) ? (hasTag || !hasAnyTag) : hasTag;
     }).map(s => ({
       ...s,
       topic: (s.topic || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim(),
@@ -92,7 +92,7 @@ export default async function handler(req, res) {
     const userTasks = taskRows.filter(t => {
       const hasTag = (t.category?.includes(`usr:${numId}`) || t.title?.includes(`usr:${numId}`));
       const hasAnyTag = (t.category?.includes('usr:') || t.title?.includes('usr:'));
-      return numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+      return isAdminUser(numId) ? (hasTag || !hasAnyTag) : hasTag;
     }).map(t => ({
       ...t,
       title: (t.title || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim(),
@@ -104,7 +104,7 @@ export default async function handler(req, res) {
     const userFinance = finRows.filter(f => {
       const hasTag = (f.description?.includes(`usr:${numId}`) || f.category?.includes(`usr:${numId}`));
       const hasAnyTag = (f.description?.includes('usr:') || f.category?.includes('usr:'));
-      return numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+      return isAdminUser(numId) ? (hasTag || !hasAnyTag) : hasTag;
     }).map(f => ({
       ...f,
       description: (f.description || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim(),
@@ -123,7 +123,7 @@ export default async function handler(req, res) {
     const userQuran = quranRows.filter(q => {
       const hasTag = (q.session_type?.includes(`usr:${numId}`) || q.notes?.includes(`usr:${numId}`) || q.surah_name?.includes(`usr:${numId}`));
       const hasAnyTag = (q.session_type?.includes('usr:') || q.notes?.includes('usr:') || q.surah_name?.includes('usr:'));
-      return numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+      return isAdminUser(numId) ? (hasTag || !hasAnyTag) : hasTag;
     }).map(q => ({
       ...q,
       session_type: (q.session_type || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim(),
@@ -136,7 +136,7 @@ export default async function handler(req, res) {
     const userAppts = apptRows.filter(a => {
       const hasTag = (a.notes?.includes(`usr:${numId}`) || a.title?.includes(`usr:${numId}`));
       const hasAnyTag = (a.notes?.includes('usr:') || a.title?.includes('usr:'));
-      const isTargetUser = numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+      const isTargetUser = isAdminUser(numId) ? (hasTag || !hasAnyTag) : hasTag;
       if (!isTargetUser) return false;
 
       // Filter out auto reminders (prayers, adhkar, fasting, auto timers)
@@ -179,7 +179,7 @@ export default async function handler(req, res) {
     const userGym = gymRows.filter(g => {
       const hasTag = (g.muscle_groups?.includes(`usr:${numId}`) || g.workout_type?.includes(`usr:${numId}`));
       const hasAnyTag = (g.muscle_groups?.includes('usr:') || g.workout_type?.includes('usr:'));
-      return numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+      return isAdminUser(numId) ? (hasTag || !hasAnyTag) : hasTag;
     }).map(g => ({
       ...g,
       workout_type: (g.workout_type || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim(),
@@ -191,7 +191,7 @@ export default async function handler(req, res) {
     const userWellness = wellRows.filter(w => {
       const hasTag = (w.venting_content?.includes(`usr:${numId}`) || w.ai_therapeutic_feedback?.includes(`usr:${numId}`));
       const hasAnyTag = (w.venting_content?.includes('usr:') || w.ai_therapeutic_feedback?.includes('usr:'));
-      return numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+      return isAdminUser(numId) ? (hasTag || !hasAnyTag) : hasTag;
     }).map(w => ({
       ...w,
       venting_content: (w.venting_content || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim(),
@@ -203,7 +203,7 @@ export default async function handler(req, res) {
     const userThoughts = thoughtRows.filter(th => {
       const hasTag = (th.content?.includes(`usr:${numId}`) || th.category?.includes(`usr:${numId}`));
       const hasAnyTag = (th.content?.includes('usr:') || th.category?.includes('usr:'));
-      return numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+      return isAdminUser(numId) ? (hasTag || !hasAnyTag) : hasTag;
     }).map(th => ({
       ...th,
       content: (th.content || '').replace(/\[usr:\d+\]\s*/g, '').replace(/usr:\d+\s*/g, '').trim()
@@ -211,7 +211,7 @@ export default async function handler(req, res) {
 
     // 10. Admin Data (Only for Dr. Abdullah)
     let adminData = null;
-    if (numId === ADMIN_CHAT_ID) {
+    if (isAdminUser(numId)) {
       const [registeredStudents, pendingPayRes] = await Promise.all([
         supabase.from('bot_sessions').select('*'),
         supabase.from('subscription_payments').select('*').eq('status', 'pending').order('created_at', { ascending: false })
@@ -232,7 +232,7 @@ export default async function handler(req, res) {
           let daysRem = 0;
           let isActive = false;
 
-          if (cid === ADMIN_CHAT_ID || status === 'lifetime') {
+          if (isAdminUser(cid) || status === 'lifetime') {
             status = 'lifetime';
             daysRem = 'دائم 👑';
             isActive = true;
@@ -250,10 +250,10 @@ export default async function handler(req, res) {
 
           students.push({
             telegram_id: Number(p.telegram_id || cid),
-            full_name: p.full_name || (cid === ADMIN_CHAT_ID ? 'د. عبدالله' : 'طالب زميل'),
+            full_name: p.full_name || (isAdminUser(cid) ? 'د. عبدالله (المؤسس)' : 'طالب زميل'),
             username: p.username || null,
             university: p.university || 'كلية الطب البشري',
-            role: p.role || (cid === ADMIN_CHAT_ID ? 'admin' : 'student'),
+            role: p.role || (isAdminUser(cid) ? 'admin' : 'student'),
             subscription_status: status,
             days_remaining: daysRem,
             is_active: isActive

@@ -1213,8 +1213,13 @@ function renderFinanceListFiltered() {
 // Ensures every DB query and UI element is dynamically tailored
 // to the current user's profile and telegram_id
 // ─────────────────────────────────────────────────────────────
+function isAdminUserUID(id) {
+  const num = Number(id);
+  return num === 8925138241 || num === 1191760477;
+}
+
 function getUID() {
-  return window.CURRENT_USER_ID || 1191760477;
+  return window.CURRENT_USER_ID || 8925138241;
 }
 
 function cleanUserTag(str) {
@@ -1224,7 +1229,7 @@ function cleanUserTag(str) {
 
 function userMatchesRow(row, uid) {
   if (!row) return false;
-  const numUid = Number(uid || 1191760477);
+  const numUid = Number(uid || 8925138241);
   const tag = `usr:${numUid}`;
   
   if (row.telegram_id && Number(row.telegram_id) === numUid) return true;
@@ -1238,7 +1243,7 @@ function userMatchesRow(row, uid) {
   ];
   const hasThisUserTag = textFields.some(t => typeof t === 'string' && t.includes(tag));
   
-  if (numUid === 1191760477) {
+  if (isAdminUserUID(numUid)) {
     const hasAnyUserTag = textFields.some(t => typeof t === 'string' && t.includes('usr:'));
     return hasThisUserTag || !hasAnyUserTag;
   }
@@ -1341,7 +1346,7 @@ async function applyUserPersonalization() {
 
   const adminNav = document.getElementById('nav-item-admin');
 
-  if (uid === 1191760477) {
+  if (isAdminUserUID(uid)) {
 
     // 👑 Admin / Dr. Abdullah
 
@@ -3717,7 +3722,7 @@ async function checkSandboxModeState() {
   const uid = getUID();
 
   // Hide button completely for students - only Dr. Abdullah (Admin) sees it
-  if (uid !== 1191760477) {
+  if (!isAdminUserUID(uid)) {
     btn.style.display = 'none';
     return;
   } else {
@@ -3758,7 +3763,7 @@ async function checkSandboxModeState() {
 
 async function toggleSandboxModeFromWeb() {
   const uid = getUID();
-  if (uid !== 1191760477) {
+  if (!isAdminUserUID(uid)) {
     alert('وضع التجربة متاح فقط للمشرف العام.');
     return;
   }
@@ -3946,9 +3951,9 @@ async function loadAdminPortalData() {
 
   const tgUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
 
-  const currentUserId = Number(urlUserId || tgUserId || '1191760477');
+  const currentUserId = Number(urlUserId || tgUserId || (window.IS_ADMIN ? '8925138241' : '0'));
 
-  if (currentUserId !== 1191760477) {
+  if (!isAdminUserUID(currentUserId)) {
 
     if (adminTabBtn) adminTabBtn.style.display = 'none';
 
@@ -3960,7 +3965,7 @@ async function loadAdminPortalData() {
 
   try {
 
-    const res = await fetch('/api/dashboard_data?telegram_id=1191760477');
+    const res = await fetch('/api/dashboard_data?telegram_id=' + currentUserId);
 
     const data = await res.json();
 

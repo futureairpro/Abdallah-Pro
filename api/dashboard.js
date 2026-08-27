@@ -257,8 +257,8 @@ export default async function handler(req, res) {
     <div class="user-box">
       <div class="avatar-icon">🩺</div>
       <div class="user-meta">
-        <h1 id="userFullName">د. عبدالله (المؤسس)</h1>
-        <span id="userAcademic">الفرقة الرابعة • امتياز 450 درجة 🎯</span>
+        <h1 id="userFullName">المنظومة الطبية الذكية</h1>
+        <span id="userAcademic">Doctor OS 🎯</span>
       </div>
     </div>
     <div class="badge-status" id="userBadge">
@@ -501,7 +501,7 @@ export default async function handler(req, res) {
 
     // Determine current user ID
     const urlParams = new URLSearchParams(window.location.search);
-    const userId = urlParams.get('telegram_id') || tg?.initDataUnsafe?.user?.id || '1191760477';
+    const userId = urlParams.get('telegram_id') || tg?.initDataUnsafe?.user?.id || '8925138241';
 
     function switchTab(tabId, btnEl) {
       if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
