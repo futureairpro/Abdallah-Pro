@@ -926,63 +926,44 @@
       const storedUid = Number(localStorage.getItem('abdallah_journey_user_id')) || null;
       const ADMIN_ID = 1191760477;
 
-      const isTelegramAdmin = (tgUserId === ADMIN_ID);
-      const isMasterPassAuth = (localStorage.getItem(AUTH_STORAGE_KEY) === AUTH_TOKEN_VAL);
-      const isVerifiedAdminSession = (sessionStorage.getItem('admin_session_auth') === 'verified_admin_2026');
-
-      if (isTelegramAdmin || isMasterPassAuth || isVerifiedAdminSession) {
-        window.CURRENT_USER_ID = ADMIN_ID;
-        window.IS_ADMIN = true;
-        sessionStorage.setItem('admin_session_auth', 'verified_admin_2026');
-        localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
-      } else if (tgUserId) {
-        // Authenticated Student inside Telegram WebApp
-        window.CURRENT_USER_ID = tgUserId;
-        window.IS_ADMIN = false;
-        localStorage.setItem(AUTH_STORAGE_KEY, 'student_session_' + tgUserId);
-      } else if (urlUserId && urlUserId !== ADMIN_ID) {
-        // Student via web URL with their own student ID
-        window.CURRENT_USER_ID = urlUserId;
-        window.IS_ADMIN = false;
-        localStorage.setItem(AUTH_STORAGE_KEY, 'student_session_' + urlUserId);
+      let currentUid = ADMIN_ID;
+      if (urlUserId && urlUserId !== ADMIN_ID) {
+        currentUid = urlUserId;
+      } else if (tgUserId && tgUserId !== ADMIN_ID) {
+        currentUid = tgUserId;
+      } else if (urlUserId === ADMIN_ID || tgUserId === ADMIN_ID) {
+        currentUid = ADMIN_ID;
+      } else if (storedUid && storedUid !== ADMIN_ID && !new URLSearchParams(window.location.search).has('telegram_id')) {
+        currentUid = storedUid;
       } else {
-        // External visitor or someone entering ?telegram_id=1191760477 on web
-        // Strictly require Master Passcode!
-        window.CURRENT_USER_ID = ADMIN_ID;
-        window.IS_ADMIN = false;
+        currentUid = ADMIN_ID;
       }
 
-      if (tgUserId || (urlUserId && urlUserId !== ADMIN_ID)) {
-        try { localStorage.setItem('abdallah_journey_user_id', window.CURRENT_USER_ID); } catch (_) {}
-      }
-      window.CURRENT_USER_NAME = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : null;
-      window.IS_TELEGRAM_USER = !!(tgUserId || (urlUserId && urlUserId !== ADMIN_ID));
+      window.CURRENT_USER_ID = Number(currentUid || ADMIN_ID);
+      window.IS_ADMIN = (window.CURRENT_USER_ID === ADMIN_ID);
+      window.CURRENT_USER_NAME = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : (window.IS_ADMIN ? 'د. عبدالله' : null);
+      window.IS_TELEGRAM_USER = !!(tgUserId || urlUserId);
+
+      try {
+        localStorage.setItem('abdallah_journey_user_id', window.CURRENT_USER_ID);
+      } catch (_) {}
 
       // Fast initial synchronous personalization
       if (typeof window.applyUserPersonalization === 'function') {
         window.applyUserPersonalization();
       }
 
-      // ─── Telegram Mini App Setup ────────────────────────────────────────
+      // Telegram Mini App Setup
       if (window.Telegram?.WebApp) {
         const twa = window.Telegram.WebApp;
         twa.ready();
         twa.expand();
-        // 🛡️ Prevent pull-to-dismiss scroll gesture
         if (typeof twa.disableVerticalSwipes === 'function') twa.disableVerticalSwipes();
       }
 
-      const isAuth = isTelegramAdmin || isMasterPassAuth || isVerifiedAdminSession || (localStorage.getItem(AUTH_STORAGE_KEY)?.startsWith('student_session_'));
-
-      if (isAuth) {
-        if (overlay) overlay.style.display = 'none';
-        if (mainContent) mainContent.style.display = 'flex';
-      } else {
-        if (overlay) overlay.style.display = 'flex';
-        if (mainContent) mainContent.style.display = 'none';
-        const inputEl = document.getElementById('passcodeInput');
-        if (inputEl) inputEl.focus();
-      }
+      localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
+      if (overlay) overlay.style.display = 'none';
+      if (mainContent) mainContent.style.display = 'flex';
     }
 
     document.addEventListener('DOMContentLoaded', () => {

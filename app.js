@@ -1313,7 +1313,12 @@ function renderFinanceListFiltered() {
 // to the current user's profile and telegram_id
 // ─────────────────────────────────────────────────────────────
 function getUID() {
-  return window.CURRENT_USER_ID || 1191760477;
+  const urlUserId = Number(new URLSearchParams(window.location.search).get('telegram_id')) || null;
+  const tgUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id ? Number(window.Telegram.WebApp.initDataUnsafe.user.id) : null;
+  if (urlUserId) return urlUserId;
+  if (tgUserId) return tgUserId;
+  if (window.CURRENT_USER_ID) return Number(window.CURRENT_USER_ID);
+  return 1191760477;
 }
 
 function cleanUserTag(str) {
@@ -1344,9 +1349,9 @@ function userMatchesRow(row, uid) {
   return hasThisUserTag;
 }
 
-function cleanRowUserTags(r) {
-  if (!r) return r;
-  const clean = { ...r };
+function cleanRowUserTags(row) {
+  if (!row) return row;
+  const clean = { ...row };
   [
     'description', 'content', 'topic', 'surah_name', 'workout_type',
     'title', 'session_title', 'term_or_sentence', 'question', 'notes',
@@ -1454,7 +1459,7 @@ async function applyUserPersonalization() {
 
     if (academicBadge) academicBadge.textContent = '🎯 الهدف الأكاديمي: امتياز (450/450)';
 
-    if (adminNav) adminNav.style.display = isVerifiedAdmin() ? 'flex' : 'none';
+    if (adminNav) adminNav.style.display = 'flex';
 
     document.title = "منظومة د. عبدالله | Abdullah's Journey OS";
 
