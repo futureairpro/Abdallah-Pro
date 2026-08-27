@@ -1,6 +1,7 @@
-﻿name = "abdallah-pro"
+name = "abdallah-pro"
+main = "api/webhook.js"
 compatibility_date = "2026-08-27"
-pages_build_output_dir = "./"
 
-[site]
-bucket = "./"
+[assets]
+directory = "./"
+
