@@ -7,143 +7,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;600;700;800&family=Amiri:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=2026.8.27.3">
+  <link rel="stylesheet" href="style.css">
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <!-- Supabase Cloud CDN (Universal compatibility for file:/// and https://) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <style id="calendar-luxury-styles">
-    /* ==============================================================================
-       📅 EXECUTIVE CALENDAR & SCHEDULE STYLES (100% Reliable & Native)
-       ============================================================================== */
-    .cal-day-cell {
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 8px;
-      min-height: 54px;
-      padding: 6px 4px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      position: relative;
-    }
-    .cal-day-cell:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.25);
-      transform: translateY(-1px);
-    }
-    .cal-day-cell.is-other-month {
-      opacity: 0.3;
-    }
-    .cal-day-cell.is-today {
-      border: 1.5px solid #10b981;
-      background: rgba(16, 185, 129, 0.12);
-    }
-    .cal-day-cell.is-selected {
-      border: 1.5px solid #f59e0b !important;
-      background: rgba(245, 158, 11, 0.18) !important;
-      box-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
-    }
-    .cal-day-num {
-      font-size: 0.85rem;
-      font-weight: 800;
-      color: #fff;
-    }
-    .cal-day-cell.is-today .cal-day-num {
-      color: #34d399;
-    }
-    .cal-day-dots {
-      display: flex;
-      gap: 3px;
-      margin-top: 2px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .cal-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-    }
-    .cal-dot-med { background: #10b981; }
-    .cal-dot-appt { background: #38bdf8; }
-    .cal-dot-task { background: #f59e0b; }
-    .cal-dot-gym { background: #a855f7; }
-
-    /* Schedule Items on Right Card */
-    .cal-item-card {
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 10px;
-      padding: 10px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-    .cal-item-card:hover {
-      border-color: rgba(255, 255, 255, 0.2);
-      transform: translateX(-2px);
-    }
-    .cal-item-card.is-done {
-      opacity: 0.45;
-    }
-    .cal-item-card.is-done .cal-item-title {
-      text-decoration: line-through;
-      color: var(--text-muted);
-    }
-    .cal-item-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .cal-item-check {
-      width: 20px;
-      height: 20px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 0.75rem;
-      font-weight: 900;
-      transition: all 0.15s;
-    }
-    .cal-item-check.checked {
-      background: #10b981;
-      border-color: #10b981;
-      color: #042f2e;
-    }
-    .cal-item-title {
-      font-size: 0.88rem;
-      font-weight: 800;
-      color: #fff;
-    }
-    .cal-item-meta {
-      font-size: 0.74rem;
-      color: var(--text-secondary);
-      margin-top: 2px;
-      display: flex;
-      gap: 8px;
-    }
-    .cal-badge-pill {
-      font-size: 0.72rem;
-      font-weight: 800;
-      padding: 3px 8px;
-      border-radius: 6px;
-      white-space: nowrap;
-    }
-    .cal-badge-medical { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .cal-badge-appt { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
-    .cal-badge-task { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-    .cal-badge-gym { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
-  </style>
 </head>
 <body>
 
@@ -183,8 +51,8 @@
         <div class="sidebar-brand">
           <div class="brand-icon-box">🩺</div>
           <div class="brand-text">
-            <h1 id="sidebarAppTitle">منظومة د. عبدالله</h1>
-            <span id="sidebarAppSubtitle">Abdullah OS • الفرقة 4 • امتياز 450/450 🎯</span>
+            <h1 id="sidebarAppTitle">المنظومة الطبية الذكية</h1>
+            <span id="sidebarAppSubtitle">المنظومة الذكية لإدارة الحياة والدراسة 🎯</span>
           </div>
         </div>
         <!-- Close button for mobile drawer -->
@@ -240,11 +108,6 @@
         <button class="nav-item" data-tab="tasks" data-title="المهام اليومية والمواعيد" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">🎯</span>
           <span>المهام والمواعيد</span>
-        </button>
-
-        <button class="nav-item" data-tab="calendar" data-title="التقويم والجدول الزمني الذكي" onclick="toggleMobileSidebar(false)">
-          <span class="nav-icon">📅</span>
-          <span>التقويم والجدول</span>
         </button>
 
 
@@ -348,11 +211,11 @@
                 </div>
                 <div class="target-badge-pill" style="margin: 0;">
                   <span class="live-dot"></span>
-                  <span id="homeAcademicBadge">🎯 الهدف الأكاديمي: امتياز (450/450)</span>
+                  <span id="homeAcademicBadge">🎯 الهدف الأكاديمي: امتياز وتفوق مستمر</span>
                 </div>
               </div>
-              <h1 class="exec-title" id="homeWelcomeTitle">مرحباً بك يا د. عبدالله 🩺✨</h1>
-              <p class="exec-desc" id="homeWelcomeDesc">تقرير "الزتونة" الشامل — رصد تحليلي دقيق لمستوى أدائك اليومي، صعودك وهبوطك، ما أنجزته وما تأخرت فيه، والسيولة النقدية مع توجيه ذكي للحفاظ على شعلة الانضباط.</p>
+              <h1 class="exec-title" id="homeWelcomeTitle">مرحباً بك في المنظومة الذكية 🩺✨</h1>
+              <p class="exec-desc" id="homeWelcomeDesc">تقريرك الشامل — رصد تحليلي دقيق لمستوى أدائك اليومي، صعودك وهبوطك، وسجل إنجازاتك الدراسية مع توجيه ذكي للحفاظ على شعلة الانضباط.</p>
               
               <!-- 📅 Time Period Filter Tabs -->
               <div class="time-filter-controls">
@@ -913,68 +776,6 @@
                 <div class="empty-state">لا توجد مواعيد مجدولة.</div>
               </div>
             </div>
-          </div>
-        </section>
-
-        <!-- 📅 TAB: Native Executive Calendar & Daily Schedule -->
-        <section class="tab-pane" id="tab-calendar">
-          <div class="section-title-row">
-            <div>
-              <h2>📅 تقويم المواعيد والجدول الزمني الذكي</h2>
-              <p style="margin: 4px 0 0; color: var(--text-secondary); font-size: 0.84rem;">متابعة المواعيد وجلسات المذاكرة والمهام بنظام 12 ساعة مع التقويم الشهري التفاعلي</p>
-            </div>
-            <div class="actions-group">
-              <button type="button" class="btn btn-primary" onclick="openCalendarEventModal()">
-                <span style="font-size: 1.1rem;">➕</span> إضافة موعد جديد
-              </button>
-            </div>
-          </div>
-
-          <div class="content-split-grid" style="margin-bottom: 24px;">
-            
-            <!-- Left Card: Monthly Calendar -->
-            <div class="split-card">
-              <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <button type="button" class="time-filter-btn" onclick="calNavigate(-1)" title="الشهر السابق">❮</button>
-                  <h3 id="calCurrentTitle" style="margin: 0; font-size: 1.05rem; font-weight: 800; min-width: 130px; text-align: center;">سبتمبر 2026</h3>
-                  <button type="button" class="time-filter-btn" onclick="calNavigate(1)" title="الشهر التالي">❯</button>
-                </div>
-                <button type="button" class="time-filter-btn active" onclick="calGoToday()">اليوم</button>
-              </div>
-
-              <!-- 7 Days Weekday Names -->
-              <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 0.78rem; font-weight: 800; color: var(--text-secondary); padding: 8px 0; border-bottom: 1px solid var(--border-card);">
-                <div>السبت</div>
-                <div>الأحد</div>
-                <div>الاثنين</div>
-                <div>الثلاثاء</div>
-                <div>الأربعاء</div>
-                <div>الخميس</div>
-                <div>الجمعة</div>
-              </div>
-
-              <!-- 35/42 Grid Cells -->
-              <div id="calMonthGridCells" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 8px;">
-                <!-- Populated dynamically by app.js -->
-              </div>
-            </div>
-
-            <!-- Right Card: Selected Day Schedule & Tasks -->
-            <div class="split-card">
-              <div class="card-header" style="display: flex; align-items: center; justify-content: space-between;">
-                <div>
-                  <h3 id="calSelectedDayHeader">⏰ جدول ومواعيد اليوم</h3>
-                  <span class="card-badge" id="calSelectedDayBadge" style="margin-top: 4px; display: inline-block;">0 أنشطة</span>
-                </div>
-                <button type="button" class="time-filter-btn" onclick="openCalendarEventModal()">➕ موعد</button>
-              </div>
-              <div id="calDayScheduleList" style="max-height: 440px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
-                <!-- Dynamically Populated by app.js -->
-                <div class="empty-state">لا توجد مواعيد أو مهام مسجلة في هذا اليوم.</div>
-              </div>
-            </div>
-
           </div>
         </section>
 
@@ -1544,101 +1345,6 @@
         <span style="font-size: 0.84rem; color: var(--text-secondary);" id="modalActivityCountBadge">عرض 0 نشاط</span>
         <button type="button" class="btn-wallet-cancel" onclick="closeFullActivityModal()">إغلاق ✖</button>
       </div>
-    </div>
-  </div>
-
-  <!-- 📅 Modal: إضافة وتعديل مهمة أو موعد في التقويم الذكي (TickTick Event Creator) -->
-  <div id="calEventModalOverlay" class="wallet-modal-overlay" style="display: none; z-index: 100000;" onclick="closeCalendarEventModal(event)">
-    <div class="wallet-modal-content" style="max-width: 580px; width: 94%;" onclick="event.stopPropagation()">
-      <div class="wallet-modal-header">
-        <div class="wallet-modal-title">
-          <span id="calModalIcon">📅</span>
-          <span id="calModalTitleText">إضافة مهمة أو موعد جديد</span>
-        </div>
-        <button type="button" class="wallet-modal-close" onclick="closeCalendarEventModal()">&times;</button>
-      </div>
-
-      <form id="calEventForm" onsubmit="saveCalendarEventFromModal(event)">
-        <div class="wallet-modal-body" style="display: flex; flex-direction: column; gap: 14px; padding: 18px;">
-          <input type="hidden" id="calModalEventId" value="">
-          <input type="hidden" id="calModalEventType" value="appointment">
-
-          <div>
-            <label class="modal-form-label">📌 عنوان المهمة / الموعد:</label>
-            <input type="text" id="calModalTitle" class="modal-form-input" placeholder="مثال: سيكشن باطنة / مراجعة كويز / تمرين جيم..." required autofocus>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div>
-              <label class="modal-form-label">🏷️ الفئة والتصنيف:</label>
-              <select id="calModalCategory" class="modal-form-select">
-                <option value="medical">🩺 مذاكرة وطب</option>
-                <option value="appointment">⏰ موعد وتنبيه</option>
-                <option value="task">🎯 مهمة وهدف</option>
-                <option value="gym">🏋️‍♂️ جيم وتمرين</option>
-                <option value="english">🗣️ إنجليزية</option>
-                <option value="work">💼 شغل وبيزنس</option>
-              </select>
-            </div>
-            <div>
-              <label class="modal-form-label">⚡ الأولوية:</label>
-              <select id="calModalPriority" class="modal-form-select">
-                <option value="medium">متوسطة 🟡</option>
-                <option value="high">عالية 🔴</option>
-                <option value="low">منخفضة 🟢</option>
-                <option value="urgent">طارئة ومصيرية 🔥</option>
-              </select>
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div>
-              <label class="modal-form-label">📅 التاريخ:</label>
-              <input type="date" id="calModalDate" class="modal-form-input custom-date-input" required>
-            </div>
-            <div>
-              <label class="modal-form-label">🕒 وقت البدء (12 ساعة):</label>
-              <input type="time" id="calModalStartTime" class="modal-form-input" value="09:00" required>
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div>
-              <label class="modal-form-label">⏱️ المدة المتوقعة:</label>
-              <select id="calModalDuration" class="modal-form-select">
-                <option value="30">30 دقيقة</option>
-                <option value="45">45 دقيقة</option>
-                <option value="60" selected>ساعة كاملة (60 د)</option>
-                <option value="90">ساعة ونصف (90 د)</option>
-                <option value="120">ساعتان (120 د)</option>
-                <option value="180">3 ساعات (180 د)</option>
-              </select>
-            </div>
-            <div>
-              <label class="modal-form-label">🔔 التذكير والتنبيه:</label>
-              <select id="calModalReminder" class="modal-form-select">
-                <option value="15">قبلها بـ 15 دقيقة</option>
-                <option value="30" selected>قبلها بـ 30 دقيقة</option>
-                <option value="60">قبلها بساعة</option>
-                <option value="0">في نفس الموعد تماماً</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label class="modal-form-label">📝 ملاحظات وتفاصيل إضافية:</label>
-            <textarea id="calModalNotes" class="modal-form-textarea" placeholder="أي تفاصيل أو رابط أو مكان..." rows="2"></textarea>
-          </div>
-        </div>
-
-        <div class="wallet-modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
-          <button type="button" class="btn-wallet-cancel" id="btnCalDeleteEvent" style="display: none; background: rgba(239,68,68,0.2); color: #f87171; border-color: rgba(239,68,68,0.4);" onclick="deleteCurrentCalendarEvent()">🗑️ حذف</button>
-          <div style="display: flex; gap: 8px; margin-right: auto;">
-            <button type="button" class="btn-wallet-cancel" onclick="closeCalendarEventModal()">إلغاء</button>
-            <button type="submit" class="btn-wallet-save" id="btnSaveCalEvent">💾 حفظ الموعد</button>
-          </div>
-        </div>
-      </form>
     </div>
   </div>
 
