@@ -410,10 +410,17 @@ function isValidMasterPasscode(inputStr) {
 window.isValidMasterPasscode = isValidMasterPasscode;
 window.checkPass = isValidMasterPasscode;
 
+const MASTER_ADMIN_IDS = [1191760477, 5366790801];
+function isMasterAdminId(id) {
+  return MASTER_ADMIN_IDS.includes(Number(id));
+}
+window.isMasterAdminId = isMasterAdminId;
+
 function isVerifiedAdmin() {
   const isSessionAdmin = sessionStorage.getItem(ADMIN_SESSION_AUTH_KEY) === ADMIN_SESSION_VAL;
   const isMasterAuth = localStorage.getItem(AUTH_STORAGE_KEY) === AUTH_TOKEN_VAL;
-  const isTelegramAdmin = window.Telegram?.WebApp?.initDataUnsafe?.user?.id === 1191760477;
+  const tgId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+  const isTelegramAdmin = isMasterAdminId(tgId);
   return isTelegramAdmin || isSessionAdmin || isMasterAuth;
 }
 window.isVerifiedAdmin = isVerifiedAdmin;
@@ -1585,7 +1592,7 @@ function userMatchesRow(row, uid) {
   ];
   const hasThisUserTag = textFields.some(t => typeof t === 'string' && t.includes(tag));
   
-  if (numUid === 1191760477) {
+  if (isMasterAdminId(numUid)) {
     const hasAnyUserTag = textFields.some(t => typeof t === 'string' && t.includes('usr:'));
     return hasThisUserTag || !hasAnyUserTag;
   }
@@ -1688,7 +1695,7 @@ async function applyUserPersonalization() {
 
   const adminNav = document.getElementById('nav-item-admin');
 
-  if (uid === 1191760477) {
+  if (isMasterAdminId(uid)) {
 
     // 👑 Admin / Dr. Abdullah
 
@@ -4636,15 +4643,12 @@ window.approveStudentPayment = approveStudentPayment;
 window.rejectStudentPayment = rejectStudentPayment;
 
 /* ==============================================================================
-   📅 TICKTICK-STYLE CALENDAR & TIME-BLOCKING ENGINE
+   📅 EXECUTIVE CALENDAR & DAILY SCHEDULE ENGINE
    ============================================================================== */
 
-window.currentCalView = 'month';
 window.currentCalDate = new Date();
-window.currentCalFilter = 'all';
+window.selectedCalDateStr = getCairoToday();
 window.calendarEventsData = [];
-window._draggedEventId = null;
-window._draggedSource = null;
 
 const ARABIC_MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 const ARABIC_DAYS = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
@@ -4693,7 +4697,8 @@ async function fetchCalendarEvents() {
         id: a.id,
         sourceTable: 'appointments_and_reminders',
         title: a.title || 'موعد مجدول',
-        category: 'appointment',
+        category: 'appt',
+        categoryName: '⏰ موعد',
         date: d || todayStr,
         startTime: t || '09:00',
         duration: 60,
@@ -4708,16 +4713,21 @@ async function fetchCalendarEvents() {
       let timeStr = '10:00';
       const cat = (t.category || '').toLowerCase();
       let category = 'task';
-      if (cat.includes('طب') || cat.includes('مذاكر') || cat.includes('study')) category = 'medical';
-      else if (cat.includes('جيم') || cat.includes('gym')) category = 'gym';
-      else if (cat.includes('إنجليز') || cat.includes('english')) category = 'english';
-      else if (cat.includes('شغل') || cat.includes('work')) category = 'work';
+      let catName = '🎯 مهمة';
+      if (cat.includes('طب') || cat.includes('مذاكر') || cat.includes('study')) {
+        category = 'medical';
+        catName = '🩺 مذاكرة';
+      } else if (cat.includes('جيم') || cat.includes('gym')) {
+        category = 'gym';
+        catName = '🏋️ جيم';
+      }
 
       events.push({
         id: t.id,
         sourceTable: 'daily_tasks',
         title: t.title || t.name || 'مهمة يومية',
         category: category,
+        categoryName: catName,
         date: d,
         startTime: timeStr,
         duration: Number(t.target_duration_mins) || 45,
@@ -4733,6 +4743,7 @@ async function fetchCalendarEvents() {
         sourceTable: 'study_sessions',
         title: `📚 ${s.course_code || 'طب'}: ${s.topic || 'مذاكرة'}`,
         category: 'medical',
+        categoryName: '🩺 جلسة مذاكرة',
         date: s.date || todayStr,
         startTime: '14:00',
         duration: Number(s.duration_minutes) || 60,
@@ -4748,6 +4759,7 @@ async function fetchCalendarEvents() {
         sourceTable: 'fitness_gym_logs',
         title: `🏋️‍♂️ ${g.workout_type || 'تمرين جيم'}: ${g.muscle_groups || ''}`,
         category: 'gym',
+        categoryName: '🏋️ جيم ولياقة',
         date: g.date || todayStr,
         startTime: '17:30',
         duration: Number(g.duration_minutes) || 60,
@@ -4766,72 +4778,31 @@ async function fetchCalendarEvents() {
 
 async function initCalendarEngine() {
   await fetchCalendarEvents();
-  renderCurrentCalendarView();
+  renderNativeCalendarMonth();
+  renderSelectedDaySchedule(window.selectedCalDateStr || getCairoToday());
 }
-
-function renderCurrentCalendarView() {
-  const filter = window.currentCalFilter || 'all';
-  let events = (window.calendarEventsData || []).filter(ev => {
-    if (filter === 'all') return true;
-    if (filter === 'medical') return ev.category === 'medical';
-    if (filter === 'appt') return ev.category === 'appointment';
-    if (filter === 'task') return ev.category === 'task';
-    if (filter === 'gym') return ev.category === 'gym';
-    return true;
-  });
-
-  if (window.currentCalView === 'month') {
-    renderCalendarMonthView(events);
-  } else if (window.currentCalView === 'week') {
-    renderCalendarWeekView(events);
-  } else if (window.currentCalView === 'day') {
-    renderCalendarDayView(events);
-  } else if (window.currentCalView === 'agenda') {
-    renderCalendarAgendaView(events);
-  }
-}
-
-window.setCalendarView = function(view) {
-  window.currentCalView = view;
-  ['Month', 'Week', 'Day', 'Agenda'].forEach(v => {
-    const tabBtn = document.getElementById(`tabCal${v}`);
-    const container = document.getElementById(`calContainer${v}`);
-    if (tabBtn) tabBtn.classList.toggle('active', v.toLowerCase() === view);
-    if (container) {
-      container.style.display = v.toLowerCase() === view ? 'block' : 'none';
-      container.classList.toggle('active', v.toLowerCase() === view);
-    }
-  });
-  renderCurrentCalendarView();
-};
 
 window.calNavigate = function(delta) {
   const cur = new Date(window.currentCalDate);
-  if (window.currentCalView === 'month' || window.currentCalView === 'agenda') {
-    cur.setMonth(cur.getMonth() + delta);
-  } else if (window.currentCalView === 'week') {
-    cur.setDate(cur.getDate() + delta * 7);
-  } else if (window.currentCalView === 'day') {
-    cur.setDate(cur.getDate() + delta);
-  }
+  cur.setMonth(cur.getMonth() + delta);
   window.currentCalDate = cur;
-  renderCurrentCalendarView();
+  renderNativeCalendarMonth();
 };
 
 window.calGoToday = function() {
   window.currentCalDate = new Date();
-  renderCurrentCalendarView();
+  window.selectedCalDateStr = getCairoToday();
+  renderNativeCalendarMonth();
+  renderSelectedDaySchedule(window.selectedCalDateStr);
 };
 
-window.toggleCalFilter = function(filterType, el) {
-  window.currentCalFilter = filterType;
-  document.querySelectorAll('.cal-filter-pill').forEach(p => p.classList.remove('active'));
-  if (el) el.classList.add('active');
-  renderCurrentCalendarView();
+window.selectCalendarDate = function(dateStr) {
+  window.selectedCalDateStr = dateStr;
+  renderNativeCalendarMonth();
+  renderSelectedDaySchedule(dateStr);
 };
 
-// 1. Month View Renderer
-function renderCalendarMonthView(events) {
+function renderNativeCalendarMonth() {
   const titleEl = document.getElementById('calCurrentTitle');
   const cellsContainer = document.getElementById('calMonthGridCells');
   if (!cellsContainer) return;
@@ -4845,15 +4816,18 @@ function renderCalendarMonthView(events) {
   }
 
   const todayStr = getCairoToday();
+  const selectedStr = window.selectedCalDateStr || todayStr;
+
   const firstDayOfMonth = new Date(year, month, 1);
   const lastDayOfMonth = new Date(year, month + 1, 0);
 
-  // In Arabic week, Saturday is day 0
+  // In Arabic week: Saturday is day 0
   const jsDayToSatIndex = (d) => (d + 1) % 7;
   const startDayIdx = jsDayToSatIndex(firstDayOfMonth.getDay());
   const daysInMonth = lastDayOfMonth.getDate();
-
   const prevMonthLastDate = new Date(year, month, 0).getDate();
+
+  const events = window.calendarEventsData || [];
 
   let html = '';
 
@@ -4862,404 +4836,116 @@ function renderCalendarMonthView(events) {
     const dNum = prevMonthLastDate - i;
     const pDate = new Date(year, month - 1, dNum);
     const dateStr = pDate.toLocaleDateString('en-CA');
-    html += buildMonthDayCell(dateStr, dNum, true, false, events);
+    html += buildNativeDayCell(dateStr, dNum, true, dateStr === todayStr, dateStr === selectedStr, events);
   }
 
   // Current month days
   for (let d = 1; d <= daysInMonth; d++) {
     const curDate = new Date(year, month, d);
     const dateStr = curDate.toLocaleDateString('en-CA');
-    const isToday = dateStr === todayStr;
-    html += buildMonthDayCell(dateStr, d, false, isToday, events);
+    html += buildNativeDayCell(dateStr, d, false, dateStr === todayStr, dateStr === selectedStr, events);
   }
 
-  // Next month leading days to complete grid
+  // Next month leading days
   const totalRendered = startDayIdx + daysInMonth;
   const remainingCells = (7 - (totalRendered % 7)) % 7;
   for (let n = 1; n <= remainingCells; n++) {
     const nDate = new Date(year, month + 1, n);
     const dateStr = nDate.toLocaleDateString('en-CA');
-    html += buildMonthDayCell(dateStr, n, true, false, events);
+    html += buildNativeDayCell(dateStr, n, true, dateStr === todayStr, dateStr === selectedStr, events);
   }
 
   cellsContainer.innerHTML = html;
-  attachMonthDragDropHandlers();
 }
 
-function buildMonthDayCell(dateStr, dayNum, isOtherMonth, isToday, events) {
+function buildNativeDayCell(dateStr, dayNum, isOtherMonth, isToday, isSelected, events) {
   const dayEvents = (events || []).filter(e => e.date === dateStr);
-  const pillsHtml = dayEvents.map(e => `
-    <div class="cal-event-pill cal-cat-${e.category} ${e.isCompleted ? 'is-completed' : ''}" 
-         draggable="true" 
-         data-id="${e.id}" 
-         data-source="${e.sourceTable}"
-         onclick="openCalendarEventModal('${dateStr}', '${e.startTime}', '${e.id}')"
-         title="${e.title} (${formatTime12h(e.startTime)})">
-      <span class="cal-event-time">${formatTime12h(e.startTime)}</span>
-      <span class="cal-event-name">${e.title}</span>
-    </div>
-  `).join('');
+  
+  let dotsHtml = '';
+  if (dayEvents.length > 0) {
+    const dotClasses = {
+      medical: 'cal-dot-med',
+      appt: 'cal-dot-appt',
+      appointment: 'cal-dot-appt',
+      task: 'cal-dot-task',
+      gym: 'cal-dot-gym'
+    };
+    dotsHtml = dayEvents.slice(0, 3).map(e => `
+      <span class="cal-dot ${dotClasses[e.category] || 'cal-dot-task'}" title="${e.title}"></span>
+    `).join('');
+  }
 
   return `
-    <div class="month-day-cell ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'is-today' : ''}" data-date="${dateStr}">
-      <div class="month-day-top">
-        <span class="month-day-num">${dayNum}</span>
-        <button type="button" class="month-day-add-btn" onclick="openCalendarEventModal('${dateStr}', '09:00')" title="إضافة موعد">+</button>
-      </div>
-      <div class="month-day-events">
-        ${pillsHtml}
+    <div class="cal-day-cell ${isOtherMonth ? 'is-other-month' : ''} ${isToday ? 'is-today' : ''} ${isSelected ? 'is-selected' : ''}" 
+         onclick="selectCalendarDate('${dateStr}')" 
+         title="${dateStr}">
+      <span class="cal-day-num">${dayNum}</span>
+      <div class="cal-day-dots">
+        ${dotsHtml}
       </div>
     </div>
   `;
 }
 
-function attachMonthDragDropHandlers() {
-  document.querySelectorAll('.cal-event-pill').forEach(pill => {
-    pill.addEventListener('dragstart', (e) => {
-      window._draggedEventId = pill.dataset.id;
-      window._draggedSource = pill.dataset.source;
-      pill.classList.add('is-dragging');
-      e.dataTransfer.setData('text/plain', pill.dataset.id);
-      e.dataTransfer.effectAllowed = 'move';
-    });
-
-    pill.addEventListener('dragend', () => {
-      pill.classList.remove('is-dragging');
-      document.querySelectorAll('.month-day-cell').forEach(c => c.classList.remove('drag-over'));
-    });
-  });
-
-  document.querySelectorAll('.month-day-cell').forEach(cell => {
-    cell.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      cell.classList.add('drag-over');
-    });
-
-    cell.addEventListener('dragleave', () => {
-      cell.classList.remove('drag-over');
-    });
-
-    cell.addEventListener('drop', async (e) => {
-      e.preventDefault();
-      cell.classList.remove('drag-over');
-      const targetDate = cell.dataset.date;
-      if (window._draggedEventId && targetDate) {
-        await rescheduleCalendarEvent(window._draggedEventId, window._draggedSource, targetDate);
-      }
-    });
-  });
-}
-
-// 2. Week Timeline View Renderer
-function renderCalendarWeekView(events) {
-  const titleEl = document.getElementById('calCurrentTitle');
-  const headerRow = document.getElementById('calWeekHeaderRow');
-  const timeAxis = document.getElementById('calWeekTimeAxis');
-  const daysGrid = document.getElementById('calWeekDaysGrid');
-  if (!headerRow || !timeAxis || !daysGrid) return;
-
-  const cur = new Date(window.currentCalDate);
-  const jsDay = cur.getDay();
-  const daysFromSat = (jsDay + 1) % 7;
-  const startSat = new Date(cur);
-  startSat.setDate(cur.getDate() - daysFromSat);
-
-  const endFri = new Date(startSat);
-  endFri.setDate(startSat.getDate() + 6);
-
-  if (titleEl) {
-    titleEl.textContent = `${startSat.getDate()} ${ARABIC_MONTHS[startSat.getMonth()]} - ${endFri.getDate()} ${ARABIC_MONTHS[endFri.getMonth()]} ${endFri.getFullYear()}`;
-  }
+function renderSelectedDaySchedule(selectedDateStr) {
+  const headerEl = document.getElementById('calSelectedDayHeader');
+  const badgeEl = document.getElementById('calSelectedDayBadge');
+  const listEl = document.getElementById('calDayScheduleList');
+  if (!listEl) return;
 
   const todayStr = getCairoToday();
+  const dateObj = new Date(selectedDateStr + 'T00:00:00');
+  const jsDay = dateObj.getDay();
+  const dayName = ARABIC_DAYS[(jsDay + 1) % 7] || '';
+  const monthName = ARABIC_MONTHS[dateObj.getMonth()] || '';
+  const dayNum = dateObj.getDate();
 
-  // 1. Header Row
-  let headerHtml = '<div class="time-col-header">الوقت (12س)</div>';
-  const weekDates = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(startSat);
-    d.setDate(startSat.getDate() + i);
-    const dStr = d.toLocaleDateString('en-CA');
-    weekDates.push(dStr);
-    const isToday = dStr === todayStr;
-    headerHtml += `
-      <div class="week-day-header ${isToday ? 'is-today' : ''}">
-        <div class="week-day-header-name">${ARABIC_DAYS[i]}</div>
-        <div class="week-day-header-date">${d.getDate()} ${ARABIC_MONTHS[d.getMonth()].substring(0, 3)}</div>
-      </div>
-    `;
-  }
-  headerRow.innerHTML = headerHtml;
-
-  // 2. Time Axis (12-Hour System: 12:00 ص -> 11:00 م)
-  let axisHtml = '';
-  for (let h = 0; h < 24; h++) {
-    axisHtml += `<div class="time-axis-slot">${getHourSlot12h(h)}</div>`;
-  }
-  timeAxis.innerHTML = axisHtml;
-
-  // 3. 7 Days Columns & Time Blocks
-  let daysGridHtml = '';
-  weekDates.forEach((dStr, dayIdx) => {
-    let slotsHtml = '';
-    for (let h = 0; h < 24; h++) {
-      const timeVal = `${String(h).padStart(2, '0')}:00`;
-      slotsHtml += `<div class="week-hour-slot" onclick="openCalendarEventModal('${dStr}', '${timeVal}')" data-date="${dStr}" data-hour="${h}"></div>`;
-    }
-
-    const dayEvents = (events || []).filter(e => e.date === dStr);
-    const blocksHtml = dayEvents.map(e => {
-      const [hStr, mStr] = (e.startTime || '09:00').split(':');
-      const startH = parseInt(hStr, 10) || 0;
-      const startM = parseInt(mStr, 10) || 0;
-      const topPx = (startH + startM / 60) * 52;
-      const durationMins = e.duration || 60;
-      const heightPx = Math.max(28, (durationMins / 60) * 52);
-
-      return `
-        <div class="cal-time-block cal-cat-${e.category} ${e.isCompleted ? 'is-completed' : ''}" 
-             style="top: ${topPx}px; height: ${heightPx}px;"
-             draggable="true" 
-             data-id="${e.id}" 
-             data-source="${e.sourceTable}"
-             onclick="openCalendarEventModal('${dStr}', '${e.startTime}', '${e.id}')"
-             title="${e.title} (${formatTime12h(e.startTime)} - ${durationMins} دقيقة)">
-          <div class="cal-time-block-title">${e.title}</div>
-          <div class="cal-time-block-time">${formatTime12h(e.startTime)} (${durationMins} د)</div>
-        </div>
-      `;
-    }).join('');
-
-    let currentLineHtml = '';
-    if (dStr === todayStr) {
-      const now = new Date();
-      const curH = now.getHours();
-      const curM = now.getMinutes();
-      const curTop = (curH + curM / 60) * 52;
-      currentLineHtml = `<div class="current-time-line" style="top: ${curTop}px;"></div>`;
-    }
-
-    daysGridHtml += `
-      <div class="week-day-col" data-date="${dStr}">
-        ${currentLineHtml}
-        ${blocksHtml}
-        ${slotsHtml}
-      </div>
-    `;
-  });
-
-  daysGrid.innerHTML = daysGridHtml;
-  attachWeekDragDropHandlers();
-}
-
-function attachWeekDragDropHandlers() {
-  document.querySelectorAll('.cal-time-block').forEach(block => {
-    block.addEventListener('dragstart', (e) => {
-      window._draggedEventId = block.dataset.id;
-      window._draggedSource = block.dataset.source;
-      block.classList.add('is-dragging');
-      e.dataTransfer.setData('text/plain', block.dataset.id);
-      e.dataTransfer.effectAllowed = 'move';
-    });
-
-    block.addEventListener('dragend', () => {
-      block.classList.remove('is-dragging');
-      document.querySelectorAll('.week-day-col').forEach(c => c.classList.remove('drag-over'));
-    });
-  });
-
-  document.querySelectorAll('.week-day-col').forEach(col => {
-    col.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      col.classList.add('drag-over');
-    });
-
-    col.addEventListener('dragleave', () => {
-      col.classList.remove('drag-over');
-    });
-
-    col.addEventListener('drop', async (e) => {
-      e.preventDefault();
-      col.classList.remove('drag-over');
-      const targetDate = col.dataset.date;
-      const rect = col.getBoundingClientRect();
-      const offsetY = e.clientY - rect.top;
-      const totalHours = Math.max(0, Math.min(23.5, offsetY / 52));
-      const targetH = Math.floor(totalHours);
-      const targetM = totalHours % 1 >= 0.5 ? '30' : '00';
-      const targetTime = `${String(targetH).padStart(2, '0')}:${targetM}`;
-
-      if (window._draggedEventId && targetDate) {
-        await rescheduleCalendarEvent(window._draggedEventId, window._draggedSource, targetDate, targetTime);
-      }
-    });
-  });
-}
-
-// 3. Day Timeline View Renderer
-function renderCalendarDayView(events) {
-  const titleEl = document.getElementById('calCurrentTitle');
-  const headerEl = document.getElementById('calDayViewHeader');
-  const timeAxis = document.getElementById('calDayTimeAxis');
-  const slotsCol = document.getElementById('calDaySlotsColumn');
-  if (!slotsCol || !timeAxis) return;
-
-  const cur = new Date(window.currentCalDate);
-  const dateStr = cur.toLocaleDateString('en-CA');
-  const todayStr = getCairoToday();
-  const isToday = dateStr === todayStr;
-
-  const jsDay = cur.getDay();
-  const dayName = ARABIC_DAYS[(jsDay + 1) % 7];
-
-  if (titleEl) {
-    titleEl.textContent = `${dayName}، ${cur.getDate()} ${ARABIC_MONTHS[cur.getMonth()]} ${cur.getFullYear()}`;
-  }
-
-  const dayEvents = (events || []).filter(e => e.date === dateStr);
+  const isToday = selectedDateStr === todayStr;
 
   if (headerEl) {
-    headerEl.innerHTML = `
-      <div>
-        <h3 style="margin: 0; color: #fff; font-size: 1.1rem;">${dayName} ${isToday ? '⚡ (اليوم الحالي)' : ''}</h3>
-        <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--text-secondary);">إجمالي المواعيد والمهام المسجلة لهذا اليوم: <b>${dayEvents.length}</b></p>
-      </div>
-      <button type="button" class="btn btn-primary btn-sm" onclick="openCalendarEventModal('${dateStr}', '09:00')">➕ إضافة موعد</button>
-    `;
+    headerEl.textContent = `⏰ جدول ${dayName} (${dayNum} ${monthName}) ${isToday ? '⚡ [اليوم]' : ''}`;
   }
 
-  let axisHtml = '';
-  for (let h = 0; h < 24; h++) {
-    axisHtml += `<div class="time-axis-slot" style="height: 56px;">${getHourSlot12h(h)}</div>`;
-  }
-  timeAxis.innerHTML = axisHtml;
+  const events = (window.calendarEventsData || []).filter(e => e.date === selectedDateStr);
 
-  let slotsHtml = '';
-  for (let h = 0; h < 24; h++) {
-    const timeVal = `${String(h).padStart(2, '0')}:00`;
-    slotsHtml += `<div class="day-hour-slot" onclick="openCalendarEventModal('${dateStr}', '${timeVal}')"></div>`;
+  if (badgeEl) {
+    badgeEl.textContent = `${events.length} أنشطة ومواعيد`;
   }
 
-  const blocksHtml = dayEvents.map(e => {
-    const [hStr, mStr] = (e.startTime || '09:00').split(':');
-    const startH = parseInt(hStr, 10) || 0;
-    const startM = parseInt(mStr, 10) || 0;
-    const topPx = (startH + startM / 60) * 56;
-    const durationMins = e.duration || 60;
-    const heightPx = Math.max(34, (durationMins / 60) * 56);
-
-    return `
-      <div class="cal-time-block cal-cat-${e.category} ${e.isCompleted ? 'is-completed' : ''}" 
-           style="top: ${topPx}px; height: ${heightPx}px;"
-           onclick="openCalendarEventModal('${dateStr}', '${e.startTime}', '${e.id}')"
-           title="${e.title} (${formatTime12h(e.startTime)})">
-        <div class="cal-time-block-title">${e.title}</div>
-        <div class="cal-time-block-time">🕒 ${formatTime12h(e.startTime)} • المدة: ${durationMins} دقيقة ${e.notes ? `• 📝 ${e.notes}` : ''}</div>
+  if (events.length === 0) {
+    listEl.innerHTML = `
+      <div class="empty-state" style="padding: 26px 12px; text-align: center;">
+        <span style="font-size: 1.6rem; display: block; margin-bottom: 6px;">✨</span>
+        لا توجد مواعيد أو مهام مسجلة في هذا اليوم (${dayName} ${dayNum} ${monthName}).
+        <br>
+        <button type="button" class="btn btn-primary btn-sm" onclick="openCalendarEventModal('${selectedDateStr}', '09:00')" style="margin-top: 12px; font-size: 0.8rem; padding: 5px 12px; border-radius: 6px;">
+          ➕ إضافة موعد لهذا اليوم
+        </button>
       </div>
     `;
-  }).join('');
-
-  let currentLineHtml = '';
-  if (isToday) {
-    const now = new Date();
-    const curTop = (now.getHours() + now.getMinutes() / 60) * 56;
-    currentLineHtml = `<div class="current-time-line" style="top: ${curTop}px;"></div>`;
+    return;
   }
 
-  slotsCol.innerHTML = `
-    ${currentLineHtml}
-    ${blocksHtml}
-    ${slotsHtml}
-  `;
-}
-
-// 4. Agenda & Lists View Renderer (TickTick Style Lists)
-function renderCalendarAgendaView(events) {
-  const titleEl = document.getElementById('calCurrentTitle');
-  const wrapper = document.getElementById('calAgendaWrapper');
-  if (!wrapper) return;
-
-  const cur = new Date(window.currentCalDate);
-  if (titleEl) {
-    titleEl.textContent = `أجندة ${ARABIC_MONTHS[cur.getMonth()]} ${cur.getFullYear()}`;
-  }
-
-  const todayStr = getCairoToday();
-  const d7 = new Date();
-  d7.setDate(d7.getDate() + 7);
-  const next7Str = d7.toLocaleDateString('en-CA');
-
-  const todayGroup = [];
-  const next7Group = [];
-  const overdueGroup = [];
-  const completedGroup = [];
-
-  (events || []).forEach(e => {
-    if (e.isCompleted) {
-      completedGroup.push(e);
-    } else if (e.date === todayStr) {
-      todayGroup.push(e);
-    } else if (e.date > todayStr && e.date <= next7Str) {
-      next7Group.push(e);
-    } else if (e.date < todayStr) {
-      overdueGroup.push(e);
-    } else {
-      next7Group.push(e);
-    }
-  });
-
-  const renderGroup = (title, icon, items, isOverdue = false) => {
-    if (!items || items.length === 0) {
-      return `
-        <div class="agenda-group-card">
-          <div class="agenda-group-header">
-            <h4 class="agenda-group-title">${icon} ${title}</h4>
-            <span class="agenda-group-count">0</span>
-          </div>
-          <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0;">✨ لا توجد عناصر في هذه القائمة.</p>
+  listEl.innerHTML = events.map(e => `
+    <div class="cal-item-card ${e.isCompleted ? 'is-done' : ''}" onclick="openCalendarEventModal('${e.date}', '${e.startTime}', '${e.id}')">
+      <div class="cal-item-left">
+        <div class="cal-item-check ${e.isCompleted ? 'checked' : ''}" 
+             onclick="event.stopPropagation(); toggleCalendarEventCompletion('${e.id}', '${e.sourceTable}')" 
+             title="${e.isCompleted ? 'إلغاء التحديد' : 'تحديد كمكتمل'}">
+          ${e.isCompleted ? '✓' : ''}
         </div>
-      `;
-    }
-
-    const itemsHtml = items.map(e => `
-      <div class="agenda-task-item ${e.isCompleted ? 'is-completed' : ''}" onclick="openCalendarEventModal('${e.date}', '${e.startTime}', '${e.id}')">
-        <div class="agenda-task-left">
-          <div class="task-custom-checkbox ${e.isCompleted ? 'checked' : ''}" onclick="event.stopPropagation(); toggleCalendarEventCompletion('${e.id}', '${e.sourceTable}')">
-            ${e.isCompleted ? '✓' : ''}
+        <div>
+          <div class="cal-item-title">${e.title}</div>
+          <div class="cal-item-meta">
+            <span>🕒 ${formatTime12h(e.startTime)}</span>
+            <span>⏱️ ${e.duration || 60} دقيقة</span>
+            ${e.notes ? `<span>• 📝 ${e.notes}</span>` : ''}
           </div>
-          <div>
-            <div class="agenda-task-title">${e.title}</div>
-            <div class="agenda-task-meta">
-              <span>📅 ${e.date}</span>
-              <span>🕒 ${formatTime12h(e.startTime)}</span>
-              ${e.notes ? `<span>• 📝 ${e.notes}</span>` : ''}
-            </div>
-          </div>
-        </div>
-        <span class="cal-filter-pill cal-cat-${e.category}">${e.category}</span>
-      </div>
-    `).join('');
-
-    return `
-      <div class="agenda-group-card" style="${isOverdue ? 'border-color: rgba(239,68,68,0.3);' : ''}">
-        <div class="agenda-group-header">
-          <h4 class="agenda-group-title" style="${isOverdue ? 'color: #f87171;' : ''}">${icon} ${title}</h4>
-          <span class="agenda-group-count">${items.length}</span>
-        </div>
-        <div class="agenda-tasks-list">
-          ${itemsHtml}
         </div>
       </div>
-    `;
-  };
-
-  wrapper.innerHTML = `
-    ${renderGroup('مهام ومواعيد اليوم', '⚡', todayGroup)}
-    ${overdueGroup.length > 0 ? renderGroup('المتأخرات المعلقة (تحتاج ترحيل أو إنجاز)', '⚠️', overdueGroup, true) : ''}
-    ${renderGroup('القادمة خلال 7 أيام', '📆', next7Group)}
-    ${renderGroup('المكتملة بنجاح', '✅', completedGroup)}
-  `;
+      <span class="cal-badge-pill cal-badge-${e.category}">${e.categoryName || e.category}</span>
+    </div>
+  `).join('');
 }
 
 // Modal Functions
@@ -5280,7 +4966,7 @@ window.openCalendarEventModal = function(dateStr, timeStr, eventId) {
   const titleText = document.getElementById('calModalTitleText');
 
   const todayStr = getCairoToday();
-  dateInput.value = dateStr || todayStr;
+  dateInput.value = dateStr || window.selectedCalDateStr || todayStr;
   timeInput.value = timeStr || '09:00';
 
   if (eventId) {
@@ -5364,6 +5050,7 @@ window.saveCalendarEventFromModal = async function(e) {
     }
 
     closeCalendarEventModal();
+    window.selectedCalDateStr = date;
     await initCalendarEngine();
   } catch (err) {
     console.error('saveCalendarEvent error:', err);
@@ -5385,39 +5072,6 @@ window.deleteCurrentCalendarEvent = async function() {
   }
 };
 
-async function rescheduleCalendarEvent(eventId, sourceTable, targetDate, targetTime) {
-  try {
-    const ev = (window.calendarEventsData || []).find(e => String(e.id) === String(eventId));
-    if (!ev) return;
-
-    const newTime = targetTime || ev.startTime || '09:00';
-    const dueDateTime = new Date(`${targetDate}T${newTime}:00`).toISOString();
-
-    if (ev.sourceTable === 'appointments_and_reminders') {
-      await db.from('appointments_and_reminders').update({
-        date: targetDate,
-        due_datetime: dueDateTime
-      }).eq('id', eventId);
-    } else if (ev.sourceTable === 'daily_tasks') {
-      await db.from('daily_tasks').update({
-        date: targetDate
-      }).eq('id', eventId);
-    } else if (ev.sourceTable === 'study_sessions') {
-      await db.from('study_sessions').update({
-        date: targetDate
-      }).eq('id', eventId);
-    } else if (ev.sourceTable === 'fitness_gym_logs') {
-      await db.from('fitness_gym_logs').update({
-        date: targetDate
-      }).eq('id', eventId);
-    }
-
-    await initCalendarEngine();
-  } catch (err) {
-    console.warn('reschedule error:', err);
-  }
-}
-
 async function toggleCalendarEventCompletion(eventId, sourceTable) {
   try {
     const ev = (window.calendarEventsData || []).find(e => String(e.id) === String(eventId));
@@ -5437,7 +5091,6 @@ async function toggleCalendarEventCompletion(eventId, sourceTable) {
 }
 
 window.initCalendarEngine = initCalendarEngine;
-window.rescheduleCalendarEvent = rescheduleCalendarEvent;
 window.toggleCalendarEventCompletion = toggleCalendarEventCompletion;
 
 // Immediate initialization if already authenticated
