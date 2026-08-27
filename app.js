@@ -591,74 +591,6 @@ function initAuthGateway() {
 
 }
 
-function updatePrayerCompass(prayers) {
-  const nextTitleEl = document.getElementById('homeNextPrayerTitle');
-  const countdownEl = document.getElementById('homeNextPrayerCountdown');
-  const suggestionEl = document.getElementById('homeNextPrayerSuggestion');
-  if (!nextTitleEl || !prayers) return;
-
-  const now = new Date();
-  const cairoTimeStr = now.toLocaleTimeString('en-GB', { timeZone: 'Africa/Cairo', hour12: false });
-  const [curH, curM] = cairoTimeStr.split(':').map(Number);
-  const nowMins = (curH || 0) * 60 + (curM || 0);
-
-  const rawTimes = prayers.times || prayers;
-  const prayerList = [
-    { name: 'الفجر', key: 'fajr', time: rawTimes.fajr || '04:50' },
-    { name: 'الشروق', key: 'sunrise', time: rawTimes.sunrise || '06:15' },
-    { name: 'الظهر', key: 'dhuhr', time: rawTimes.dhuhr || '12:55' },
-    { name: 'العصر', key: 'asr', time: rawTimes.asr || '16:25' },
-    { name: 'المغرب', key: 'maghrib', time: rawTimes.maghrib || '19:25' },
-    { name: 'العشاء', key: 'isha', time: rawTimes.isha || '20:45' }
-  ];
-
-  let nextPrayer = null;
-  let diffMins = 0;
-
-  for (const p of prayerList) {
-    if (!p.time) continue;
-    const [ph, pm] = p.time.split(':').map(Number);
-    const pMins = ph * 60 + pm;
-    if (pMins > nowMins) {
-      nextPrayer = p;
-      diffMins = pMins - nowMins;
-      break;
-    }
-  }
-
-  // If after Isha, next is Fajr tomorrow
-  if (!nextPrayer) {
-    nextPrayer = prayerList[0];
-    const [fh, fm] = (nextPrayer.time || '04:50').split(':').map(Number);
-    const fMins = fh * 60 + fm;
-    diffMins = (24 * 60 - nowMins) + fMins;
-  }
-
-  const hoursLeft = Math.floor(diffMins / 60);
-  const minsLeft = diffMins % 60;
-  let countdownText = '';
-  if (hoursLeft > 0) {
-    countdownText = `(خلال ${hoursLeft} س و ${minsLeft} د)`;
-  } else {
-    countdownText = `(خلال ${minsLeft} دقيقة)`;
-  }
-
-  nextTitleEl.textContent = nextPrayer.name;
-  if (countdownEl) countdownEl.textContent = countdownText;
-
-  if (suggestionEl) {
-    if (diffMins <= 15) {
-      suggestionEl.textContent = `🕌 اقترب موعد الأذان — استعد للوضوء والصلاة في وقتها لنيل البركة.`;
-    } else if (diffMins <= 45) {
-      suggestionEl.textContent = `⚡ وقت مثالي لمراجعة سريعة، كويزات، أو قراءة ورد القرءان.`;
-    } else if (diffMins <= 90) {
-      suggestionEl.textContent = `💡 فرصة ممتازة لإنجاز جلسة تركيز دراسية عميقة (Focus Session).`;
-    } else {
-      suggestionEl.textContent = `📚 متسع وفير من الوقت — انطلق في مذاكرة المحاضرات والسكاشن.`;
-    }
-  }
-}
-
 function initClockAndPrayers() {
 
   const clockEl = document.getElementById('cairoClock');
@@ -724,10 +656,6 @@ function initClockAndPrayers() {
       setPt('ptMaghrib', formatPt(prayers.maghrib || (prayers.times && prayers.times.maghrib)));
 
       setPt('ptIsha', formatPt(prayers.isha || (prayers.times && prayers.times.isha)));
-
-      updatePrayerCompass(prayers);
-
-      setInterval(() => updatePrayerCompass(prayers), 60000);
 
     }
 
@@ -840,178 +768,6 @@ window.switchTabDirect = function(tabName) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
 };
-
-// 🔥 1. Calculate & Render Consistency Streak Flame
-function calculateAndRenderStreak(events) {
-  const countEl = document.getElementById('homeStreakCount');
-  const subEl = document.getElementById('homeStreakSub');
-  if (!countEl) return;
-
-  const todayStr = getCairoToday();
-  const dToday = new Date(todayStr);
-
-  const activeDates = new Set();
-  (events || []).forEach(ev => {
-    let d = ev.dateStr || ev.date;
-    if (!d && ev.createdAt) {
-      try { d = new Date(ev.createdAt).toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' }); } catch (_) {}
-    }
-    if (d) activeDates.add(d);
-  });
-
-  let streak = 0;
-  let checkDate = new Date(dToday);
-
-  // If today has activities, streak starts from today; else start checking from yesterday
-  const todayActive = activeDates.has(todayStr);
-  if (!todayActive) {
-    checkDate.setDate(checkDate.getDate() - 1);
-  }
-
-  while (true) {
-    const dStr = checkDate.toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
-    if (activeDates.has(dStr)) {
-      streak++;
-      checkDate.setDate(checkDate.getDate() - 1);
-    } else {
-      break;
-    }
-  }
-
-  countEl.textContent = streak;
-  if (subEl) {
-    if (streak >= 7) {
-      subEl.textContent = `🔥 شعلة أسطورية (${streak} أيام متتالية)! عزيمة لا تنكسر نحو الامتياز.`;
-    } else if (streak >= 3) {
-      subEl.textContent = `🔥 الشعلة متقدة (${streak} أيام)! استمر في حصد الإنجازات اليومية.`;
-    } else if (streak >= 1) {
-      subEl.textContent = `⚡ بداية ممتازة! واصل إنجاز الثوابت لتصل لشعلة الأسبوع.`;
-    } else {
-      subEl.textContent = `🚀 ابدأ شعلة اليوم بإنجاز أول جلسة مذاكرة أو ورد قرءان!`;
-    }
-  }
-}
-
-// 🗓️ 2. Render 7-Day Consistency Micro Heatmap
-function renderWeeklyHeatmap(events) {
-  const gridEl = document.getElementById('homeWeeklyHeatmapGrid');
-  if (!gridEl) return;
-
-  const todayStr = getCairoToday();
-  const dToday = new Date(todayStr);
-  
-  // Calculate Saturday of current week (0: Sun, 6: Sat)
-  const dayOfWeek = dToday.getDay();
-  const daysFromSat = (dayOfWeek + 1) % 7;
-  const startSat = new Date(dToday);
-  startSat.setDate(dToday.getDate() - daysFromSat);
-
-  const dayNames = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
-  const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-
-  let html = '';
-
-  for (let i = 0; i < 7; i++) {
-    const curD = new Date(startSat);
-    curD.setDate(startSat.getDate() + i);
-    const dateStr = curD.toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
-    const isToday = dateStr === todayStr;
-    const isFuture = dateStr > todayStr;
-    const isPast = dateStr < todayStr;
-
-    const dayName = dayNames[i];
-    const dayDateFormatted = `${curD.getDate()} ${monthNames[curD.getMonth()]}`;
-
-    const dayEvents = (events || []).filter(ev => {
-      let d = ev.dateStr || ev.date;
-      if (!d && ev.createdAt) {
-        try { d = new Date(ev.createdAt).toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' }); } catch (_) {}
-      }
-      return d === dateStr;
-    });
-
-    let hasStudy = false;
-    let hasQuran = false;
-    let hasGym = false;
-    let hasEnglish = false;
-
-    dayEvents.forEach(ev => {
-      const cat = (ev.category || '').toLowerCase();
-      if (cat.includes('طب') || cat.includes('مذاكر') || cat.includes('study')) hasStudy = true;
-      if (cat.includes('قرآن') || cat.includes('قرءان') || cat.includes('تلاوة')) hasQuran = true;
-      if (cat.includes('جيم') || cat.includes('لياقة') || cat.includes('gym')) hasGym = true;
-      if (cat.includes('إنجليز') || cat.includes('english')) hasEnglish = true;
-    });
-
-    let scorePoints = 0;
-    if (hasStudy) scorePoints += 40;
-    if (hasQuran) scorePoints += 30;
-    if (hasGym || hasEnglish) scorePoints += 30;
-
-    let scoreClass = 'score-future';
-    let scoreText = 'قادم ⚪';
-    if (isToday) {
-      if (scorePoints >= 70) {
-        scoreClass = 'score-green';
-        scoreText = `${scorePoints}% 🟢`;
-      } else {
-        scoreClass = 'score-today';
-        scoreText = `${scorePoints}% ⚡ اليوم`;
-      }
-    } else if (isPast) {
-      if (scorePoints >= 70) {
-        scoreClass = 'score-green';
-        scoreText = `${scorePoints}% 🟢`;
-      } else if (scorePoints >= 30) {
-        scoreClass = 'score-gold';
-        scoreText = `${scorePoints}% 🟡`;
-      } else {
-        scoreClass = 'score-red';
-        scoreText = 'تراجع 🔴';
-      }
-    }
-
-    const tagsHtml = `
-      <div class="heatmap-day-tags">
-        <span title="المذاكرة" style="opacity: ${hasStudy ? '1' : '0.2'};">🩺</span>
-        <span title="القرءان" style="opacity: ${hasQuran ? '1' : '0.2'};">📖</span>
-        <span title="الجيم" style="opacity: ${hasGym ? '1' : '0.2'};">🏋️‍♂️</span>
-        <span title="الإنجليزية" style="opacity: ${hasEnglish ? '1' : '0.2'};">🗣️</span>
-      </div>
-    `;
-
-    html += `
-      <div class="heatmap-day-card ${isToday ? 'is-today' : ''}" onclick="switchTabDirect('medical')">
-        <span class="heatmap-day-name">${dayName}</span>
-        <span class="heatmap-day-date">${dayDateFormatted}</span>
-        <span class="heatmap-day-score ${scoreClass}">${scoreText}</span>
-        ${tagsHtml}
-      </div>
-    `;
-  }
-
-  gridEl.innerHTML = html;
-}
-
-// 🎯 3. Update Academic Milestone
-function updateAcademicMilestone(studyHours, allStudyRows) {
-  const fillEl = document.getElementById('homeAcademicProgressFill');
-  const subEl = document.getElementById('homeAcademicMilestoneSub');
-  if (!fillEl) return;
-
-  let totalCumulativeHours = 0;
-  (allStudyRows || []).forEach(s => {
-    totalCumulativeHours += (Number(s.duration_minutes || 0) / 60);
-  });
-
-  const targetHours = 100;
-  const pct = Math.min(100, Math.max(15, Math.round((totalCumulativeHours / targetHours) * 100)));
-  fillEl.style.width = `${pct}%`;
-
-  if (subEl) {
-    subEl.textContent = `🩺 إجمالي المنجز: ${totalCumulativeHours.toFixed(1)} ساعة • خطة الامتياز تسير بدقة`;
-  }
-}
 
 // 📅 Current Analytical Time Period State ('today' | 'week' | 'month')
 
@@ -2088,7 +1844,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
 
       { title: 'تمرين الجيم والقوة البدنية', done: checkGym, meta: `${gymSessionsCount} تمارين مسجلة`, icon: '🏋️‍♂️' },
 
-      { title: 'ورد القرءان الكريم وتثبيت الحفظ', done: checkQuran, meta: quranProgressMeta, icon: '📖' },
+      { title: 'ورد القرآن الكريم وتثبيت الحفظ', done: checkQuran, meta: quranProgressMeta, icon: '📖' },
 
       { title: 'تطوير اللغة الإنجليزية والـ Anki', done: checkEnglish, meta: `${totalEngCount} كلمات مبرمجة`, icon: '🗣️' },
 
@@ -2220,7 +1976,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
 
     if (checkStudy) strengths.push(`📚 إنجاز المذاكرة المستهدفة (${studyHours} ساعة)`);
 
-    if (checkQuran) strengths.push(`📖 انتظام تام في ورد القرءان الكريم (${quranStrengthText})`);
+    if (checkQuran) strengths.push(`📖 انتظام تام في ورد القرآن الكريم (${quranStrengthText})`);
 
     if (checkGym) strengths.push(`🏋️‍♂️ الالتزام بنشاط وتمرين الجيم (${gymSessionsCount} تمارين)`);
 
@@ -2253,7 +2009,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
     }
 
     if (!checkQuran) {
-      slippings.push(`<span>لم يتم توثيق ورد القرءان الكريم اليوم.</span> <button class="audit-quick-btn" onclick="switchTabDirect('quran')">📖 القرءان الكريم</button>`);
+      slippings.push(`<span>لم يتم توثيق ورد القرآن الكريم اليوم.</span> <button class="audit-quick-btn" onclick="switchTabDirect('quran')">📖 فتح المصحف</button>`);
     }
 
     if (!checkGym && period !== 'today') {
@@ -2918,9 +2674,6 @@ async function renderHomeOverview(period = activeHomePeriod) {
 
       window._cachedAllEvents = finalEvents;
 
-      calculateAndRenderStreak(finalEvents);
-      renderWeeklyHeatmap(finalEvents);
-
       renderHomeActivityTable(window._currentActivityFilter || 'all');
 
     } catch (actErr) {
@@ -2933,8 +2686,6 @@ async function renderHomeOverview(period = activeHomePeriod) {
     const homeModulesContainer = document.getElementById('homeModulesProgressGrid');
     if (homeModulesContainer) {
       const { data: allStudyRows } = await userQuery('study_sessions');
-
-      updateAcademicMilestone(studyHours, allStudyRows || []);
 
       const activeCourses = window.USER_ACTIVE_COURSES || [
         { code: 'PED401', title: 'Pediatric 1 (طب الأطفال 1)' },
