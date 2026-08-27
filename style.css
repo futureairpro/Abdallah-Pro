@@ -822,20 +822,10 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  background: rgba(16, 185, 129, 0.08);
-  border: 1.5px solid rgba(16, 185, 129, 0.35);
-  padding: 10px 18px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  padding: 8px 18px;
   border-radius: var(--radius-md);
-  min-width: 230px;
-  gap: 6px;
-}
-
-.score-top-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 12px;
 }
 
 .score-num {
@@ -850,35 +840,15 @@ html, body {
   font-size: 0.76rem;
   font-weight: 800;
   color: #e2e8f0;
+  margin-top: 4px;
 }
 
-.score-progress-track {
-  width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 99px;
-  overflow: hidden;
-}
-
-.score-progress-fill {
-  height: 100%;
-  border-radius: 99px;
-  transition: width 0.6s ease, background 0.4s ease;
-  background: linear-gradient(90deg, #10b981, #34d399);
-}
-
-/* 4 Analytical Diagnostic Boxes Grid (Balanced 2x2 Symmetry) */
+/* 4 Analytical Diagnostic Boxes Grid */
 .audit-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
   margin-bottom: 20px;
-}
-
-@media (max-width: 768px) {
-  .audit-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .audit-box {
@@ -916,77 +886,20 @@ html, body {
 .audit-box-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .audit-bullet {
   font-size: 0.84rem;
   color: #e2e8f0;
-  line-height: 1.6;
+  line-height: 1.5;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
+  align-items: flex-start;
   gap: 6px;
 }
 
 .audit-bullet b {
   color: #fff;
-}
-
-.audit-badge-expense {
-  display: inline-block;
-  font-family: var(--font-en);
-  direction: ltr;
-  background: rgba(244, 63, 94, 0.15);
-  color: #fb7185;
-  border: 1px solid rgba(244, 63, 94, 0.3);
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-weight: 800;
-  margin: 0 4px;
-}
-
-.audit-quick-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: rgba(56, 189, 248, 0.12);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-right: auto;
-  white-space: nowrap;
-}
-
-.audit-quick-btn:hover {
-  background: rgba(56, 189, 248, 0.25);
-  transform: scale(1.03);
-}
-
-.audit-quick-btn.btn-danger-pill {
-  background: rgba(244, 63, 94, 0.12);
-  color: #f43f5e;
-  border-color: rgba(244, 63, 94, 0.35);
-}
-
-.audit-quick-btn.btn-danger-pill:hover {
-  background: rgba(244, 63, 94, 0.25);
-}
-
-.audit-quick-btn.btn-gold-pill {
-  background: rgba(245, 158, 11, 0.12);
-  color: #fbbf24;
-  border-color: rgba(245, 158, 11, 0.35);
-}
-
-.audit-quick-btn.btn-gold-pill:hover {
-  background: rgba(245, 158, 11, 0.25);
 }
 
 .audit-motivational-banner {

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;600;700;800&family=Amiri:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260827_3">
+  <link rel="stylesheet" href="style.css">
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <!-- Supabase Cloud CDN (Universal compatibility for file:/// and https://) -->
@@ -51,8 +51,8 @@
         <div class="sidebar-brand">
           <div class="brand-icon-box">🩺</div>
           <div class="brand-text">
-            <h1 id="sidebarAppTitle">منظومة د. عبدالله</h1>
-            <span id="sidebarAppSubtitle">Abdullah OS • الفرقة 4 • امتياز 450/450 🎯</span>
+            <h1 id="sidebarAppTitle">المنظومة الطبية الذكية</h1>
+            <span id="sidebarAppSubtitle">المنظومة الذكية لإدارة الحياة والدراسة 🎯</span>
           </div>
         </div>
         <!-- Close button for mobile drawer -->
@@ -117,7 +117,7 @@
           <span>المالية والمصروفات</span>
         </button>
 
-        <button class="nav-item admin-only-tab" id="nav-item-admin" data-tab="admin" data-title="بوابة المشرف وإدارة المشتركين" onclick="toggleMobileSidebar(false)">
+        <button class="nav-item admin-only-tab" id="nav-item-admin" data-tab="admin" data-title="بوابة المشرف وإدارة المشتركين" style="display: none;" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">👑</span>
           <span>إدارة المشتركين</span>
         </button>
@@ -211,11 +211,11 @@
                 </div>
                 <div class="target-badge-pill" style="margin: 0;">
                   <span class="live-dot"></span>
-                  <span id="homeAcademicBadge">🎯 الهدف الأكاديمي: امتياز (450/450)</span>
+                  <span id="homeAcademicBadge">🎯 الهدف الأكاديمي: امتياز وتفوق مستمر</span>
                 </div>
               </div>
-              <h1 class="exec-title" id="homeWelcomeTitle">مرحباً بك يا د. عبدالله 🩺✨</h1>
-              <p class="exec-desc" id="homeWelcomeDesc">تقرير "الزتونة" الشامل — رصد تحليلي دقيق لمستوى أدائك اليومي، صعودك وهبوطك، ما أنجزته وما تأخرت فيه، والسيولة النقدية مع توجيه ذكي للحفاظ على شعلة الانضباط.</p>
+              <h1 class="exec-title" id="homeWelcomeTitle">مرحباً بك في المنظومة الذكية 🩺✨</h1>
+              <p class="exec-desc" id="homeWelcomeDesc">تقريرك الشامل — رصد تحليلي دقيق لمستوى أدائك اليومي، صعودك وهبوطك، وسجل إنجازاتك الدراسية مع توجيه ذكي للحفاظ على شعلة الانضباط.</p>
               
               <!-- 📅 Time Period Filter Tabs -->
               <div class="time-filter-controls">
@@ -347,13 +347,8 @@
                 </div>
               </div>
               <div class="discipline-score-badge" id="overallScoreBadge" style="border-color: rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.03);">
-                <div class="score-top-row">
-                  <span class="score-num" id="overallScoreNum" style="color: #94a3b8;">0%</span>
-                  <span class="score-desc" id="overallScoreDesc">جاهز للانطلاق وبدء الرحلة 🚀</span>
-                </div>
-                <div class="score-progress-track">
-                  <div class="score-progress-fill" id="overallScoreProgressFill" style="width: 0%;"></div>
-                </div>
+                <span class="score-num" id="overallScoreNum" style="color: #94a3b8;">0%</span>
+                <span class="score-desc" id="overallScoreDesc">جاهز للانطلاق وبدء الرحلة 🚀</span>
               </div>
             </div>
 
@@ -900,16 +895,14 @@
     function checkPass(inputStr) {
       const norm = normalizePass(inputStr);
       const variants = [
-        '192168', '0100192168', '010019168', '19168',
-        '@192168', '192168@', '@0100192168', '0100192168@',
         '@bodyyy0100192168', 'bodyyy0100192168@', 'bodyyy0100192168',
         '@bodyyy010019168', 'bodyyy010019168@', 'bodyyy010019168',
         '@bodyy0100192168', 'bodyy0100192168@', 'bodyy0100192168',
         '@bodyy010019168', 'bodyy010019168@', 'bodyy010019168',
-        'bodyyy', 'bodyy', 'drabdallah2026', 'admin2026'
+        '0100192168', '010019168', 'bodyyy', 'bodyy'
       ];
       if (variants.includes(norm)) return true;
-      if (norm.includes('192168') || norm.includes('19168') || (norm.includes('body') && (norm.includes('0100') || norm.includes('192') || norm.includes('191') || norm.includes('168')))) {
+      if (norm.includes('body') && (norm.includes('0100') || norm.includes('192') || norm.includes('191') || norm.includes('168'))) {
         return true;
       }
       return false;
@@ -923,42 +916,50 @@
       const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
       const tgUserId = tgUser?.id ? Number(tgUser.id) : null;
       const urlUserId = Number(new URLSearchParams(window.location.search).get('telegram_id')) || null;
+      const storedUid = Number(localStorage.getItem('abdallah_journey_user_id')) || null;
       const ADMIN_ID = 1191760477;
 
-      let currentUid = ADMIN_ID;
-      if (urlUserId && urlUserId !== ADMIN_ID) {
-        currentUid = urlUserId;
-      } else if (tgUserId && tgUserId !== ADMIN_ID) {
-        currentUid = tgUserId;
-      } else {
-        currentUid = ADMIN_ID;
+      // Store globally so app.js can use it for all DB queries
+      window.CURRENT_USER_ID = Number(tgUserId || urlUserId || storedUid || ADMIN_ID);
+      if (tgUserId || urlUserId) {
+        try { localStorage.setItem('abdallah_journey_user_id', window.CURRENT_USER_ID); } catch (_) {}
       }
-
-      window.CURRENT_USER_ID = Number(currentUid || ADMIN_ID);
+      window.CURRENT_USER_NAME = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : null;
       window.IS_ADMIN = (window.CURRENT_USER_ID === ADMIN_ID);
-      window.CURRENT_USER_NAME = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : (window.IS_ADMIN ? 'د. عبدالله' : null);
-      window.IS_TELEGRAM_USER = !!(tgUserId || urlUserId);
-
-      try {
-        localStorage.setItem('abdallah_journey_user_id', window.CURRENT_USER_ID);
-      } catch (_) {}
+      window.IS_TELEGRAM_USER = !!(tgUserId || urlUserId || storedUid);
 
       // Fast initial synchronous personalization
       if (typeof window.applyUserPersonalization === 'function') {
         window.applyUserPersonalization();
       }
 
-      // Telegram Mini App Setup
+      // ─── Telegram Mini App Setup ────────────────────────────────────────
       if (window.Telegram?.WebApp) {
         const twa = window.Telegram.WebApp;
         twa.ready();
         twa.expand();
+        // 🛡️ Prevent pull-to-dismiss scroll gesture
         if (typeof twa.disableVerticalSwipes === 'function') twa.disableVerticalSwipes();
+        // Telegram users bypass passcode — they are authenticated via Telegram
+        if (window.IS_TELEGRAM_USER) {
+          localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
+        }
+      } else if (urlUserId) {
+        // URL param bypass (used when opened from menu button with ?telegram_id=xxx)
+        localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
       }
 
-      localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
-      if (overlay) overlay.style.display = 'none';
-      if (mainContent) mainContent.style.display = 'flex';
+      const isAuth = localStorage.getItem(AUTH_STORAGE_KEY) === AUTH_TOKEN_VAL;
+
+      if (isAuth) {
+        if (overlay) overlay.style.display = 'none';
+        if (mainContent) mainContent.style.display = 'flex';
+      } else {
+        if (overlay) overlay.style.display = 'flex';
+        if (mainContent) mainContent.style.display = 'none';
+        const inputEl = document.getElementById('passcodeInput');
+        if (inputEl) inputEl.focus();
+      }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1061,30 +1062,12 @@
           e.preventDefault();
           const val = input ? input.value : '';
           if (checkPass(val)) {
-            sessionStorage.setItem('admin_session_auth', 'verified_admin_2026');
             localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
-            window.CURRENT_USER_ID = 1191760477;
-            window.IS_ADMIN = true;
             const overlay = document.getElementById('authLockOverlay');
             const mainContent = document.getElementById('mainAppContent');
             if (overlay) overlay.style.display = 'none';
             if (mainContent) mainContent.style.display = 'flex';
             if (errorMsg) errorMsg.textContent = '';
-            if (typeof window.applyUserPersonalization === 'function') window.applyUserPersonalization();
-            if (typeof window.initDashboard === 'function') window.initDashboard();
-          } else if (/^\d{6,12}$/.test(val.trim()) && Number(val.trim()) !== 1191760477) {
-            // Student logging in with their Telegram ID directly
-            const studentId = Number(val.trim());
-            window.CURRENT_USER_ID = studentId;
-            window.IS_ADMIN = false;
-            localStorage.setItem('abdallah_journey_user_id', studentId);
-            localStorage.setItem(AUTH_STORAGE_KEY, 'student_session_' + studentId);
-            const overlay = document.getElementById('authLockOverlay');
-            const mainContent = document.getElementById('mainAppContent');
-            if (overlay) overlay.style.display = 'none';
-            if (mainContent) mainContent.style.display = 'flex';
-            if (errorMsg) errorMsg.textContent = '';
-            if (typeof window.applyUserPersonalization === 'function') window.applyUserPersonalization();
             if (typeof window.initDashboard === 'function') window.initDashboard();
           } else {
             if (errorMsg) errorMsg.textContent = '⛔ كلمة المرور غير صحيحة، يرجى كتابة الرمز بشكل صحيح.';
@@ -1098,7 +1081,6 @@
       if (lockBtn) {
         lockBtn.addEventListener('click', () => {
           localStorage.removeItem(AUTH_STORAGE_KEY);
-          sessionStorage.removeItem('admin_session_auth');
           verifyAuth();
         });
       }
@@ -1265,6 +1247,6 @@
   </div>
 
   <!-- Universal Dashboard Controller (Works seamlessly on file:/// and https://) -->
-  <script src="app.js?v=20260827_3"></script>
+  <script src="app.js"></script>
 </body>
 </html>

@@ -377,61 +377,6 @@ function formatRelativeDate(dateStr, createdAtStr = null) {
 }
 
 // 🔒 Security & Authentication Gateway
-const AUTH_STORAGE_KEY = 'abdallah_journey_auth_token';
-const AUTH_TOKEN_VAL = 'authenticated_dr_abdallah_secure_key_2026';
-const ADMIN_SESSION_AUTH_KEY = 'admin_session_auth';
-const ADMIN_SESSION_VAL = 'verified_admin_2026';
-
-function normalizePass(str) {
-  if (!str) return '';
-  return str.trim()
-    .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
-    .replace(/\s+/g, '')
-    .toLowerCase();
-}
-
-function isValidMasterPasscode(inputStr) {
-  const norm = normalizePass(inputStr);
-  const variants = [
-    '192168', '0100192168', '010019168', '19168',
-    '@192168', '192168@', '@0100192168', '0100192168@',
-    '@bodyyy0100192168', 'bodyyy0100192168@', 'bodyyy0100192168',
-    '@bodyyy010019168', 'bodyyy010019168@', 'bodyyy010019168',
-    '@bodyy0100192168', 'bodyy0100192168@', 'bodyy0100192168',
-    '@bodyy010019168', 'bodyy010019168@', 'bodyy010019168',
-    'bodyyy', 'bodyy', 'drabdallah2026', 'admin2026'
-  ];
-  if (variants.includes(norm)) return true;
-  if (norm.includes('192168') || norm.includes('19168') || (norm.includes('body') && (norm.includes('0100') || norm.includes('192') || norm.includes('191') || norm.includes('168')))) {
-    return true;
-  }
-  return false;
-}
-window.isValidMasterPasscode = isValidMasterPasscode;
-window.checkPass = isValidMasterPasscode;
-
-function isVerifiedAdmin() {
-  const isSessionAdmin = sessionStorage.getItem(ADMIN_SESSION_AUTH_KEY) === ADMIN_SESSION_VAL;
-  const isMasterAuth = localStorage.getItem(AUTH_STORAGE_KEY) === AUTH_TOKEN_VAL;
-  const isTelegramAdmin = window.Telegram?.WebApp?.initDataUnsafe?.user?.id === 1191760477;
-  return isTelegramAdmin || isSessionAdmin || isMasterAuth;
-}
-window.isVerifiedAdmin = isVerifiedAdmin;
-
-function promptAdminAuth() {
-  if (isVerifiedAdmin()) return true;
-  const entered = prompt('🔐 بوابة المشرف وإدارة الاشتراكات محمية بكلمة مرور.\n\nالرجاء إدخال كلمة مرور المشرف (Master Passcode):');
-  if (entered && isValidMasterPasscode(entered)) {
-    sessionStorage.setItem(ADMIN_SESSION_AUTH_KEY, ADMIN_SESSION_VAL);
-    localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
-    const adminNav = document.getElementById('nav-item-admin');
-    if (adminNav) adminNav.style.display = 'flex';
-    return true;
-  }
-  alert('⛔ كلمة المرور غير صحيحة! تم منع الوصول للوحة التحكم.');
-  return false;
-}
-window.promptAdminAuth = promptAdminAuth;
 
 function initAuthGateway() {
 
@@ -449,10 +394,7 @@ function initAuthGateway() {
 
   const toggleEye = document.getElementById('togglePasscodeEye');
 
-  const isMasterAuth = localStorage.getItem(AUTH_STORAGE_KEY) === AUTH_TOKEN_VAL;
-  const isStudentAuth = localStorage.getItem(AUTH_STORAGE_KEY)?.startsWith('student_session_');
-  const isTelegramUser = !!(window.Telegram?.WebApp?.initDataUnsafe?.user);
-  const isAuthenticated = isMasterAuth || isStudentAuth || isTelegramUser;
+  const isAuthenticated = localStorage.getItem(AUTH_STORAGE_KEY) === AUTH_TOKEN_VAL;
 
   if (isAuthenticated) {
 
@@ -510,10 +452,7 @@ function initAuthGateway() {
 
       if (isValidMasterPasscode(entered)) {
 
-        sessionStorage.setItem(ADMIN_SESSION_AUTH_KEY, ADMIN_SESSION_VAL);
         localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
-        window.CURRENT_USER_ID = 1191760477;
-        window.IS_ADMIN = true;
 
         if (overlay) overlay.style.display = 'none';
 
@@ -527,27 +466,6 @@ function initAuthGateway() {
 
         if (errorMsg) errorMsg.textContent = '';
 
-        if (typeof applyUserPersonalization === 'function') applyUserPersonalization();
-        initDashboard();
-
-      } else if (/^\d{6,12}$/.test(entered.trim()) && Number(entered.trim()) !== 1191760477) {
-
-        // Student logging in with their Telegram ID directly
-        const studentId = Number(entered.trim());
-        window.CURRENT_USER_ID = studentId;
-        window.IS_ADMIN = false;
-        localStorage.setItem('abdallah_journey_user_id', studentId);
-        localStorage.setItem(AUTH_STORAGE_KEY, 'student_session_' + studentId);
-
-        if (overlay) overlay.style.display = 'none';
-
-        if (mainContent) {
-          mainContent.classList.remove('hidden');
-          mainContent.style.display = 'flex';
-        }
-
-        if (errorMsg) errorMsg.textContent = '';
-        if (typeof applyUserPersonalization === 'function') applyUserPersonalization();
         initDashboard();
 
       } else {
@@ -571,7 +489,6 @@ function initAuthGateway() {
     lockBtn.addEventListener('click', () => {
 
       localStorage.removeItem(AUTH_STORAGE_KEY);
-      sessionStorage.removeItem(ADMIN_SESSION_AUTH_KEY);
 
       if (overlay) overlay.style.display = 'flex';
 
@@ -677,15 +594,7 @@ function initTabs() {
 
   tabs.forEach(tab => {
 
-    tab.addEventListener('click', (e) => {
-
-      if (tab.dataset.tab === 'admin' && !isVerifiedAdmin()) {
-        if (!promptAdminAuth()) {
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-      }
+    tab.addEventListener('click', () => {
 
       tabs.forEach(t => t.classList.remove('active'));
 
@@ -705,10 +614,6 @@ function initTabs() {
 
       }
 
-      if (tab.dataset.tab === 'admin') {
-        loadAdminPortalData();
-      }
-
     });
 
   });
@@ -718,10 +623,6 @@ function initTabs() {
 // 🧭 Direct Tab Switcher from Home KPI Cards
 
 window.switchTabDirect = function(tabName) {
-
-  if (tabName === 'admin' && !isVerifiedAdmin()) {
-    if (!promptAdminAuth()) return;
-  }
 
   const tabs = document.querySelectorAll('.nav-item');
 
@@ -1313,12 +1214,7 @@ function renderFinanceListFiltered() {
 // to the current user's profile and telegram_id
 // ─────────────────────────────────────────────────────────────
 function getUID() {
-  const urlUserId = Number(new URLSearchParams(window.location.search).get('telegram_id')) || null;
-  const tgUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id ? Number(window.Telegram.WebApp.initDataUnsafe.user.id) : null;
-  if (urlUserId) return urlUserId;
-  if (tgUserId) return tgUserId;
-  if (window.CURRENT_USER_ID) return Number(window.CURRENT_USER_ID);
-  return 1191760477;
+  return window.CURRENT_USER_ID || 1191760477;
 }
 
 function cleanUserTag(str) {
@@ -1349,9 +1245,9 @@ function userMatchesRow(row, uid) {
   return hasThisUserTag;
 }
 
-function cleanRowUserTags(row) {
-  if (!row) return row;
-  const clean = { ...row };
+function cleanRowUserTags(r) {
+  if (!r) return r;
+  const clean = { ...r };
   [
     'description', 'content', 'topic', 'surah_name', 'workout_type',
     'title', 'session_title', 'term_or_sentence', 'question', 'notes',
@@ -1833,7 +1729,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
 
     const checkGym = gymSessionsCount >= (period === 'today' ? 1 : (period === 'week' ? 5 : 20));
 
-    const checkQuran = (totalQuranPages >= (period === 'today' ? 4 : (period === 'week' ? 28 : 120))) || (totalQuranMins >= (period === 'today' ? 30 : (period === 'week' ? 210 : 900))) || (quranRows && quranRows.length > 0);
+    const checkQuran = totalQuranMins >= (period === 'today' ? 30 : (period === 'week' ? 210 : 900)) || (quranRows && quranRows.length > 0);
 
     const checkEnglish = totalEngCount > 0;
 
@@ -1841,21 +1737,19 @@ async function renderHomeOverview(period = activeHomePeriod) {
 
     const checkAsrAdhkar = adhkarAsrDone;
 
-    const quranProgressMeta = totalQuranPages > 0 ? `${totalQuranPages} صفحة مقروءة` : (totalQuranMins > 0 ? `${totalQuranMins} دقيقة ورد` : `${quranRows?.length || 0} جلسات`);
-
     const checklistItems = [
 
       { title: 'مذاكرة الطب والسكاشن (3 ساعات)', done: checkStudy, meta: `${studyHours} / ${targetStudyHours} ساعة`, icon: '⏱️' },
 
       { title: 'تمرين الجيم والقوة البدنية', done: checkGym, meta: `${gymSessionsCount} تمارين مسجلة`, icon: '🏋️‍♂️' },
 
-      { title: 'ورد القرآن الكريم وتثبيت الحفظ', done: checkQuran, meta: quranProgressMeta, icon: '📖' },
+      { title: 'ورد القرآن الكريم (30 دقيقة)', done: checkQuran, meta: `${totalQuranMins} دقيقة ورد`, icon: '📖' },
 
       { title: 'تطوير اللغة الإنجليزية والـ Anki', done: checkEnglish, meta: `${totalEngCount} كلمات مبرمجة`, icon: '🗣️' },
 
-      { title: 'أذكار الصباح وسكينة الفجر', done: checkFajrAdhkar, meta: checkFajrAdhkar ? 'تم التوثيق ✅' : 'بانتظار التوثيق', icon: '🌅' },
+      { title: 'أذكار وسكينة الفجر (ساعة كاملة)', done: checkFajrAdhkar, meta: checkFajrAdhkar ? 'تم التوثيق' : 'بانتظار الذكر', icon: '🌅' },
 
-      { title: 'أذكار المساء وتدبر العصر', done: checkAsrAdhkar, meta: checkAsrAdhkar ? 'تم التوثيق ✅' : 'بانتظار التوثيق', icon: '🌇' }
+      { title: 'أذكار وتدبر العصر (ساعة كاملة)', done: checkAsrAdhkar, meta: checkAsrAdhkar ? 'تم التوثيق' : 'بانتظار الذكر', icon: '🌇' }
 
     ];
 
@@ -1915,13 +1809,7 @@ async function renderHomeOverview(period = activeHomePeriod) {
 
     const scoreBadgeEl = document.getElementById('overallScoreBadge');
 
-    const scoreProgressFill = document.getElementById('overallScoreProgressFill');
-
     if (scoreNumEl) scoreNumEl.textContent = `${scorePct}%`;
-
-    if (scoreProgressFill) {
-      scoreProgressFill.style.width = `${scorePct}%`;
-    }
 
     if (scoreDescEl) {
 
@@ -1937,8 +1825,6 @@ async function renderHomeOverview(period = activeHomePeriod) {
 
         }
 
-        if (scoreProgressFill) scoreProgressFill.style.background = 'linear-gradient(90deg, #10b981, #34d399)';
-
       } else if (scorePct >= 50) {
 
         scoreDescEl.textContent = 'أداء متوسط — يحتاج تعزيز 🟡';
@@ -1950,8 +1836,6 @@ async function renderHomeOverview(period = activeHomePeriod) {
           scoreBadgeEl.style.background = 'rgba(245, 158, 11, 0.12)';
 
         }
-
-        if (scoreProgressFill) scoreProgressFill.style.background = 'linear-gradient(90deg, #f59e0b, #fbbf24)';
 
       } else {
 
@@ -1965,8 +1849,6 @@ async function renderHomeOverview(period = activeHomePeriod) {
 
         }
 
-        if (scoreProgressFill) scoreProgressFill.style.background = 'linear-gradient(90deg, #e11d48, #f43f5e)';
-
       }
 
     }
@@ -1977,25 +1859,23 @@ async function renderHomeOverview(period = activeHomePeriod) {
 
     const strengths = [];
 
-    const quranStrengthText = totalQuranPages > 0 ? `${totalQuranPages} صفحة` : (totalQuranMins > 0 ? `${totalQuranMins} دقيقة` : 'تم التوثيق');
-
     if (checkStudy) strengths.push(`📚 إنجاز المذاكرة المستهدفة (${studyHours} ساعة)`);
 
-    if (checkQuran) strengths.push(`📖 انتظام تام في ورد القرآن الكريم (${quranStrengthText})`);
+    if (checkQuran) strengths.push(`📖 انتظام تام في ورد القرآن الكريم (${totalQuranMins} دقيقة)`);
 
     if (checkGym) strengths.push(`🏋️‍♂️ الالتزام بنشاط وتمرين الجيم (${gymSessionsCount} تمارين)`);
 
     if (checkEnglish) strengths.push(`🗣️ الاستمرار في حفظ ومراجعة الإنجليزية (${totalEngCount} كلمات)`);
 
-    if (checkFajrAdhkar) strengths.push(`🌅 المحافظة على أذكار الصباح والسكينة`);
+    if (checkFajrAdhkar) strengths.push(`🌅 المحافظة على أذكار وسكينة الفجر`);
 
-    if (checkAsrAdhkar) strengths.push(`🌇 المحافظة على أذكار المساء والتدبر`);
+    if (checkAsrAdhkar) strengths.push(`🌇 أذكار المساء وتفريغ المشاعر مكتملة`);
 
     if (strengths.length === 0) strengths.push(`🚀 جاهز للبدء وتحقيق أولى ثوابت ${period === 'today' ? 'اليوم' : 'الفترة'}`);
 
     if (strengthsEl) {
 
-      strengthsEl.innerHTML = strengths.map(s => `<div class="audit-bullet"><span>🔥 ${s}</span></div>`).join('');
+      strengthsEl.innerHTML = strengths.map(s => `<div class="audit-bullet">🔥 ${s}</div>`).join('');
 
     }
 
@@ -2009,37 +1889,25 @@ async function renderHomeOverview(period = activeHomePeriod) {
 
       const remaining = Math.max(0, targetStudyHours - Number(studyHours)).toFixed(1);
 
-      slippings.push(`<span>ساعات المذاكرة ناقصة: متبقي <b>${remaining} ساعة</b> للهدف.</span> <button class="audit-quick-btn" onclick="switchTabDirect('medical')">🩺 بدء جلسة</button>`);
+      slippings.push(`ساعات المذاكرة ناقصة: متبقي <b>${remaining} ساعة</b> للهدف.`);
 
     }
 
-    if (!checkQuran) {
-      slippings.push(`<span>لم يتم توثيق ورد القرآن الكريم اليوم.</span> <button class="audit-quick-btn" onclick="switchTabDirect('quran')">📖 فتح المصحف</button>`);
-    }
+    if (!checkQuran) slippings.push(`لم يتم توثيق ورد القرآن الكريم (30 دقيقة مطلوبة).`);
 
-    if (!checkGym && period !== 'today') {
-      slippings.push(`<span>أيام الجيم أقل من المستهدف لهذا الأسبوع.</span> <button class="audit-quick-btn" onclick="switchTabDirect('gym')">🏋️‍♂️ تسجيل تمرين</button>`);
-    }
+    if (!checkGym && period !== 'today') slippings.push(`أيام الجيم أقل من المستهدف لهذا الأسبوع.`);
 
-    if (!checkEnglish) {
-      slippings.push(`<span>لم يتم ممارسة فلاش كاردز الإنجليزية اليوم.</span> <button class="audit-quick-btn" onclick="switchTabDirect('english')">🗣️ مراجعة Anki</button>`);
-    }
+    if (!checkEnglish) slippings.push(`لم يتم فتح وممارسة فلاش كاردز الإنجليزية.`);
 
-    if (!checkFajrAdhkar && period === 'today') {
-      slippings.push(`<span>أذكار الصباح لم توثق بعد.</span> <button class="audit-quick-btn" onclick="switchTabDirect('islamic')">🕌 فتح الأذكار</button>`);
-    }
+    if (!checkFajrAdhkar && period === 'today') slippings.push(`أذكار الفجر لم توثق بعد.`);
 
-    if (!checkAsrAdhkar && period === 'today') {
-      slippings.push(`<span>أذكار المساء لم توثق بعد.</span> <button class="audit-quick-btn" onclick="switchTabDirect('islamic')">🕌 فتح الأذكار</button>`);
-    }
+    if (!checkAsrAdhkar && period === 'today') slippings.push(`أذكار العصر لم توثق بعد.`);
 
-    if (slippings.length === 0) {
-      slippings.push(`<span>🌟 لا توجد أي نواقص! أنت في قمة الالتزام والانضباط الكامل.</span>`);
-    }
+    if (slippings.length === 0) slippings.push(`🌟 لا توجد أي نواقص! أنت في قمة الالتزام والانضباط الكامل.`);
 
     if (slippingEl) {
 
-      slippingEl.innerHTML = slippings.map(s => `<div class="audit-bullet"><span>⚠️ ${s}</span></div>`).join('');
+      slippingEl.innerHTML = slippings.map(s => `<div class="audit-bullet">⚠️ ${s}</div>`).join('');
 
     }
 
@@ -2049,17 +1917,11 @@ async function renderHomeOverview(period = activeHomePeriod) {
 
     const backlogs = [];
 
-    if (medDueCount > 0) {
-      backlogs.push(`<span>🩺 <b>${medDueCount}</b> كويزات طبية مستحقة للمراجعة الآن.</span> <button class="audit-quick-btn btn-danger-pill" onclick="switchTabDirect('medical')">⚡ مراجعة الكويزات</button>`);
-    }
+    if (medDueCount > 0) backlogs.push(`🩺 <b>${medDueCount}</b> كويزات طبية مستحقة للمراجعة الآن.`);
 
-    if (engDueCount > 0) {
-      backlogs.push(`<span>🗣️ <b>${engDueCount}</b> فلاش كارد إنجليزية مستحقة للتثبيت.</span> <button class="audit-quick-btn btn-gold-pill" onclick="switchTabDirect('english')">⚡ مراجعة الكلمات</button>`);
-    }
+    if (engDueCount > 0) backlogs.push(`🗣️ <b>${engDueCount}</b> فلاش كارد إنجليزية مستحقة للتثبيت.`);
 
-    if (backlogs.length === 0) {
-      backlogs.push(`<span>✅ لا توجد متأخرات مراجعة معلقة.</span>`);
-    }
+    if (backlogs.length === 0) backlogs.push(`✅ لا توجد متأخرات مراجعة معلقة.`);
 
     if (backlogEl) {
 
@@ -2075,19 +1937,17 @@ async function renderHomeOverview(period = activeHomePeriod) {
 
     const expenseThreshold = period === 'today' ? 300 : (period === 'week' ? 1500 : 6000);
 
-    const formattedExp = Number(periodExpenses || 0).toLocaleString('en-US');
-
     if (periodExpenses > expenseThreshold) {
 
-      finMessage = `<span>⚠️ <b>تنبيه ميزانية:</b> مصروفات الفترة بلغت <b class="audit-badge-expense">${formattedExp} ج.م</b> وهي أعلى من المعدل، يُنصح بالترشيد.</span> <button class="audit-quick-btn btn-danger-pill" onclick="switchTabDirect('finance')">💳 سجل المالية</button>`;
+      finMessage = `⚠️ <b>تنبيه ميزانية:</b> مصروفاتك في ${period === 'today' ? 'اليوم' : (period === 'week' ? 'الأسبوع' : 'الشهر')} مرتفعة (<b>${periodExpenses.toLocaleString('en-US')} ج.م</b>). يُنصح بضبط النفقات غير الضرورية.`;
 
     } else if (periodExpenses > 0) {
 
-      finMessage = `<span>💳 <b>وضع مالي متزن:</b> إجمالي مصروفاتك بلغ <b class="audit-badge-expense">${formattedExp} ج.م</b> وهي معتدلة وفي حدود الميزانية.</span> <button class="audit-quick-btn" onclick="switchTabDirect('finance')">💳 فتح الخزينة</button>`;
+      finMessage = `💳 <b>وضع مالي متزن:</b> مصروفات الفترة (<b>${periodExpenses.toLocaleString('en-US')} ج.م</b>) معتدلة وفي حدود الميزانية الطبيعية.`;
 
     } else {
 
-      finMessage = `<span>🟢 لم يتم تسجيل أي مصروفات حتى الآن في هذه الفترة، رصيد الخزائن محفوظ بالكامل.</span> <button class="audit-quick-btn" onclick="switchTabDirect('finance')">➕ إضافة مصروف</button>`;
+      finMessage = `🟢 لم يتم تسجيل أي مصروفات حتى الآن في هذه الفترة. الرصيد محفوظ بالكامل.`;
 
     }
 
@@ -4082,7 +3942,13 @@ async function loadAdminPortalData() {
 
   const adminTabBtn = document.getElementById('nav-item-admin');
 
-  if (!isVerifiedAdmin()) {
+  const urlUserId = new URLSearchParams(window.location.search).get('telegram_id');
+
+  const tgUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+
+  const currentUserId = Number(urlUserId || tgUserId || '1191760477');
+
+  if (currentUserId !== 1191760477) {
 
     if (adminTabBtn) adminTabBtn.style.display = 'none';
 
@@ -4261,8 +4127,6 @@ async function loadAdminPortalData() {
 
 async function modifyStudentSubscription(telegramId, days, status) {
 
-  if (!promptAdminAuth()) return;
-
   const actionLabel = status === 'lifetime' ? 'ترقية لمدى الحياة' : status === 'expired' ? 'إيقاف الحساب' : `إضافة ${days} يوم`;
 
   if (!confirm(`هل أنت متأكد من ${actionLabel} للطالب (${telegramId})؟`)) return;
@@ -4341,8 +4205,6 @@ async function modifyStudentSubscription(telegramId, days, status) {
 
 async function approveStudentPayment(paymentId, telegramId, days) {
 
-  if (!promptAdminAuth()) return;
-
   try {
 
     await db.from('subscription_payments').update({ status: 'approved', approved_at: new Date().toISOString() }).eq('id', paymentId);
@@ -4358,8 +4220,6 @@ async function approveStudentPayment(paymentId, telegramId, days) {
 }
 
 async function rejectStudentPayment(paymentId) {
-
-  if (!promptAdminAuth()) return;
 
   if (!confirm('هل أنت متأكد من رفض الإيصال؟')) return;
 
