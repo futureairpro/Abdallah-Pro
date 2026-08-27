@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;600;700;800&family=Amiri:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260827_3">
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <!-- Supabase Cloud CDN (Universal compatibility for file:/// and https://) -->
@@ -923,7 +923,6 @@
       const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
       const tgUserId = tgUser?.id ? Number(tgUser.id) : null;
       const urlUserId = Number(new URLSearchParams(window.location.search).get('telegram_id')) || null;
-      const storedUid = Number(localStorage.getItem('abdallah_journey_user_id')) || null;
       const ADMIN_ID = 1191760477;
 
       let currentUid = ADMIN_ID;
@@ -931,10 +930,6 @@
         currentUid = urlUserId;
       } else if (tgUserId && tgUserId !== ADMIN_ID) {
         currentUid = tgUserId;
-      } else if (urlUserId === ADMIN_ID || tgUserId === ADMIN_ID) {
-        currentUid = ADMIN_ID;
-      } else if (storedUid && storedUid !== ADMIN_ID && !new URLSearchParams(window.location.search).has('telegram_id')) {
-        currentUid = storedUid;
       } else {
         currentUid = ADMIN_ID;
       }
@@ -1270,6 +1265,6 @@
   </div>
 
   <!-- Universal Dashboard Controller (Works seamlessly on file:/// and https://) -->
-  <script src="app.js"></script>
+  <script src="app.js?v=20260827_3"></script>
 </body>
 </html>
