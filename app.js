@@ -837,6 +837,10 @@ window.switchTabDirect = function(tabName) {
 
   }
 
+  if (tabName === 'calendar' && typeof window.initCalendarEngine === 'function') {
+    window.initCalendarEngine();
+  }
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
 };
@@ -4631,13 +4635,822 @@ window.approveStudentPayment = approveStudentPayment;
 
 window.rejectStudentPayment = rejectStudentPayment;
 
+/* ==============================================================================
+   📅 TICKTICK-STYLE CALENDAR & TIME-BLOCKING ENGINE
+   ============================================================================== */
+
+window.currentCalView = 'month';
+window.currentCalDate = new Date();
+window.currentCalFilter = 'all';
+window.calendarEventsData = [];
+window._draggedEventId = null;
+window._draggedSource = null;
+
+const ARABIC_MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+const ARABIC_DAYS = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+
+function formatTime12h(timeStr) {
+  if (!timeStr) return '';
+  const parts = timeStr.split(':');
+  let h = parseInt(parts[0], 10);
+  const m = parts[1] || '00';
+  if (isNaN(h)) return timeStr;
+  const suffix = h >= 12 ? 'م' : 'ص';
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${String(h).padStart(2, '0')}:${m} ${suffix}`;
+}
+
+function getHourSlot12h(hourInt) {
+  const h = hourInt % 12 === 0 ? 12 : hourInt % 12;
+  const suffix = hourInt >= 12 ? 'م' : 'ص';
+  return `${String(h).padStart(2, '0')}:00 ${suffix}`;
+}
+
+async function fetchCalendarEvents() {
+  try {
+    const todayStr = getCairoToday();
+    const [apptsRes, tasksRes, studyRes, gymRes] = await Promise.all([
+      userQuery('appointments_and_reminders'),
+      userQuery('daily_tasks'),
+      userQuery('study_sessions'),
+      userQuery('fitness_gym_logs')
+    ]);
+
+    const events = [];
+
+    (apptsRes.data || []).forEach(a => {
+      let d = a.date;
+      let t = '09:00';
+      if (a.due_datetime) {
+        try {
+          const dt = new Date(a.due_datetime);
+          d = dt.toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
+          t = dt.toLocaleTimeString('en-GB', { timeZone: 'Africa/Cairo', hour12: false }).substring(0, 5);
+        } catch (_) {}
+      }
+      events.push({
+        id: a.id,
+        sourceTable: 'appointments_and_reminders',
+        title: a.title || 'موعد مجدول',
+        category: 'appointment',
+        date: d || todayStr,
+        startTime: t || '09:00',
+        duration: 60,
+        priority: 'high',
+        isCompleted: !!a.is_completed,
+        notes: a.notes || ''
+      });
+    });
+
+    (tasksRes.data || []).forEach(t => {
+      let d = t.date || todayStr;
+      let timeStr = '10:00';
+      const cat = (t.category || '').toLowerCase();
+      let category = 'task';
+      if (cat.includes('طب') || cat.includes('مذاكر') || cat.includes('study')) category = 'medical';
+      else if (cat.includes('جيم') || cat.includes('gym')) category = 'gym';
+      else if (cat.includes('إنجليز') || cat.includes('english')) category = 'english';
+      else if (cat.includes('شغل') || cat.includes('work')) category = 'work';
+
+      events.push({
+        id: t.id,
+        sourceTable: 'daily_tasks',
+        title: t.title || t.name || 'مهمة يومية',
+        category: category,
+        date: d,
+        startTime: timeStr,
+        duration: Number(t.target_duration_mins) || 45,
+        priority: t.priority || 'medium',
+        isCompleted: t.status === 'منجز' || t.status === 'completed',
+        notes: t.notes || ''
+      });
+    });
+
+    (studyRes.data || []).forEach(s => {
+      events.push({
+        id: s.id,
+        sourceTable: 'study_sessions',
+        title: `📚 ${s.course_code || 'طب'}: ${s.topic || 'مذاكرة'}`,
+        category: 'medical',
+        date: s.date || todayStr,
+        startTime: '14:00',
+        duration: Number(s.duration_minutes) || 60,
+        priority: 'high',
+        isCompleted: true,
+        notes: s.notes || ''
+      });
+    });
+
+    (gymRes.data || []).forEach(g => {
+      events.push({
+        id: g.id,
+        sourceTable: 'fitness_gym_logs',
+        title: `🏋️‍♂️ ${g.workout_type || 'تمرين جيم'}: ${g.muscle_groups || ''}`,
+        category: 'gym',
+        date: g.date || todayStr,
+        startTime: '17:30',
+        duration: Number(g.duration_minutes) || 60,
+        priority: 'medium',
+        isCompleted: true,
+        notes: g.exercises_summary || ''
+      });
+    });
+
+    window.calendarEventsData = events;
+  } catch (err) {
+    console.warn('fetchCalendarEvents error:', err);
+    window.calendarEventsData = [];
+  }
+}
+
+async function initCalendarEngine() {
+  await fetchCalendarEvents();
+  renderCurrentCalendarView();
+}
+
+function renderCurrentCalendarView() {
+  const filter = window.currentCalFilter || 'all';
+  let events = (window.calendarEventsData || []).filter(ev => {
+    if (filter === 'all') return true;
+    if (filter === 'medical') return ev.category === 'medical';
+    if (filter === 'appt') return ev.category === 'appointment';
+    if (filter === 'task') return ev.category === 'task';
+    if (filter === 'gym') return ev.category === 'gym';
+    return true;
+  });
+
+  if (window.currentCalView === 'month') {
+    renderCalendarMonthView(events);
+  } else if (window.currentCalView === 'week') {
+    renderCalendarWeekView(events);
+  } else if (window.currentCalView === 'day') {
+    renderCalendarDayView(events);
+  } else if (window.currentCalView === 'agenda') {
+    renderCalendarAgendaView(events);
+  }
+}
+
+window.setCalendarView = function(view) {
+  window.currentCalView = view;
+  ['Month', 'Week', 'Day', 'Agenda'].forEach(v => {
+    const tabBtn = document.getElementById(`tabCal${v}`);
+    const container = document.getElementById(`calContainer${v}`);
+    if (tabBtn) tabBtn.classList.toggle('active', v.toLowerCase() === view);
+    if (container) {
+      container.style.display = v.toLowerCase() === view ? 'block' : 'none';
+      container.classList.toggle('active', v.toLowerCase() === view);
+    }
+  });
+  renderCurrentCalendarView();
+};
+
+window.calNavigate = function(delta) {
+  const cur = new Date(window.currentCalDate);
+  if (window.currentCalView === 'month' || window.currentCalView === 'agenda') {
+    cur.setMonth(cur.getMonth() + delta);
+  } else if (window.currentCalView === 'week') {
+    cur.setDate(cur.getDate() + delta * 7);
+  } else if (window.currentCalView === 'day') {
+    cur.setDate(cur.getDate() + delta);
+  }
+  window.currentCalDate = cur;
+  renderCurrentCalendarView();
+};
+
+window.calGoToday = function() {
+  window.currentCalDate = new Date();
+  renderCurrentCalendarView();
+};
+
+window.toggleCalFilter = function(filterType, el) {
+  window.currentCalFilter = filterType;
+  document.querySelectorAll('.cal-filter-pill').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderCurrentCalendarView();
+};
+
+// 1. Month View Renderer
+function renderCalendarMonthView(events) {
+  const titleEl = document.getElementById('calCurrentTitle');
+  const cellsContainer = document.getElementById('calMonthGridCells');
+  if (!cellsContainer) return;
+
+  const cur = new Date(window.currentCalDate);
+  const year = cur.getFullYear();
+  const month = cur.getMonth();
+
+  if (titleEl) {
+    titleEl.textContent = `${ARABIC_MONTHS[month]} ${year}`;
+  }
+
+  const todayStr = getCairoToday();
+  const firstDayOfMonth = new Date(year, month, 1);
+  const lastDayOfMonth = new Date(year, month + 1, 0);
+
+  // In Arabic week, Saturday is day 0
+  const jsDayToSatIndex = (d) => (d + 1) % 7;
+  const startDayIdx = jsDayToSatIndex(firstDayOfMonth.getDay());
+  const daysInMonth = lastDayOfMonth.getDate();
+
+  const prevMonthLastDate = new Date(year, month, 0).getDate();
+
+  let html = '';
+
+  // Previous month trailing days
+  for (let i = startDayIdx - 1; i >= 0; i--) {
+    const dNum = prevMonthLastDate - i;
+    const pDate = new Date(year, month - 1, dNum);
+    const dateStr = pDate.toLocaleDateString('en-CA');
+    html += buildMonthDayCell(dateStr, dNum, true, false, events);
+  }
+
+  // Current month days
+  for (let d = 1; d <= daysInMonth; d++) {
+    const curDate = new Date(year, month, d);
+    const dateStr = curDate.toLocaleDateString('en-CA');
+    const isToday = dateStr === todayStr;
+    html += buildMonthDayCell(dateStr, d, false, isToday, events);
+  }
+
+  // Next month leading days to complete grid
+  const totalRendered = startDayIdx + daysInMonth;
+  const remainingCells = (7 - (totalRendered % 7)) % 7;
+  for (let n = 1; n <= remainingCells; n++) {
+    const nDate = new Date(year, month + 1, n);
+    const dateStr = nDate.toLocaleDateString('en-CA');
+    html += buildMonthDayCell(dateStr, n, true, false, events);
+  }
+
+  cellsContainer.innerHTML = html;
+  attachMonthDragDropHandlers();
+}
+
+function buildMonthDayCell(dateStr, dayNum, isOtherMonth, isToday, events) {
+  const dayEvents = (events || []).filter(e => e.date === dateStr);
+  const pillsHtml = dayEvents.map(e => `
+    <div class="cal-event-pill cal-cat-${e.category} ${e.isCompleted ? 'is-completed' : ''}" 
+         draggable="true" 
+         data-id="${e.id}" 
+         data-source="${e.sourceTable}"
+         onclick="openCalendarEventModal('${dateStr}', '${e.startTime}', '${e.id}')"
+         title="${e.title} (${formatTime12h(e.startTime)})">
+      <span class="cal-event-time">${formatTime12h(e.startTime)}</span>
+      <span class="cal-event-name">${e.title}</span>
+    </div>
+  `).join('');
+
+  return `
+    <div class="month-day-cell ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'is-today' : ''}" data-date="${dateStr}">
+      <div class="month-day-top">
+        <span class="month-day-num">${dayNum}</span>
+        <button type="button" class="month-day-add-btn" onclick="openCalendarEventModal('${dateStr}', '09:00')" title="إضافة موعد">+</button>
+      </div>
+      <div class="month-day-events">
+        ${pillsHtml}
+      </div>
+    </div>
+  `;
+}
+
+function attachMonthDragDropHandlers() {
+  document.querySelectorAll('.cal-event-pill').forEach(pill => {
+    pill.addEventListener('dragstart', (e) => {
+      window._draggedEventId = pill.dataset.id;
+      window._draggedSource = pill.dataset.source;
+      pill.classList.add('is-dragging');
+      e.dataTransfer.setData('text/plain', pill.dataset.id);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    pill.addEventListener('dragend', () => {
+      pill.classList.remove('is-dragging');
+      document.querySelectorAll('.month-day-cell').forEach(c => c.classList.remove('drag-over'));
+    });
+  });
+
+  document.querySelectorAll('.month-day-cell').forEach(cell => {
+    cell.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      cell.classList.add('drag-over');
+    });
+
+    cell.addEventListener('dragleave', () => {
+      cell.classList.remove('drag-over');
+    });
+
+    cell.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      cell.classList.remove('drag-over');
+      const targetDate = cell.dataset.date;
+      if (window._draggedEventId && targetDate) {
+        await rescheduleCalendarEvent(window._draggedEventId, window._draggedSource, targetDate);
+      }
+    });
+  });
+}
+
+// 2. Week Timeline View Renderer
+function renderCalendarWeekView(events) {
+  const titleEl = document.getElementById('calCurrentTitle');
+  const headerRow = document.getElementById('calWeekHeaderRow');
+  const timeAxis = document.getElementById('calWeekTimeAxis');
+  const daysGrid = document.getElementById('calWeekDaysGrid');
+  if (!headerRow || !timeAxis || !daysGrid) return;
+
+  const cur = new Date(window.currentCalDate);
+  const jsDay = cur.getDay();
+  const daysFromSat = (jsDay + 1) % 7;
+  const startSat = new Date(cur);
+  startSat.setDate(cur.getDate() - daysFromSat);
+
+  const endFri = new Date(startSat);
+  endFri.setDate(startSat.getDate() + 6);
+
+  if (titleEl) {
+    titleEl.textContent = `${startSat.getDate()} ${ARABIC_MONTHS[startSat.getMonth()]} - ${endFri.getDate()} ${ARABIC_MONTHS[endFri.getMonth()]} ${endFri.getFullYear()}`;
+  }
+
+  const todayStr = getCairoToday();
+
+  // 1. Header Row
+  let headerHtml = '<div class="time-col-header">الوقت (12س)</div>';
+  const weekDates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(startSat);
+    d.setDate(startSat.getDate() + i);
+    const dStr = d.toLocaleDateString('en-CA');
+    weekDates.push(dStr);
+    const isToday = dStr === todayStr;
+    headerHtml += `
+      <div class="week-day-header ${isToday ? 'is-today' : ''}">
+        <div class="week-day-header-name">${ARABIC_DAYS[i]}</div>
+        <div class="week-day-header-date">${d.getDate()} ${ARABIC_MONTHS[d.getMonth()].substring(0, 3)}</div>
+      </div>
+    `;
+  }
+  headerRow.innerHTML = headerHtml;
+
+  // 2. Time Axis (12-Hour System: 12:00 ص -> 11:00 م)
+  let axisHtml = '';
+  for (let h = 0; h < 24; h++) {
+    axisHtml += `<div class="time-axis-slot">${getHourSlot12h(h)}</div>`;
+  }
+  timeAxis.innerHTML = axisHtml;
+
+  // 3. 7 Days Columns & Time Blocks
+  let daysGridHtml = '';
+  weekDates.forEach((dStr, dayIdx) => {
+    let slotsHtml = '';
+    for (let h = 0; h < 24; h++) {
+      const timeVal = `${String(h).padStart(2, '0')}:00`;
+      slotsHtml += `<div class="week-hour-slot" onclick="openCalendarEventModal('${dStr}', '${timeVal}')" data-date="${dStr}" data-hour="${h}"></div>`;
+    }
+
+    const dayEvents = (events || []).filter(e => e.date === dStr);
+    const blocksHtml = dayEvents.map(e => {
+      const [hStr, mStr] = (e.startTime || '09:00').split(':');
+      const startH = parseInt(hStr, 10) || 0;
+      const startM = parseInt(mStr, 10) || 0;
+      const topPx = (startH + startM / 60) * 52;
+      const durationMins = e.duration || 60;
+      const heightPx = Math.max(28, (durationMins / 60) * 52);
+
+      return `
+        <div class="cal-time-block cal-cat-${e.category} ${e.isCompleted ? 'is-completed' : ''}" 
+             style="top: ${topPx}px; height: ${heightPx}px;"
+             draggable="true" 
+             data-id="${e.id}" 
+             data-source="${e.sourceTable}"
+             onclick="openCalendarEventModal('${dStr}', '${e.startTime}', '${e.id}')"
+             title="${e.title} (${formatTime12h(e.startTime)} - ${durationMins} دقيقة)">
+          <div class="cal-time-block-title">${e.title}</div>
+          <div class="cal-time-block-time">${formatTime12h(e.startTime)} (${durationMins} د)</div>
+        </div>
+      `;
+    }).join('');
+
+    let currentLineHtml = '';
+    if (dStr === todayStr) {
+      const now = new Date();
+      const curH = now.getHours();
+      const curM = now.getMinutes();
+      const curTop = (curH + curM / 60) * 52;
+      currentLineHtml = `<div class="current-time-line" style="top: ${curTop}px;"></div>`;
+    }
+
+    daysGridHtml += `
+      <div class="week-day-col" data-date="${dStr}">
+        ${currentLineHtml}
+        ${blocksHtml}
+        ${slotsHtml}
+      </div>
+    `;
+  });
+
+  daysGrid.innerHTML = daysGridHtml;
+  attachWeekDragDropHandlers();
+}
+
+function attachWeekDragDropHandlers() {
+  document.querySelectorAll('.cal-time-block').forEach(block => {
+    block.addEventListener('dragstart', (e) => {
+      window._draggedEventId = block.dataset.id;
+      window._draggedSource = block.dataset.source;
+      block.classList.add('is-dragging');
+      e.dataTransfer.setData('text/plain', block.dataset.id);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    block.addEventListener('dragend', () => {
+      block.classList.remove('is-dragging');
+      document.querySelectorAll('.week-day-col').forEach(c => c.classList.remove('drag-over'));
+    });
+  });
+
+  document.querySelectorAll('.week-day-col').forEach(col => {
+    col.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      col.classList.add('drag-over');
+    });
+
+    col.addEventListener('dragleave', () => {
+      col.classList.remove('drag-over');
+    });
+
+    col.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      const targetDate = col.dataset.date;
+      const rect = col.getBoundingClientRect();
+      const offsetY = e.clientY - rect.top;
+      const totalHours = Math.max(0, Math.min(23.5, offsetY / 52));
+      const targetH = Math.floor(totalHours);
+      const targetM = totalHours % 1 >= 0.5 ? '30' : '00';
+      const targetTime = `${String(targetH).padStart(2, '0')}:${targetM}`;
+
+      if (window._draggedEventId && targetDate) {
+        await rescheduleCalendarEvent(window._draggedEventId, window._draggedSource, targetDate, targetTime);
+      }
+    });
+  });
+}
+
+// 3. Day Timeline View Renderer
+function renderCalendarDayView(events) {
+  const titleEl = document.getElementById('calCurrentTitle');
+  const headerEl = document.getElementById('calDayViewHeader');
+  const timeAxis = document.getElementById('calDayTimeAxis');
+  const slotsCol = document.getElementById('calDaySlotsColumn');
+  if (!slotsCol || !timeAxis) return;
+
+  const cur = new Date(window.currentCalDate);
+  const dateStr = cur.toLocaleDateString('en-CA');
+  const todayStr = getCairoToday();
+  const isToday = dateStr === todayStr;
+
+  const jsDay = cur.getDay();
+  const dayName = ARABIC_DAYS[(jsDay + 1) % 7];
+
+  if (titleEl) {
+    titleEl.textContent = `${dayName}، ${cur.getDate()} ${ARABIC_MONTHS[cur.getMonth()]} ${cur.getFullYear()}`;
+  }
+
+  const dayEvents = (events || []).filter(e => e.date === dateStr);
+
+  if (headerEl) {
+    headerEl.innerHTML = `
+      <div>
+        <h3 style="margin: 0; color: #fff; font-size: 1.1rem;">${dayName} ${isToday ? '⚡ (اليوم الحالي)' : ''}</h3>
+        <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--text-secondary);">إجمالي المواعيد والمهام المسجلة لهذا اليوم: <b>${dayEvents.length}</b></p>
+      </div>
+      <button type="button" class="btn btn-primary btn-sm" onclick="openCalendarEventModal('${dateStr}', '09:00')">➕ إضافة موعد</button>
+    `;
+  }
+
+  let axisHtml = '';
+  for (let h = 0; h < 24; h++) {
+    axisHtml += `<div class="time-axis-slot" style="height: 56px;">${getHourSlot12h(h)}</div>`;
+  }
+  timeAxis.innerHTML = axisHtml;
+
+  let slotsHtml = '';
+  for (let h = 0; h < 24; h++) {
+    const timeVal = `${String(h).padStart(2, '0')}:00`;
+    slotsHtml += `<div class="day-hour-slot" onclick="openCalendarEventModal('${dateStr}', '${timeVal}')"></div>`;
+  }
+
+  const blocksHtml = dayEvents.map(e => {
+    const [hStr, mStr] = (e.startTime || '09:00').split(':');
+    const startH = parseInt(hStr, 10) || 0;
+    const startM = parseInt(mStr, 10) || 0;
+    const topPx = (startH + startM / 60) * 56;
+    const durationMins = e.duration || 60;
+    const heightPx = Math.max(34, (durationMins / 60) * 56);
+
+    return `
+      <div class="cal-time-block cal-cat-${e.category} ${e.isCompleted ? 'is-completed' : ''}" 
+           style="top: ${topPx}px; height: ${heightPx}px;"
+           onclick="openCalendarEventModal('${dateStr}', '${e.startTime}', '${e.id}')"
+           title="${e.title} (${formatTime12h(e.startTime)})">
+        <div class="cal-time-block-title">${e.title}</div>
+        <div class="cal-time-block-time">🕒 ${formatTime12h(e.startTime)} • المدة: ${durationMins} دقيقة ${e.notes ? `• 📝 ${e.notes}` : ''}</div>
+      </div>
+    `;
+  }).join('');
+
+  let currentLineHtml = '';
+  if (isToday) {
+    const now = new Date();
+    const curTop = (now.getHours() + now.getMinutes() / 60) * 56;
+    currentLineHtml = `<div class="current-time-line" style="top: ${curTop}px;"></div>`;
+  }
+
+  slotsCol.innerHTML = `
+    ${currentLineHtml}
+    ${blocksHtml}
+    ${slotsHtml}
+  `;
+}
+
+// 4. Agenda & Lists View Renderer (TickTick Style Lists)
+function renderCalendarAgendaView(events) {
+  const titleEl = document.getElementById('calCurrentTitle');
+  const wrapper = document.getElementById('calAgendaWrapper');
+  if (!wrapper) return;
+
+  const cur = new Date(window.currentCalDate);
+  if (titleEl) {
+    titleEl.textContent = `أجندة ${ARABIC_MONTHS[cur.getMonth()]} ${cur.getFullYear()}`;
+  }
+
+  const todayStr = getCairoToday();
+  const d7 = new Date();
+  d7.setDate(d7.getDate() + 7);
+  const next7Str = d7.toLocaleDateString('en-CA');
+
+  const todayGroup = [];
+  const next7Group = [];
+  const overdueGroup = [];
+  const completedGroup = [];
+
+  (events || []).forEach(e => {
+    if (e.isCompleted) {
+      completedGroup.push(e);
+    } else if (e.date === todayStr) {
+      todayGroup.push(e);
+    } else if (e.date > todayStr && e.date <= next7Str) {
+      next7Group.push(e);
+    } else if (e.date < todayStr) {
+      overdueGroup.push(e);
+    } else {
+      next7Group.push(e);
+    }
+  });
+
+  const renderGroup = (title, icon, items, isOverdue = false) => {
+    if (!items || items.length === 0) {
+      return `
+        <div class="agenda-group-card">
+          <div class="agenda-group-header">
+            <h4 class="agenda-group-title">${icon} ${title}</h4>
+            <span class="agenda-group-count">0</span>
+          </div>
+          <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0;">✨ لا توجد عناصر في هذه القائمة.</p>
+        </div>
+      `;
+    }
+
+    const itemsHtml = items.map(e => `
+      <div class="agenda-task-item ${e.isCompleted ? 'is-completed' : ''}" onclick="openCalendarEventModal('${e.date}', '${e.startTime}', '${e.id}')">
+        <div class="agenda-task-left">
+          <div class="task-custom-checkbox ${e.isCompleted ? 'checked' : ''}" onclick="event.stopPropagation(); toggleCalendarEventCompletion('${e.id}', '${e.sourceTable}')">
+            ${e.isCompleted ? '✓' : ''}
+          </div>
+          <div>
+            <div class="agenda-task-title">${e.title}</div>
+            <div class="agenda-task-meta">
+              <span>📅 ${e.date}</span>
+              <span>🕒 ${formatTime12h(e.startTime)}</span>
+              ${e.notes ? `<span>• 📝 ${e.notes}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        <span class="cal-filter-pill cal-cat-${e.category}">${e.category}</span>
+      </div>
+    `).join('');
+
+    return `
+      <div class="agenda-group-card" style="${isOverdue ? 'border-color: rgba(239,68,68,0.3);' : ''}">
+        <div class="agenda-group-header">
+          <h4 class="agenda-group-title" style="${isOverdue ? 'color: #f87171;' : ''}">${icon} ${title}</h4>
+          <span class="agenda-group-count">${items.length}</span>
+        </div>
+        <div class="agenda-tasks-list">
+          ${itemsHtml}
+        </div>
+      </div>
+    `;
+  };
+
+  wrapper.innerHTML = `
+    ${renderGroup('مهام ومواعيد اليوم', '⚡', todayGroup)}
+    ${overdueGroup.length > 0 ? renderGroup('المتأخرات المعلقة (تحتاج ترحيل أو إنجاز)', '⚠️', overdueGroup, true) : ''}
+    ${renderGroup('القادمة خلال 7 أيام', '📆', next7Group)}
+    ${renderGroup('المكتملة بنجاح', '✅', completedGroup)}
+  `;
+}
+
+// Modal Functions
+window.openCalendarEventModal = function(dateStr, timeStr, eventId) {
+  const overlay = document.getElementById('calEventModalOverlay');
+  if (!overlay) return;
+
+  const titleInput = document.getElementById('calModalTitle');
+  const catInput = document.getElementById('calModalCategory');
+  const priorityInput = document.getElementById('calModalPriority');
+  const dateInput = document.getElementById('calModalDate');
+  const timeInput = document.getElementById('calModalStartTime');
+  const durationInput = document.getElementById('calModalDuration');
+  const notesInput = document.getElementById('calModalNotes');
+  const idInput = document.getElementById('calModalEventId');
+  const typeInput = document.getElementById('calModalEventType');
+  const deleteBtn = document.getElementById('btnCalDeleteEvent');
+  const titleText = document.getElementById('calModalTitleText');
+
+  const todayStr = getCairoToday();
+  dateInput.value = dateStr || todayStr;
+  timeInput.value = timeStr || '09:00';
+
+  if (eventId) {
+    const existing = (window.calendarEventsData || []).find(e => String(e.id) === String(eventId));
+    if (existing) {
+      idInput.value = existing.id;
+      typeInput.value = existing.sourceTable;
+      titleInput.value = existing.title.replace(/^[📚🏋️‍♂️⏰🎯]\s*/, '');
+      catInput.value = existing.category;
+      priorityInput.value = existing.priority || 'medium';
+      dateInput.value = existing.date;
+      timeInput.value = existing.startTime || '09:00';
+      durationInput.value = String(existing.duration || 60);
+      notesInput.value = existing.notes || '';
+      if (deleteBtn) deleteBtn.style.display = 'inline-block';
+      if (titleText) titleText.textContent = 'تعديل موعد / مهمة';
+    }
+  } else {
+    idInput.value = '';
+    typeInput.value = 'appointments_and_reminders';
+    titleInput.value = '';
+    catInput.value = 'medical';
+    priorityInput.value = 'high';
+    durationInput.value = '60';
+    notesInput.value = '';
+    if (deleteBtn) deleteBtn.style.display = 'none';
+    if (titleText) titleText.textContent = 'إضافة مهمة أو موعد جديد';
+  }
+
+  overlay.style.display = 'flex';
+};
+
+window.closeCalendarEventModal = function(e) {
+  if (e && e.target && e.target.id !== 'calEventModalOverlay' && !e.target.classList.contains('wallet-modal-close') && !e.target.classList.contains('btn-wallet-cancel')) return;
+  const overlay = document.getElementById('calEventModalOverlay');
+  if (overlay) overlay.style.display = 'none';
+};
+
+window.saveCalendarEventFromModal = async function(e) {
+  e.preventDefault();
+  const id = document.getElementById('calModalEventId').value;
+  const sourceTable = document.getElementById('calModalEventType').value || 'appointments_and_reminders';
+  const title = document.getElementById('calModalTitle').value.trim();
+  const category = document.getElementById('calModalCategory').value;
+  const priority = document.getElementById('calModalPriority').value;
+  const date = document.getElementById('calModalDate').value;
+  const startTime = document.getElementById('calModalStartTime').value;
+  const duration = Number(document.getElementById('calModalDuration').value) || 60;
+  const notes = document.getElementById('calModalNotes').value.trim();
+
+  if (!title) return alert('يرجى كتابة عنوان للموعد أو المهمة.');
+
+  try {
+    const dueDateTime = new Date(`${date}T${startTime}:00`).toISOString();
+
+    if (id) {
+      if (sourceTable === 'appointments_and_reminders') {
+        await db.from('appointments_and_reminders').update({
+          title,
+          date,
+          due_datetime: dueDateTime,
+          notes
+        }).eq('id', id);
+      } else if (sourceTable === 'daily_tasks') {
+        await db.from('daily_tasks').update({
+          title,
+          date,
+          priority,
+          target_duration_mins: duration,
+          category
+        }).eq('id', id);
+      }
+    } else {
+      await db.from('appointments_and_reminders').insert({
+        title,
+        date,
+        due_datetime: dueDateTime,
+        notes,
+        is_completed: false
+      });
+    }
+
+    closeCalendarEventModal();
+    await initCalendarEngine();
+  } catch (err) {
+    console.error('saveCalendarEvent error:', err);
+    alert('❌ خطأ في حفظ الموعد: ' + err.message);
+  }
+};
+
+window.deleteCurrentCalendarEvent = async function() {
+  const id = document.getElementById('calModalEventId').value;
+  const sourceTable = document.getElementById('calModalEventType').value;
+  if (!id || !confirm('هل أنت متأكد من حذف هذا الموعد / المهمة؟')) return;
+
+  try {
+    await db.from(sourceTable).delete().eq('id', id);
+    closeCalendarEventModal();
+    await initCalendarEngine();
+  } catch (err) {
+    alert('❌ خطأ في الحذف: ' + err.message);
+  }
+};
+
+async function rescheduleCalendarEvent(eventId, sourceTable, targetDate, targetTime) {
+  try {
+    const ev = (window.calendarEventsData || []).find(e => String(e.id) === String(eventId));
+    if (!ev) return;
+
+    const newTime = targetTime || ev.startTime || '09:00';
+    const dueDateTime = new Date(`${targetDate}T${newTime}:00`).toISOString();
+
+    if (ev.sourceTable === 'appointments_and_reminders') {
+      await db.from('appointments_and_reminders').update({
+        date: targetDate,
+        due_datetime: dueDateTime
+      }).eq('id', eventId);
+    } else if (ev.sourceTable === 'daily_tasks') {
+      await db.from('daily_tasks').update({
+        date: targetDate
+      }).eq('id', eventId);
+    } else if (ev.sourceTable === 'study_sessions') {
+      await db.from('study_sessions').update({
+        date: targetDate
+      }).eq('id', eventId);
+    } else if (ev.sourceTable === 'fitness_gym_logs') {
+      await db.from('fitness_gym_logs').update({
+        date: targetDate
+      }).eq('id', eventId);
+    }
+
+    await initCalendarEngine();
+  } catch (err) {
+    console.warn('reschedule error:', err);
+  }
+}
+
+async function toggleCalendarEventCompletion(eventId, sourceTable) {
+  try {
+    const ev = (window.calendarEventsData || []).find(e => String(e.id) === String(eventId));
+    if (!ev) return;
+
+    const newStatus = !ev.isCompleted;
+    if (ev.sourceTable === 'appointments_and_reminders') {
+      await db.from('appointments_and_reminders').update({ is_completed: newStatus }).eq('id', eventId);
+    } else if (ev.sourceTable === 'daily_tasks') {
+      await db.from('daily_tasks').update({ status: newStatus ? 'منجز' : 'قيد التنفيذ' }).eq('id', eventId);
+    }
+
+    await initCalendarEngine();
+  } catch (err) {
+    console.warn('toggle completion error:', err);
+  }
+}
+
+window.initCalendarEngine = initCalendarEngine;
+window.rescheduleCalendarEvent = rescheduleCalendarEvent;
+window.toggleCalendarEventCompletion = toggleCalendarEventCompletion;
+
 // Immediate initialization if already authenticated
 
 if (typeof localStorage !== 'undefined' && localStorage.getItem('abdallah_journey_auth_token') === 'authenticated_dr_abdallah_secure_key_2026') {
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
     initDashboard();
+    initCalendarEngine();
   } else {
-    document.addEventListener('DOMContentLoaded', () => initDashboard());
+    document.addEventListener('DOMContentLoaded', () => {
+      initDashboard();
+      initCalendarEngine();
+    });
   }
 }
 
