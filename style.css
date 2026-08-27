@@ -822,10 +822,20 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  padding: 8px 18px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1.5px solid rgba(16, 185, 129, 0.35);
+  padding: 10px 18px;
   border-radius: var(--radius-md);
+  min-width: 230px;
+  gap: 6px;
+}
+
+.score-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
 }
 
 .score-num {
@@ -840,15 +850,35 @@ html, body {
   font-size: 0.76rem;
   font-weight: 800;
   color: #e2e8f0;
-  margin-top: 4px;
 }
 
-/* 4 Analytical Diagnostic Boxes Grid */
+.score-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.score-progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.6s ease, background 0.4s ease;
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+/* 4 Analytical Diagnostic Boxes Grid (Balanced 2x2 Symmetry) */
 .audit-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
   margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .audit-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .audit-box {
@@ -886,20 +916,77 @@ html, body {
 .audit-box-content {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .audit-bullet {
   font-size: 0.84rem;
   color: #e2e8f0;
-  line-height: 1.5;
+  line-height: 1.6;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
 .audit-bullet b {
   color: #fff;
+}
+
+.audit-badge-expense {
+  display: inline-block;
+  font-family: var(--font-en);
+  direction: ltr;
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 800;
+  margin: 0 4px;
+}
+
+.audit-quick-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: auto;
+  white-space: nowrap;
+}
+
+.audit-quick-btn:hover {
+  background: rgba(56, 189, 248, 0.25);
+  transform: scale(1.03);
+}
+
+.audit-quick-btn.btn-danger-pill {
+  background: rgba(244, 63, 94, 0.12);
+  color: #f43f5e;
+  border-color: rgba(244, 63, 94, 0.35);
+}
+
+.audit-quick-btn.btn-danger-pill:hover {
+  background: rgba(244, 63, 94, 0.25);
+}
+
+.audit-quick-btn.btn-gold-pill {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.audit-quick-btn.btn-gold-pill:hover {
+  background: rgba(245, 158, 11, 0.25);
 }
 
 .audit-motivational-banner {
@@ -2734,3 +2821,263 @@ body.force-desktop-mode .content-split-grid {
 .custom-date-input::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
 }
+
+/* ==============================================================================
+   🚀 1. Executive Pulse Grid (Streak, Prayer Compass & Academic Milestone)
+   ============================================================================== */
+.exec-pulse-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+@media (max-width: 992px) {
+  .exec-pulse-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pulse-card {
+  background: var(--bg-card-inner);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.pulse-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.pulse-card-streak {
+  border-right: 4px solid #f59e0b;
+}
+
+.pulse-card-streak:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.15);
+}
+
+.pulse-card-prayer {
+  border-right: 4px solid #38bdf8;
+}
+
+.pulse-card-prayer:hover {
+  border-color: #38bdf8;
+  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.15);
+}
+
+.pulse-card-academic {
+  border-right: 4px solid var(--accent-primary);
+}
+
+.pulse-card-academic:hover {
+  border-color: var(--accent-primary);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+}
+
+.pulse-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.streak-flame-icon {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.prayer-compass-icon {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+.academic-target-icon {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.pulse-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pulse-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.pulse-val {
+  font-size: 1.18rem;
+  font-weight: 900;
+  color: #fff;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pulse-unit {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.pulse-sub {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.academic-mini-track {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+  overflow: hidden;
+  margin: 4px 0 2px;
+}
+
+.academic-mini-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  transition: width 0.6s ease;
+}
+
+/* ==============================================================================
+   🗓️ 2. 7-Day Consistency Micro Heatmap
+   ============================================================================== */
+.weekly-heatmap-card {
+  position: relative;
+}
+
+.weekly-heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+
+@media (max-width: 768px) {
+  .weekly-heatmap-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 8px;
+  }
+}
+
+.heatmap-day-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.heatmap-day-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.heatmap-day-card.is-today {
+  border: 1.5px solid var(--accent-primary);
+  background: rgba(16, 185, 129, 0.08);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+}
+
+.heatmap-day-name {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.heatmap-day-date {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.heatmap-day-score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  margin-top: 2px;
+}
+
+.score-green {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.score-gold {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.score-red {
+  background: rgba(244, 63, 94, 0.18);
+  color: #f87171;
+  border: 1px solid rgba(244, 63, 94, 0.35);
+}
+
+.score-today {
+  background: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.score-future {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.heatmap-day-tags {
+  display: flex;
+  gap: 4px;
+  font-size: 0.75rem;
+  margin-top: 2px;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legend-dot.green { background: #10b981; }
+.legend-dot.gold  { background: #f59e0b; }
+.legend-dot.red   { background: #ef4444; }
+.legend-dot.today { background: #38bdf8; }
+

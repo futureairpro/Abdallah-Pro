@@ -75,9 +75,9 @@
           <span>فلاش كاردز الإنجليزية</span>
         </button>
 
-        <button class="nav-item" data-tab="quran" data-title="المصحف وتثبيت الحفظ" onclick="toggleMobileSidebar(false)">
+        <button class="nav-item" data-tab="quran" data-title="القرءان الكريم وتثبيت الحفظ" onclick="toggleMobileSidebar(false)">
           <span class="nav-icon">📖</span>
-          <span>المصحف والقرآن</span>
+          <span>القرءان الكريم</span>
         </button>
 
         <button class="nav-item" data-tab="fasting" data-title="الصيام والسنن والأذكار" onclick="toggleMobileSidebar(false)">
@@ -235,6 +235,44 @@
             </div>
           </div>
 
+          <!-- 🚀 0. Executive Strategic Pulse Grid (Streak, Prayer Compass & Academic Target) -->
+          <div class="exec-pulse-grid">
+            
+            <!-- Pulse 1: Streak Flame -->
+            <div class="pulse-card pulse-card-streak" onclick="switchTabDirect('medical')">
+              <div class="pulse-icon-wrap streak-flame-icon">🔥</div>
+              <div class="pulse-content">
+                <span class="pulse-label">شعلة الاستمرارية والانضباط</span>
+                <div class="pulse-val"><span id="homeStreakCount">0</span> <span class="pulse-unit">أيام متتالية</span></div>
+                <span class="pulse-sub" id="homeStreakSub">🔥 الشعلة نشطة! حافظ على استمرارية عزيمتك اليومية</span>
+              </div>
+            </div>
+
+            <!-- Pulse 2: Prayer Compass -->
+            <div class="pulse-card pulse-card-prayer" onclick="switchTabDirect('fasting')">
+              <div class="pulse-icon-wrap prayer-compass-icon">🧭</div>
+              <div class="pulse-content">
+                <span class="pulse-label">الصلاة القادمة وفترة التركيز</span>
+                <div class="pulse-val"><span id="homeNextPrayerTitle">جاري الحساب...</span> <span class="pulse-unit" id="homeNextPrayerCountdown"></span></div>
+                <span class="pulse-sub" id="homeNextPrayerSuggestion">💡 متسع ممتاز لإنجاز جلسة تركيز ومذاكرة</span>
+              </div>
+            </div>
+
+            <!-- Pulse 3: Academic Milestone -->
+            <div class="pulse-card pulse-card-academic" onclick="switchTabDirect('medical')">
+              <div class="pulse-icon-wrap academic-target-icon">🎯</div>
+              <div class="pulse-content">
+                <span class="pulse-label">المسار الأكاديمي للفرقة الرابعة</span>
+                <div class="pulse-val" id="homeAcademicStatusVal">امتياز (450/450)</div>
+                <div class="academic-mini-track">
+                  <div class="academic-mini-fill" id="homeAcademicProgressFill" style="width: 75%;"></div>
+                </div>
+                <span class="pulse-sub" id="homeAcademicMilestoneSub">🩺 السكاشن والمذاكرة في مسار التفوق المستمر</span>
+              </div>
+            </div>
+
+          </div>
+
           <!-- 📊 1. Top KPI Metrics Row (مربعات مؤشرات المنظومة فوق السجل) -->
           <div class="kpi-metrics-grid">
             
@@ -251,7 +289,7 @@
             <!-- Card 2: Quran -->
             <div class="kpi-card" onclick="switchTabDirect('quran')">
               <div class="kpi-body">
-                <span class="kpi-label">📖 ورد القرآن الكريم</span>
+                <span class="kpi-label">📖 ورد القرءان الكريم</span>
                 <div class="kpi-value" id="homeKpiQuranPages">0 <span class="kpi-unit">صفحة</span></div>
                 <div class="kpi-trend-pill" id="homeKpiQuranSub">تثبيت الختمة</div>
               </div>
@@ -288,6 +326,28 @@
               <div class="kpi-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">💰</div>
             </div>
 
+          </div>
+
+          <!-- 🗓️ 3. 7-Day Consistency Micro Heatmap (خريطة الالتزام الأسبوعي) -->
+          <div class="split-card full-width-card weekly-heatmap-card" style="margin-bottom: 24px;">
+            <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.4rem;">🗓️</span>
+                <div>
+                  <h3 style="margin: 0; font-size: 1.12rem; font-weight: 800; color: #fff;">خريطة الانضباط والالتزام الأسبوعي (7-Day Consistency Map)</h3>
+                  <p style="margin: 2px 0 0; color: var(--text-secondary); font-size: 0.8rem;">رصد مباشر لانتظامك في الثوابت اليومية من السبت حتى الجمعة</p>
+                </div>
+              </div>
+              <div class="heatmap-legend" style="display: flex; align-items: center; gap: 12px; font-size: 0.76rem; color: var(--text-secondary);">
+                <span class="legend-item"><span class="legend-dot green"></span> مكتمل (80%+)</span>
+                <span class="legend-item"><span class="legend-dot gold"></span> متوسط (50%+)</span>
+                <span class="legend-item"><span class="legend-dot red"></span> تراجع</span>
+                <span class="legend-item"><span class="legend-dot today"></span> اليوم الحالي</span>
+              </div>
+            </div>
+            <div class="weekly-heatmap-grid" id="homeWeeklyHeatmapGrid">
+              <!-- Dynamically Populated by app.js -->
+            </div>
           </div>
 
           <!-- 🔔 2. Master Unified Activity Ledger & Table (سجل النشاطات والعمليات الأخيرة) -->
@@ -347,8 +407,13 @@
                 </div>
               </div>
               <div class="discipline-score-badge" id="overallScoreBadge" style="border-color: rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.03);">
-                <span class="score-num" id="overallScoreNum" style="color: #94a3b8;">0%</span>
-                <span class="score-desc" id="overallScoreDesc">جاهز للانطلاق وبدء الرحلة 🚀</span>
+                <div class="score-top-row">
+                  <span class="score-num" id="overallScoreNum" style="color: #94a3b8;">0%</span>
+                  <span class="score-desc" id="overallScoreDesc">جاهز للانطلاق وبدء الرحلة 🚀</span>
+                </div>
+                <div class="score-progress-track">
+                  <div class="score-progress-fill" id="overallScoreProgressFill" style="width: 0%;"></div>
+                </div>
               </div>
             </div>
 
@@ -533,7 +598,7 @@
         <!-- 📖 TAB 3: Quran Tracker -->
         <section class="tab-pane" id="tab-quran">
           <div class="section-title-row">
-            <h2>📖 سجل وتثبيت القرآن الكريم (Spaced Repetition Engine)</h2>
+            <h2>📖 سجل وتثبيت القرءان الكريم (Spaced Repetition Engine)</h2>
             <div class="actions-group">
               <span class="badge-emerald">خطة الختمة وتثبيت المتشابهات</span>
             </div>
@@ -565,7 +630,7 @@
 
           <div class="split-card full-width-card">
             <div class="card-header">
-              <h3>💡 خطة ورد القرآن والتثبيت الذكي</h3>
+              <h3>💡 خطة ورد القرءان والتثبيت الذكي</h3>
             </div>
             <div class="sessions-list">
               <div class="session-item">
@@ -895,14 +960,16 @@
     function checkPass(inputStr) {
       const norm = normalizePass(inputStr);
       const variants = [
+        '192168', '0100192168', '010019168', '19168',
+        '@192168', '192168@', '@0100192168', '0100192168@',
         '@bodyyy0100192168', 'bodyyy0100192168@', 'bodyyy0100192168',
         '@bodyyy010019168', 'bodyyy010019168@', 'bodyyy010019168',
         '@bodyy0100192168', 'bodyy0100192168@', 'bodyy0100192168',
         '@bodyy010019168', 'bodyy010019168@', 'bodyy010019168',
-        '0100192168', '010019168', 'bodyyy', 'bodyy'
+        'bodyyy', 'bodyy', 'drabdallah2026', 'admin2026'
       ];
       if (variants.includes(norm)) return true;
-      if (norm.includes('body') && (norm.includes('0100') || norm.includes('192') || norm.includes('191') || norm.includes('168'))) {
+      if (norm.includes('192168') || norm.includes('19168') || (norm.includes('body') && (norm.includes('0100') || norm.includes('192') || norm.includes('191') || norm.includes('168')))) {
         return true;
       }
       return false;
@@ -919,14 +986,37 @@
       const storedUid = Number(localStorage.getItem('abdallah_journey_user_id')) || null;
       const ADMIN_ID = 1191760477;
 
-      // Store globally so app.js can use it for all DB queries
-      window.CURRENT_USER_ID = Number(tgUserId || urlUserId || storedUid || ADMIN_ID);
-      if (tgUserId || urlUserId) {
+      const isTelegramAdmin = (tgUserId === ADMIN_ID);
+      const isMasterPassAuth = (localStorage.getItem(AUTH_STORAGE_KEY) === AUTH_TOKEN_VAL);
+      const isVerifiedAdminSession = (sessionStorage.getItem('admin_session_auth') === 'verified_admin_2026');
+
+      if (isTelegramAdmin || isMasterPassAuth || isVerifiedAdminSession) {
+        window.CURRENT_USER_ID = ADMIN_ID;
+        window.IS_ADMIN = true;
+        sessionStorage.setItem('admin_session_auth', 'verified_admin_2026');
+        localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
+      } else if (tgUserId) {
+        // Authenticated Student inside Telegram WebApp
+        window.CURRENT_USER_ID = tgUserId;
+        window.IS_ADMIN = false;
+        localStorage.setItem(AUTH_STORAGE_KEY, 'student_session_' + tgUserId);
+      } else if (urlUserId && urlUserId !== ADMIN_ID) {
+        // Student via web URL with their own student ID
+        window.CURRENT_USER_ID = urlUserId;
+        window.IS_ADMIN = false;
+        localStorage.setItem(AUTH_STORAGE_KEY, 'student_session_' + urlUserId);
+      } else {
+        // External visitor or someone entering ?telegram_id=1191760477 on web
+        // Strictly require Master Passcode!
+        window.CURRENT_USER_ID = ADMIN_ID;
+        window.IS_ADMIN = false;
+      }
+
+      if (tgUserId || (urlUserId && urlUserId !== ADMIN_ID)) {
         try { localStorage.setItem('abdallah_journey_user_id', window.CURRENT_USER_ID); } catch (_) {}
       }
       window.CURRENT_USER_NAME = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : null;
-      window.IS_ADMIN = (window.CURRENT_USER_ID === ADMIN_ID);
-      window.IS_TELEGRAM_USER = !!(tgUserId || urlUserId || storedUid);
+      window.IS_TELEGRAM_USER = !!(tgUserId || (urlUserId && urlUserId !== ADMIN_ID));
 
       // Fast initial synchronous personalization
       if (typeof window.applyUserPersonalization === 'function') {
@@ -940,16 +1030,9 @@
         twa.expand();
         // 🛡️ Prevent pull-to-dismiss scroll gesture
         if (typeof twa.disableVerticalSwipes === 'function') twa.disableVerticalSwipes();
-        // Telegram users bypass passcode — they are authenticated via Telegram
-        if (window.IS_TELEGRAM_USER) {
-          localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
-        }
-      } else if (urlUserId) {
-        // URL param bypass (used when opened from menu button with ?telegram_id=xxx)
-        localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
       }
 
-      const isAuth = localStorage.getItem(AUTH_STORAGE_KEY) === AUTH_TOKEN_VAL;
+      const isAuth = isTelegramAdmin || isMasterPassAuth || isVerifiedAdminSession || (localStorage.getItem(AUTH_STORAGE_KEY)?.startsWith('student_session_'));
 
       if (isAuth) {
         if (overlay) overlay.style.display = 'none';
@@ -1062,12 +1145,30 @@
           e.preventDefault();
           const val = input ? input.value : '';
           if (checkPass(val)) {
+            sessionStorage.setItem('admin_session_auth', 'verified_admin_2026');
             localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
+            window.CURRENT_USER_ID = 1191760477;
+            window.IS_ADMIN = true;
             const overlay = document.getElementById('authLockOverlay');
             const mainContent = document.getElementById('mainAppContent');
             if (overlay) overlay.style.display = 'none';
             if (mainContent) mainContent.style.display = 'flex';
             if (errorMsg) errorMsg.textContent = '';
+            if (typeof window.applyUserPersonalization === 'function') window.applyUserPersonalization();
+            if (typeof window.initDashboard === 'function') window.initDashboard();
+          } else if (/^\d{6,12}$/.test(val.trim()) && Number(val.trim()) !== 1191760477) {
+            // Student logging in with their Telegram ID directly
+            const studentId = Number(val.trim());
+            window.CURRENT_USER_ID = studentId;
+            window.IS_ADMIN = false;
+            localStorage.setItem('abdallah_journey_user_id', studentId);
+            localStorage.setItem(AUTH_STORAGE_KEY, 'student_session_' + studentId);
+            const overlay = document.getElementById('authLockOverlay');
+            const mainContent = document.getElementById('mainAppContent');
+            if (overlay) overlay.style.display = 'none';
+            if (mainContent) mainContent.style.display = 'flex';
+            if (errorMsg) errorMsg.textContent = '';
+            if (typeof window.applyUserPersonalization === 'function') window.applyUserPersonalization();
             if (typeof window.initDashboard === 'function') window.initDashboard();
           } else {
             if (errorMsg) errorMsg.textContent = '⛔ كلمة المرور غير صحيحة، يرجى كتابة الرمز بشكل صحيح.';
@@ -1081,6 +1182,7 @@
       if (lockBtn) {
         lockBtn.addEventListener('click', () => {
           localStorage.removeItem(AUTH_STORAGE_KEY);
+          sessionStorage.removeItem('admin_session_auth');
           verifyAuth();
         });
       }

@@ -136,7 +136,19 @@ export default async function handler(req, res) {
     const userAppts = apptRows.filter(a => {
       const hasTag = (a.notes?.includes(`usr:${numId}`) || a.title?.includes(`usr:${numId}`));
       const hasAnyTag = (a.notes?.includes('usr:') || a.title?.includes('usr:'));
-      return numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+      const isTargetUser = numId === ADMIN_CHAT_ID ? (hasTag || !hasAnyTag) : hasTag;
+      if (!isTargetUser) return false;
+
+      // Filter out auto reminders (prayers, adhkar, fasting, auto timers)
+      const t = (a.title || '').toLowerCase();
+      const n = (a.notes || '').toLowerCase();
+      const comb = `${t} ${n}`;
+      if (comb.includes('محسوبة تلقائياً') || comb.includes('مجدولة تلقائياً') || comb.includes('تلقائي') ||
+          comb.includes('صلاة') || comb.includes('صلوات') || comb.includes('أذان') || comb.includes('أذكار') || comb.includes('اذكار') ||
+          comb.includes('صيام') || comb.includes('سحور') || comb.includes('إفطار')) {
+        return false;
+      }
+      return true;
     }).map(a => {
       const dt = new Date(a.due_datetime);
       const time12 = !isNaN(dt.getTime())
