@@ -212,16 +212,25 @@ export default async function handler(req, res) {
     // 10. Admin Data (Only for Dr. Abdullah)
     let adminData = null;
     if (isAdminUser(numId)) {
-      const [registeredStudents, pendingPayRes] = await Promise.all([
-        supabase.from('bot_sessions').select('*'),
-        supabase.from('subscription_payments').select('*').eq('status', 'pending').order('created_at', { ascending: false })
-      ]);
+      let registeredStudents = { data: [] };
+      let pendingPayList = [];
+
+      try {
+        const [sessRes, adminQRes] = await Promise.all([
+          supabase.from('bot_sessions').select('*'),
+          supabase.from('bot_sessions').select('*').eq('chat_id', 777777).maybeSingle()
+        ]);
+        registeredStudents = sessRes || { data: [] };
+        pendingPayList = adminQRes?.data?.data?.pending || [];
+      } catch (e) {
+        console.warn('[AdminData Fetch Warn]:', e.message);
+      }
 
       const students = [];
       const nowMs = Date.now();
       (registeredStudents.data || []).forEach(r => {
         const cid = Number(r.chat_id);
-        if (cid && cid !== 999999 && cid !== 888888 && cid !== 777777) {
+        if (cid && cid !== 999999 && cid !== 888888 && cid !== 777777 && !isAdminUser(cid) && cid > 1000) {
           const p = r.data?.profile || {};
           const subEnd = p.subscription_ends_at ? new Date(p.subscription_ends_at).getTime() : 0;
           const trialEnd = p.trial_ends_at
@@ -232,7 +241,7 @@ export default async function handler(req, res) {
           let daysRem = 0;
           let isActive = false;
 
-          if (isAdminUser(cid) || status === 'lifetime') {
+          if (status === 'lifetime') {
             status = 'lifetime';
             daysRem = 'دائم 👑';
             isActive = true;
@@ -250,10 +259,10 @@ export default async function handler(req, res) {
 
           students.push({
             telegram_id: Number(p.telegram_id || cid),
-            full_name: p.full_name || (isAdminUser(cid) ? 'د. عبدالله (المؤسس)' : 'طالب زميل'),
+            full_name: p.full_name || 'طالب زميل',
             username: p.username || null,
             university: p.university || 'كلية الطب البشري',
-            role: p.role || (isAdminUser(cid) ? 'admin' : 'student'),
+            role: p.role || 'student',
             subscription_status: status,
             days_remaining: daysRem,
             is_active: isActive
@@ -264,7 +273,7 @@ export default async function handler(req, res) {
       adminData = {
         total_students: students.length,
         students: students,
-        pending_payments: pendingPayRes.data || []
+        pending_payments: pendingPayList
       };
     }
 

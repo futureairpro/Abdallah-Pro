@@ -917,16 +917,17 @@
       const tgUserId = tgUser?.id ? Number(tgUser.id) : null;
       const ADMIN_ID = 1191760477;
       const storedUid = Number(localStorage.getItem('abdallah_journey_user_id')) || null;
+      const isAuthenticated = localStorage.getItem(AUTH_STORAGE_KEY) === AUTH_TOKEN_VAL;
 
-      // STRICT USER ID: Never default to admin ID for unknown users!
-      const detectedId = Number(tgUserId || urlUserId || (storedUid && storedUid !== ADMIN_ID ? storedUid : null) || 0);
+      // Identity resolution: prioritize telegram / url params, then storedUid, or default to admin if pass-authenticated
+      const detectedId = Number(tgUserId || urlUserId || storedUid || (isAuthenticated ? ADMIN_ID : 0));
       window.CURRENT_USER_ID = detectedId;
       if (tgUserId || urlUserId) {
         try { localStorage.setItem('abdallah_journey_user_id', window.CURRENT_USER_ID); } catch (_) {}
       }
-      window.CURRENT_USER_NAME = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : null;
+      window.CURRENT_USER_NAME = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : (detectedId === ADMIN_ID ? 'د. عبدالله' : null);
       window.IS_ADMIN = (window.CURRENT_USER_ID === ADMIN_ID);
-      window.IS_TELEGRAM_USER = !!(tgUserId || urlUserId || storedUid);
+      window.IS_TELEGRAM_USER = !!(tgUserId || urlUserId || (storedUid && storedUid !== ADMIN_ID));
 
       // Fast initial synchronous personalization
       if (typeof window.applyUserPersonalization === 'function') {
@@ -1063,6 +1064,9 @@
           const val = input ? input.value : '';
           if (checkPass(val)) {
             localStorage.setItem(AUTH_STORAGE_KEY, AUTH_TOKEN_VAL);
+            localStorage.setItem('abdallah_journey_user_id', '1191760477');
+            window.CURRENT_USER_ID = 1191760477;
+            window.IS_ADMIN = true;
             const overlay = document.getElementById('authLockOverlay');
             const mainContent = document.getElementById('mainAppContent');
             if (overlay) overlay.style.display = 'none';

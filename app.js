@@ -3945,114 +3945,136 @@ window.disableSandboxModeAndRestore = disableSandboxModeAndRestore;
 // 👑 Admin Management Hub
 
 async function loadAdminPortalData() {
-
   const adminTabBtn = document.getElementById('nav-item-admin');
-
   const urlUserId = new URLSearchParams(window.location.search).get('telegram_id');
-
   const tgUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-
   const currentUserId = Number(urlUserId || tgUserId || (window.IS_ADMIN ? 1191760477 : 0));
 
   if (!isAdminUserUID(currentUserId)) {
-
     if (adminTabBtn) adminTabBtn.style.display = 'none';
-
     return;
-
   }
 
   if (adminTabBtn) adminTabBtn.style.display = 'flex';
 
   try {
+    let adminPayload = null;
 
-    const res = await fetch('/api/dashboard_data?telegram_id=' + currentUserId);
+    // 1. Try Fetching from /api/dashboard_data
+    try {
+      const res = await fetch('/api/dashboard_data?telegram_id=' + currentUserId);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok && data.admin) {
+          adminPayload = data.admin;
+        }
+      }
+    } catch (apiErr) {
+      console.warn('[loadAdminPortalData API warn]:', apiErr.message);
+    }
 
-    const data = await res.json();
+    // 2. Direct Supabase Fallback if API was unavailable
+    if (!adminPayload) {
+      const { data: rows } = await db.from('bot_sessions').select('*');
+      const { data: qRow } = await db.from('bot_sessions').select('*').eq('chat_id', 777777).maybeSingle();
+      const students = [];
+      const nowMs = Date.now();
 
-    if (!data.ok || !data.admin) return;
+      (rows || []).forEach(r => {
+        const cid = Number(r.chat_id);
+        if (cid && cid !== 999999 && cid !== 888888 && cid !== 777777 && !isAdminUserUID(cid) && cid > 1000) {
+          const p = r.data?.profile || {};
+          const subEnd = p.subscription_ends_at ? new Date(p.subscription_ends_at).getTime() : 0;
+          const trialEnd = p.trial_ends_at
+            ? new Date(p.trial_ends_at).getTime()
+            : (p.created_at ? new Date(p.created_at).getTime() + 3 * 24 * 3600 * 1000 : 0);
 
-    const { total_students, students, pending_payments } = data.admin;
+          let status = p.subscription_status || 'trial';
+          let daysRem = 0;
+          let isActive = false;
+
+          if (status === 'lifetime') {
+            status = 'lifetime';
+            daysRem = 'دائم 👑';
+            isActive = true;
+          } else if (status === 'active' && subEnd > nowMs) {
+            daysRem = Math.max(1, Math.ceil((subEnd - nowMs) / (24 * 3600 * 1000)));
+            isActive = true;
+          } else if (status === 'trial' && trialEnd > nowMs) {
+            daysRem = Math.max(1, Math.ceil((trialEnd - nowMs) / (24 * 3600 * 1000)));
+            isActive = true;
+          } else {
+            status = 'expired';
+            daysRem = 0;
+            isActive = false;
+          }
+
+          students.push({
+            telegram_id: Number(p.telegram_id || cid),
+            full_name: p.full_name || 'طالب زميل',
+            username: p.username || null,
+            university: p.university || 'كلية الطب البشري',
+            role: p.role || 'student',
+            subscription_status: status,
+            days_remaining: daysRem,
+            is_active: isActive
+          });
+        }
+      });
+
+      adminPayload = {
+        total_students: students.length,
+        students: students,
+        pending_payments: qRow?.data?.pending || []
+      };
+    }
+
+    const { total_students, students, pending_payments } = adminPayload;
 
     // 1. Stats
-
     const totalEl = document.getElementById('adminTotalStudents');
-
     const activeEl = document.getElementById('adminActiveStudents');
-
     const trialEl = document.getElementById('adminTrialStudents');
-
     const pendingEl = document.getElementById('adminPendingPaymentsCount');
 
-    if (totalEl) totalEl.textContent = total_students || 0;
-
+    if (totalEl) totalEl.textContent = total_students || (students ? students.length : 0);
     const activeCount = (students || []).filter(s => s.subscription_status === 'active' || s.subscription_status === 'lifetime').length;
-
     const trialCount = (students || []).filter(s => s.subscription_status === 'trial').length;
 
     if (activeEl) activeEl.textContent = activeCount;
-
     if (trialEl) trialEl.textContent = trialCount;
-
     if (pendingEl) pendingEl.textContent = (pending_payments || []).length;
 
     // 2. Pending Payments
-
     const payList = document.getElementById('adminPendingPaymentsList');
-
     if (payList) {
-
       if (pending_payments && pending_payments.length > 0) {
-
         payList.innerHTML = pending_payments.map(p => `
-
           <div class="list-item" style="padding: 14px; margin-bottom: 10px; background: rgba(30, 41, 59, 0.6); border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.3);">
-
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-
               <div>
-
                 <b style="font-size: 1rem; color: #fff;">${p.student_name || 'طالب زميل'}</b> (معرف: <code>${p.telegram_id}</code>)
-
                 <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
-
                   الباقة: <b>${p.plan_type || 'شهر (30 يوم)'}</b> • المبلغ: <b style="color: #34d399;">${p.amount_egp || 30} ج.م</b> • وسيلة الدفع: <b>${p.payment_method || 'فودافون كاش'}</b>
-
                 </div>
-
               </div>
-
               <span class="badge badge-warning">معلق ⏳</span>
-
             </div>
-
             ${p.receipt_image_url ? `<div style="margin: 10px 0;"><a href="${p.receipt_image_url}" target="_blank"><img src="${p.receipt_image_url}" style="max-height: 120px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);" alt="إيصال التحويل"></a></div>` : ''}
-
             <div style="display: flex; gap: 8px; margin-top: 10px;">
-
-              <button class="btn btn-sm btn-success" onclick="approveStudentPayment(${p.id}, ${p.telegram_id}, 30)">✅ قبول وتفعيل شهر (30 يوم)</button>
-
-              <button class="btn btn-sm btn-success" onclick="approveStudentPayment(${p.id}, ${p.telegram_id}, 120)">💎 تفعيل ترم (120 يوم)</button>
-
-              <button class="btn btn-sm btn-danger" onclick="rejectStudentPayment(${p.id})">❌ رفض</button>
-
+              <button class="btn btn-sm btn-success" onclick="approveStudentPayment('${p.id}', ${p.telegram_id}, 30)">✅ قبول وتفعيل شهر (30 يوم)</button>
+              <button class="btn btn-sm btn-success" onclick="approveStudentPayment('${p.id}', ${p.telegram_id}, 120)">💎 تفعيل ترم (120 يوم)</button>
+              <button class="btn btn-sm btn-danger" onclick="rejectStudentPayment('${p.id}')">❌ رفض</button>
             </div>
-
           </div>
-
         `).join('');
-
       } else {
-
         payList.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 15px;">✨ لا توجد إيصالات تحويل معلقة حالياً.</p>';
-
       }
-
     }
 
     // 3. Students Table
-
-        const tbody = document.getElementById('adminStudentsTableBody');
+    const tbody = document.getElementById('adminStudentsTableBody');
     const cardsContainer = document.getElementById('adminStudentsCardsContainer');
 
     if (students && students.length > 0) {
@@ -4132,117 +4154,90 @@ async function loadAdminPortalData() {
 }
 
 async function modifyStudentSubscription(telegramId, days, status) {
-
   const actionLabel = status === 'lifetime' ? 'ترقية لمدى الحياة' : status === 'expired' ? 'إيقاف الحساب' : `إضافة ${days} يوم`;
-
   if (!confirm(`هل أنت متأكد من ${actionLabel} للطالب (${telegramId})؟`)) return;
 
   try {
-
     const { data: row } = await db.from('bot_sessions').select('*').eq('chat_id', telegramId).maybeSingle();
-
     const sessionData = row?.data || {};
-
     const profile = sessionData.profile || {};
-
     const nowMs = Date.now();
 
     let newEnd;
-
     let finalDays;
 
     if (status === 'lifetime') {
-
       finalDays = 3650;
-
       newEnd = new Date(nowMs + 3650 * 24 * 3600 * 1000).toISOString();
-
     } else if (status === 'expired') {
-
       finalDays = 0;
-
       newEnd = new Date(nowMs - 60000).toISOString();
-
     } else {
-
       const currentRemaining = Math.max(0, Number(profile.days_remaining || 0));
-
       finalDays = currentRemaining + days;
-
       newEnd = new Date(nowMs + finalDays * 24 * 3600 * 1000).toISOString();
-
     }
 
     profile.subscription_status = status;
-
     profile.days_remaining = finalDays;
-
     profile.subscription_ends_at = newEnd;
-
     profile.is_active = status !== 'expired';
-
     profile.is_trial = status === 'trial';
 
     sessionData.profile = profile;
 
     await db.from('bot_sessions').upsert({
-
       chat_id: telegramId,
-
       state: row?.state || 'idle',
-
       data: sessionData,
-
       updated_at: new Date().toISOString()
-
     });
 
     alert('✅ تم تحديث وتفعيل اشتراك الطالب بنجاح!');
-
     await loadAdminPortalData();
-
   } catch (e) {
-
     alert('❌ خطأ: ' + e.message);
-
   }
-
 }
 
 async function approveStudentPayment(paymentId, telegramId, days) {
-
   try {
+    // 1. Remove from admin queue in bot_sessions chat_id: 777777
+    const { data: qRow } = await db.from('bot_sessions').select('*').eq('chat_id', 777777).maybeSingle();
+    const qData = qRow?.data || { pending: [] };
+    qData.pending = (qData.pending || []).filter(p => String(p.id) !== String(paymentId));
+    await db.from('bot_sessions').upsert({
+      chat_id: 777777,
+      state: 'admin_payment_queue',
+      data: qData,
+      updated_at: new Date().toISOString()
+    });
 
-    await db.from('subscription_payments').update({ status: 'approved', approved_at: new Date().toISOString() }).eq('id', paymentId);
-
+    // 2. Activate student
     await modifyStudentSubscription(telegramId, days, 'active');
-
   } catch (e) {
-
     alert('❌ خطأ في الموافقة: ' + e.message);
-
   }
-
 }
 
 async function rejectStudentPayment(paymentId) {
-
   if (!confirm('هل أنت متأكد من رفض الإيصال؟')) return;
-
   try {
-
-    await db.from('subscription_payments').update({ status: 'rejected' }).eq('id', paymentId);
+    const { data: qRow } = await db.from('bot_sessions').select('*').eq('chat_id', 777777).maybeSingle();
+    const qData = qRow?.data || { pending: [] };
+    qData.pending = (qData.pending || []).filter(p => String(p.id) !== String(paymentId));
+    await db.from('bot_sessions').upsert({
+      chat_id: 777777,
+      state: 'admin_payment_queue',
+      data: qData,
+      updated_at: new Date().toISOString()
+    });
 
     alert('تم رفض الإيصال.');
-
     await loadAdminPortalData();
-
   } catch (e) {
-
     alert('❌ خطأ: ' + e.message);
-
   }
-
 }
 
 window.loadAdminPortalData = loadAdminPortalData;
