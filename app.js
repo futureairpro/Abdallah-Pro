@@ -2686,8 +2686,9 @@ async function renderHomeOverview(period = activeHomePeriod) {
     setHabitUI('habitAsrRate', 'habitAsrFill', habitAsrRate);
 
     const medBadgeEl = document.getElementById('homeMedQuizzesBadge');
-
     if (medBadgeEl) medBadgeEl.textContent = `${totalMedCount} أسئلة`;
+
+    await renderAdminPurityVault();
 
   } catch (err) {
 
@@ -3156,9 +3157,14 @@ async function renderFastingAndSunnah() {
     };
 
     const formatStatus = (val) => {
-      if (!val || val === 'لم يُسجل' || val === 'لم تسجل') return 'لم تسجل ⚪';
+      if (val === 'لم يُصل' || val === 'فاتتني' || val === 'قضاء' || val === 'missed') {
+        return '❌ لم أصلها / قضاء';
+      }
+      if (!val || val === 'لم يُسجل' || val === 'لم تسجل' || val === 'حاضر') {
+        return '✅ حاضر (مؤداة)';
+      }
       if (val.includes('مسجد') || val.includes('جماعة') || val.includes('حاضر') || val.includes('صليت') || val.includes('تم')) {
-        return `✅ ${val.replace('🟢', '').trim()}`;
+        return `✅ ${val.replace('🟢', '').replace('✅', '').trim()}`;
       }
       return val;
     };
@@ -4974,6 +4980,147 @@ window.advanceAcadStageWeb = async function(masteryId, isSuccess) {
     await renderAcademicSrsHub();
     if (typeof showToast === 'function') {
       showToast('✅ عاش يا دكتور! تم ترقية مرحلة تثبيت الموديول بنجاح 🌟');
+    }
+  } catch (err) {
+// ==============================================================================
+// 🛡️ Admin Purity & Dopamine Recovery Vault (سوسو & بوبو)
+// ==============================================================================
+async function renderAdminPurityVault() {
+  const vaultCard = document.getElementById('cardAdminPurityVault');
+  if (!vaultCard) return;
+
+  const uid = getUID();
+  // Strictly isolated to ADMIN_CHAT_ID: 1191760477
+  if (String(uid) !== '1191760477') {
+    vaultCard.style.display = 'none';
+    return;
+  }
+
+  vaultCard.style.display = 'block';
+
+  let purityData = null;
+  try {
+    const { data: row } = await db.from('admin_purity_recovery').select('*').eq('telegram_id', 1191760477).maybeSingle();
+    if (row) purityData = row;
+  } catch (e) {}
+
+  if (!purityData) {
+    try {
+      const { data: sess } = await db.from('bot_sessions').select('*').eq('chat_id', 999119).maybeSingle();
+      if (sess?.data) purityData = sess.data;
+    } catch (e) {}
+  }
+
+  const now = Date.now();
+  const lastSoso = purityData?.last_soso_relapse_at ? new Date(purityData.last_soso_relapse_at).getTime() : now;
+  const lastBobo = purityData?.last_bobo_relapse_at ? new Date(purityData.last_bobo_relapse_at).getTime() : now;
+
+  const sosoDays = Math.max(0, Math.floor((now - lastSoso) / (24 * 3600 * 1000)));
+  const boboDays = Math.max(0, Math.floor((now - lastBobo) / (24 * 3600 * 1000)));
+  const maxSoso = Math.max(purityData?.longest_soso_streak_days || 0, sosoDays);
+  const maxBobo = Math.max(purityData?.longest_bobo_streak_days || 0, boboDays);
+  const urges = purityData?.urges_resisted_count || 0;
+
+  const combinedDays = Math.min(sosoDays, boboDays);
+  let milestoneTitle = 'اليوم 1: كسر العطالة والسيطرة';
+  let milestonePct = Math.min(100, Math.round((combinedDays / 1) * 100));
+  if (combinedDays >= 90) {
+    milestoneTitle = 'اليوم 90: التحرر والسيادة التامة 👑';
+    milestonePct = 100;
+  } else if (combinedDays >= 60) {
+    milestoneTitle = 'اليوم 60: استقرار الفص الجبهي';
+    milestonePct = Math.round((combinedDays / 90) * 100);
+  } else if (combinedDays >= 30) {
+    milestoneTitle = 'اليوم 30: استعادة حساسية الدوبامين D2';
+    milestonePct = Math.round((combinedDays / 60) * 100);
+  } else if (combinedDays >= 21) {
+    milestoneTitle = 'اليوم 21: كسر الدائرة العصبية القديمة';
+    milestonePct = Math.round((combinedDays / 30) * 100);
+  } else if (combinedDays >= 14) {
+    milestoneTitle = 'اليوم 14: انحسار ضباب الدماغ';
+    milestonePct = Math.round((combinedDays / 21) * 100);
+  } else if (combinedDays >= 7) {
+    milestoneTitle = 'اليوم 7: قفزة التستوستيرون والتركيز';
+    milestonePct = Math.round((combinedDays / 14) * 100);
+  } else if (combinedDays >= 3) {
+    milestoneTitle = 'اليوم 3: كسر جدار الاشتهاء الكيميائي 72h';
+    milestonePct = Math.round((combinedDays / 7) * 100);
+  }
+
+  const sosoEl = document.getElementById('puritySosoDays');
+  const sosoMaxEl = document.getElementById('puritySosoMax');
+  const boboEl = document.getElementById('purityBoboDays');
+  const boboMaxEl = document.getElementById('purityBoboMax');
+  const urgesEl = document.getElementById('purityUrgesCount');
+  const xpEl = document.getElementById('purityXpEarned');
+  const titleEl = document.getElementById('purityMilestoneTitle');
+  const pctEl = document.getElementById('purityMilestonePct');
+  const barEl = document.getElementById('purityMilestoneBar');
+
+  if (sosoEl) sosoEl.textContent = sosoDays;
+  if (sosoMaxEl) sosoMaxEl.textContent = maxSoso;
+  if (boboEl) boboEl.textContent = boboDays;
+  if (boboMaxEl) boboMaxEl.textContent = maxBobo;
+  if (urgesEl) urgesEl.textContent = urges;
+  if (xpEl) xpEl.textContent = urges * 50;
+  if (titleEl) titleEl.textContent = milestoneTitle;
+  if (pctEl) pctEl.textContent = `${milestonePct}%`;
+  if (barEl) barEl.style.width = `${milestonePct}%`;
+}
+
+window.renderAdminPurityVault = renderAdminPurityVault;
+
+window.showUrgeSurfingModalWeb = function() {
+  alert(
+    "🌊 بروتوكول ركوب الموجة (Urge Surfing) — 180 ثانية:\n\n" +
+    "1️⃣ اعلم أن ذروة الاشتهاء الكيميائي تستمر 90-180 ثانية فقط ثم تنكسر.\n" +
+    "2️⃣ تنفس (4-7-8): شهيق 4 ثوانٍ، كتم 7 ثوانٍ، زفير 8 ثوانٍ.\n" +
+    "3️⃣ اغسل وجهك بماء بارد فوراً وغير مكانك والعب 20 عدة ضغط.\n" +
+    "4️⃣ أنت المتحكم والسيّد.. الشهوة مجرد موجة عابرة! 👑"
+  );
+};
+
+window.logUrgeVictoryWeb = async function() {
+  try {
+    let row = null;
+    try {
+      const { data } = await db.from('admin_purity_recovery').select('*').eq('telegram_id', 1191760477).maybeSingle();
+      if (data) row = data;
+    } catch (e) {}
+
+    if (!row) {
+      try {
+        const { data: sess } = await db.from('bot_sessions').select('*').eq('chat_id', 999119).maybeSingle();
+        if (sess?.data) row = sess.data;
+      } catch (e) {}
+    }
+
+    const currentUrges = (row?.urges_resisted_count || 0) + 1;
+    const nowIso = new Date().toISOString();
+    const payload = {
+      telegram_id: 1191760477,
+      last_soso_relapse_at: row?.last_soso_relapse_at || nowIso,
+      last_bobo_relapse_at: row?.last_bobo_relapse_at || nowIso,
+      longest_soso_streak_days: row?.longest_soso_streak_days || 0,
+      longest_bobo_streak_days: row?.longest_bobo_streak_days || 0,
+      urges_resisted_count: currentUrges,
+      relapse_history: row?.relapse_history || [],
+      updated_at: nowIso
+    };
+
+    try { await db.from('admin_purity_recovery').upsert(payload); } catch (e) {}
+    try {
+      await db.from('bot_sessions').upsert({
+        chat_id: 999119,
+        state: 'admin_purity_vault',
+        data: payload,
+        updated_at: nowIso
+      });
+    } catch (e) {}
+
+    await renderAdminPurityVault();
+    if (typeof showToast === 'function') {
+      showToast('🎉 بطل يا دكتور! تم توثيق كسر الموجة ومنحك +50 Doctor XP 👑');
     }
   } catch (err) {
     alert('❌ خطأ: ' + err.message);

@@ -562,4 +562,23 @@ create table if not exists public.academic_spaced_mastery (
 create index if not exists idx_acad_spaced_next on public.academic_spaced_mastery(next_review_at);
 create index if not exists idx_acad_spaced_user on public.academic_spaced_mastery(telegram_id);
 
+-- ==============================================================================
+-- 🛡️ 30. قلعة السيادة والتعافي العصبي وإعادة ضبط الدوبامين (Admin Purity Recovery Vault)
+-- [حصري وخاص فقط بحساب الأدمن 1191760477]
+-- ==============================================================================
+create table if not exists public.admin_purity_recovery (
+  telegram_id bigint primary key references public.users(telegram_id) on delete cascade,
+  last_soso_relapse_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  last_bobo_relapse_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  longest_soso_streak_days int default 0,
+  longest_bobo_streak_days int default 0,
+  urges_resisted_count int default 0,
+  relapse_history jsonb default '[]'::jsonb,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+create index if not exists idx_admin_purity_user on public.admin_purity_recovery(telegram_id);
+
+
 

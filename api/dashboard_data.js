@@ -1,5 +1,5 @@
 // 🚀 Telegram Web App Dashboard Data API for Abdullah's Journey & Medical OS
-import { supabase, getUserProfile, getUserActiveCourses, getUserMedicalQuizzes, DEFAULT_USER_PREFERENCES, ADMIN_CHAT_ID, isAdminUser } from '../lib/supabase.js';
+import { supabase, getUserProfile, getUserActiveCourses, getUserMedicalQuizzes, DEFAULT_USER_PREFERENCES, ADMIN_CHAT_ID, isAdminUser, getAdminPurityStats } from '../lib/supabase.js';
 import { getCairoPrayerTimes } from '../lib/prayer_times.js';
 import { getRandomCuratedCapsule } from '../lib/mindset_pulses.js';
 
@@ -331,7 +331,8 @@ export default async function handler(req, res) {
       gym: userGym,
       wellness: userWellness,
       thoughts: userThoughts,
-      admin: adminData
+      admin: adminData,
+      purity: numId === ADMIN_CHAT_ID ? await getAdminPurityStats(numId) : null
     });
 
   } catch (err) {
