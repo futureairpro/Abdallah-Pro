@@ -390,3 +390,176 @@ create index if not exists idx_mental_wellness_date on public.mental_wellness_lo
 create index if not exists idx_tasks_date on public.daily_tasks(date);
 create index if not exists idx_thoughts_date on public.thoughts_and_wisdom(date);
 create index if not exists idx_personal_finance_date on public.personal_finance(date);
+
+-- ==============================================================================
+-- 🥗 21. سجل قياسات وفحص الجسم وحساب السعرات (InBody & Body Profile)
+-- ==============================================================================
+create table if not exists public.user_body_metrics (
+  telegram_id bigint primary key references public.users(telegram_id) on delete cascade,
+  height_cm numeric default 175,
+  weight_kg numeric default 75,
+  body_fat_pct numeric default 18,
+  muscle_mass_kg numeric default 35,
+  bmr numeric default 1700,
+  tdee numeric default 2300,
+  fitness_goal text default 'تنشيف وحرق دهون', -- 'تنشيف وحرق دهون', 'تضخيم وبناء عضل', 'الحفاظ على الوزن واللياقة'
+  target_calories numeric default 2000,
+  target_protein_g numeric default 150,
+  target_carbs_g numeric default 180,
+  target_fats_g numeric default 55,
+  target_water_l numeric default 3.5,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- ==============================================================================
+-- 🍽️ 22. سجل الوجبات والتغذية اليومية والسعرات (Nutrition & Macro Logs)
+-- ==============================================================================
+create table if not exists public.nutrition_logs (
+  id uuid default gen_random_uuid() primary key,
+  telegram_id bigint references public.users(telegram_id) on delete cascade,
+  meal_name text not null,
+  meal_type text default 'وجبة رئيسية', -- 'إفطار', 'غداء', 'عشاء', 'سناك / قبل التمرين', 'سناك / بعد التمرين'
+  calories numeric default 0,
+  protein_g numeric default 0,
+  carbs_g numeric default 0,
+  fats_g numeric default 0,
+  notes text,
+  date date not null default current_date,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- ==============================================================================
+-- 🛑 23. رادار تشتت الانتباه ومحاربة التسويف (Distraction & Procrastination Radar)
+-- ==============================================================================
+create table if not exists public.distraction_logs (
+  id uuid default gen_random_uuid() primary key,
+  telegram_id bigint references public.users(telegram_id) on delete cascade,
+  distraction_source text not null, -- 'سوشيال ميديا وريلز', 'يوتيوب وتصفح عشوائي', 'ألعاب ومكالمات', 'تشتت ذهني وخمول'
+  duration_minutes numeric not null default 30,
+  trigger_reason text,
+  discipline_rating int default 3 check (discipline_rating between 1 and 5),
+  date date not null default current_date,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- ==============================================================================
+-- 🏆 24. نظام الرتب والخبرة والشارات وشعلة الانضباط (Doctor XP & Streaks)
+-- ==============================================================================
+create table if not exists public.user_gamification (
+  telegram_id bigint primary key references public.users(telegram_id) on delete cascade,
+  doctor_xp numeric default 0,
+  level int default 1,
+  rank_title text default 'Student Doctor (طالب طب متميز)',
+  unlocked_badges jsonb default '[]'::jsonb,
+  current_streak int default 1,
+  best_streak int default 1,
+  last_active_date date default current_date,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- ==============================================================================
+-- 📦 25. قائمة النواقص والمستلزمات وكانبان المشتريات (Wishlist & Inventory)
+-- ==============================================================================
+create table if not exists public.wishlist_items (
+  id uuid default gen_random_uuid() primary key,
+  telegram_id bigint references public.users(telegram_id) on delete cascade,
+  title text not null,
+  category text default 'مستلزمات طبية', -- 'مستلزمات طبية', 'أجهزة وإلكترونيات', 'كتب وملازم', 'شخصي وعام'
+  estimated_cost numeric default 0,
+  priority text default 'متوسطة', -- 'عاجل', 'متوسطة', 'لاحقاً'
+  status text default 'pending', -- 'pending', 'bought', 'cancelled'
+  notes text,
+  date date not null default current_date,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- ==============================================================================
+-- 📚 26. خزنة ملفات الموديولات والـ PDFs والامتحانات السابقة (Academic PDF Vault)
+-- ==============================================================================
+create table if not exists public.academic_pdf_vault (
+  id uuid default gen_random_uuid() primary key,
+  course_code text not null,
+  file_name text not null,
+  topic_title text not null,
+  high_yield_summary jsonb default '[]'::jsonb,
+  mcqs_extracted jsonb default '[]'::jsonb,
+  english_terms jsonb default '[]'::jsonb,
+  osce_pearls jsonb default '[]'::jsonb,
+  file_size_mb numeric default 0,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- ==============================================================================
+-- 📝 27. سجل الأنشطة والأحداث الحرة المرنة (Universal Flexible Free Logs)
+-- ==============================================================================
+create table if not exists public.flexible_free_logs (
+  id uuid default gen_random_uuid() primary key,
+  telegram_id bigint references public.users(telegram_id) on delete cascade,
+  category text default 'أخرى',
+  title text not null,
+  content text not null,
+  metadata jsonb default '{}'::jsonb,
+  date date not null default current_date,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- ⚡ New Indexes
+create index if not exists idx_nutrition_date on public.nutrition_logs(date);
+create index if not exists idx_distraction_date on public.distraction_logs(date);
+create index if not exists idx_wishlist_status on public.wishlist_items(status);
+create index if not exists idx_flexible_date on public.flexible_free_logs(date);
+
+-- ==============================================================================
+-- 📖 28. منظومة التكرار المتباعد والتثبيت العلمي للقرآن (Scientific Quran Spaced Mastery)
+-- ==============================================================================
+create table if not exists public.quran_spaced_mastery (
+  id uuid default gen_random_uuid() primary key,
+  telegram_id bigint references public.users(telegram_id) on delete cascade,
+  surah_name text not null,
+  from_page int,
+  to_page int,
+  from_ayah int,
+  to_ayah int,
+  pages_count numeric default 1,
+  learning_mode text not null default 'auditory_listening', -- auditory_listening | visual_memorization | recitation_review
+  repetition_stage int not null default 1, -- 1: 8-12h, 2: 24h, 3: 3d, 4: 7d, 5: 15d, 6: 30d (Mastered)
+  mastery_pct int not null default 20, -- 20% to 100%
+  mastery_status text default 'تثبيت أولي', -- حفظ جديد | تثبيت أولي | مراجعة متباعدة | متقن راسخ
+  last_reviewed_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  next_review_at timestamp with time zone,
+  reminder_appt_id uuid references public.appointments_and_reminders(id) on delete set null,
+  review_history jsonb default '[]'::jsonb,
+  notes text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+create index if not exists idx_quran_spaced_next on public.quran_spaced_mastery(next_review_at);
+create index if not exists idx_quran_spaced_user on public.quran_spaced_mastery(telegram_id);
+
+-- ==============================================================================
+-- 🩺 29. منظومة التكرار المتباعد والتثبيت العصبي الأكاديمي (Academic Spaced Mastery)
+-- ==============================================================================
+create table if not exists public.academic_spaced_mastery (
+  id uuid default gen_random_uuid() primary key,
+  telegram_id bigint references public.users(telegram_id) on delete cascade,
+  course_code text not null,
+  topic text not null,
+  from_page int,
+  to_page int,
+  pages_count numeric default 1,
+  repetition_stage int not null default 1, -- 1: 10h, 2: 24h, 3: 3d, 4: 7d, 5: 15d, 6: 30d (Mastered)
+  mastery_pct int not null default 25, -- 25% to 100%
+  mastery_status text default 'تثبيت أولي', -- تثبيت أولي | مراجعة متباعدة | متقن راسخ
+  pdf_vault_id uuid references public.academic_pdf_vault(id) on delete set null,
+  mcqs_generated_count int default 0,
+  last_reviewed_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  next_review_at timestamp with time zone,
+  reminder_appt_id uuid references public.appointments_and_reminders(id) on delete set null,
+  notes text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+create index if not exists idx_acad_spaced_next on public.academic_spaced_mastery(next_review_at);
+create index if not exists idx_acad_spaced_user on public.academic_spaced_mastery(telegram_id);
+
+

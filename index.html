@@ -154,6 +154,20 @@
         </div>
 
         <div class="topbar-left">
+          <!-- 🔥 Daily Streak & Recovery Status Capsules -->
+          <div class="topbar-status-capsules" style="display: flex; align-items: center; gap: 8px;">
+            <div class="status-capsule streak-capsule" id="topbarStreakBadge" title="شعلة الانضباط وسلسلة الأيام المستمرة دون انقطاع" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 5px; font-size: 0.85rem; font-weight: 700; color: #fbbf24; cursor: pointer;">
+              <span>🔥</span>
+              <span id="topbarStreakVal">1</span>
+              <span style="font-size: 0.72rem; color: #fde68a;">يوم</span>
+            </div>
+            <div class="status-capsule recovery-capsule" id="topbarRecoveryBadge" title="مؤشر الجاهزية والتعافي البيولوجي اليومي بناءً على النوم والطاقة" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 5px; font-size: 0.85rem; font-weight: 700; color: #34d399; cursor: pointer;">
+              <span>🔋</span>
+              <span id="topbarRecoveryVal">85%</span>
+              <span style="font-size: 0.72rem; color: #a7f3d0;">جاهزية</span>
+            </div>
+          </div>
+
           <!-- Desktop / Mobile View Mode Toggle -->
           <button type="button" id="toggle-desktop-mode-btn" class="btn-topbar-mode btn-desktop-toggle" onclick="toggleDesktopMode()" title="التبديل بين وضع الموبايل والكمبيوتر">
             <span id="desktop-mode-icon">💻</span>
@@ -235,6 +249,43 @@
             </div>
           </div>
 
+          <!-- 🏆 Doctor RPG Gamification & Leveling Banner -->
+          <div class="doctor-rpg-card" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.85)); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 16px; padding: 20px 24px; margin-bottom: 24px; box-shadow: 0 8px 30px rgba(0,0,0,0.35);">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 14px;">
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);">🏆</div>
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 800; text-transform: uppercase; color: #fbbf24; letter-spacing: 0.5px;">Doctor Level & Rank</span>
+                    <span class="badge-gold" id="rpgLevelBadge">Level 1</span>
+                  </div>
+                  <h3 id="rpgRankTitle" style="font-size: 1.2rem; font-weight: 900; color: #fff; margin: 2px 0 0;">Student Doctor (طالب طب متميز)</h3>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="text-align: left;">
+                  <span style="font-size: 0.78rem; color: var(--text-secondary);">نقاط الخبرة الحالية:</span>
+                  <div style="font-size: 1.15rem; font-weight: 900; color: #fbbf24;"><span id="rpgCurrentXp">50</span> / <span id="rpgNextXp">200</span> XP</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- XP Progress Bar -->
+            <div style="background: rgba(255,255,255,0.08); border-radius: 10px; height: 10px; overflow: hidden; margin-bottom: 14px;">
+              <div id="rpgProgressBar" style="width: 25%; height: 100%; background: linear-gradient(90deg, #f59e0b, #10b981); border-radius: 10px; transition: width 0.5s ease;"></div>
+            </div>
+
+            <!-- Badges Shelf -->
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
+              <span style="font-size: 0.82rem; color: var(--text-secondary); font-weight: 600;">الشارات والإنجازات المفتوحة:</span>
+              <div id="rpgBadgesList" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span class="badge-pill-item" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem;">🔥 شعلة الانضباط</span>
+                <span class="badge-pill-item" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem;">📖 حارس القرآن</span>
+                <span class="badge-pill-item" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem;">🩺 صقر الكويزات</span>
+              </div>
+            </div>
+          </div>
+
           <!-- 📊 1. Top KPI Metrics Row (مربعات مؤشرات المنظومة فوق السجل) -->
           <div class="kpi-metrics-grid">
             
@@ -288,6 +339,68 @@
               <div class="kpi-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">💰</div>
             </div>
 
+          </div>
+
+          <!-- 🥗 Daily Nutrition & Calorie Rings Card -->
+          <div class="split-card full-width-card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(16, 185, 129, 0.08)); border: 1px solid rgba(16, 185, 129, 0.25);">
+            <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.4rem;">🥗</span>
+                <div>
+                  <h3 style="margin: 0; font-size: 1.12rem;">حلقات التغذية والسعرات والماكروز اليومية</h3>
+                  <p style="margin: 2px 0 0; color: var(--text-secondary); font-size: 0.8rem;">تتبع تلقائي محسوب بالذكاء الاصطناعي بناءً على مقاييس جسمك وهدفك</p>
+                </div>
+              </div>
+              <button type="button" class="btn-action-sm" onclick="switchTabDirect('gym')" style="background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); padding: 5px 12px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                ⚖️ فحص الجسم والوجبات
+              </button>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 12px 0;">
+              <!-- Calories -->
+              <div style="background: rgba(255,255,255,0.04); border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.08);">
+                <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 6px;">
+                  <span>⚡ السعرات الحرارية:</span>
+                  <span style="color: #fff; font-weight: 700;"><span id="nutriValCalories">0</span> / <span id="nutriTargetCalories">2000</span> kcal</span>
+                </div>
+                <div style="background: rgba(255,255,255,0.08); height: 8px; border-radius: 6px; overflow: hidden;">
+                  <div id="nutriBarCalories" style="width: 0%; height: 100%; background: #f59e0b; border-radius: 6px;"></div>
+                </div>
+              </div>
+
+              <!-- Protein -->
+              <div style="background: rgba(255,255,255,0.04); border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.08);">
+                <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 6px;">
+                  <span>🥩 البروتين المستهدف:</span>
+                  <span style="color: #fff; font-weight: 700;"><span id="nutriValProtein">0</span> / <span id="nutriTargetProtein">150</span> g</span>
+                </div>
+                <div style="background: rgba(255,255,255,0.08); height: 8px; border-radius: 6px; overflow: hidden;">
+                  <div id="nutriBarProtein" style="width: 0%; height: 100%; background: #10b981; border-radius: 6px;"></div>
+                </div>
+              </div>
+
+              <!-- Carbs -->
+              <div style="background: rgba(255,255,255,0.04); border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.08);">
+                <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 6px;">
+                  <span>🍞 الكربوهيدرات:</span>
+                  <span style="color: #fff; font-weight: 700;"><span id="nutriValCarbs">0</span> / <span id="nutriTargetCarbs">180</span> g</span>
+                </div>
+                <div style="background: rgba(255,255,255,0.08); height: 8px; border-radius: 6px; overflow: hidden;">
+                  <div id="nutriBarCarbs" style="width: 0%; height: 100%; background: #38bdf8; border-radius: 6px;"></div>
+                </div>
+              </div>
+
+              <!-- Fats -->
+              <div style="background: rgba(255,255,255,0.04); border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.08);">
+                <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 6px;">
+                  <span>🥑 الدهون الصحية:</span>
+                  <span style="color: #fff; font-weight: 700;"><span id="nutriValFats">0</span> / <span id="nutriTargetFats">55</span> g</span>
+                </div>
+                <div style="background: rgba(255,255,255,0.08); height: 8px; border-radius: 6px; overflow: hidden;">
+                  <div id="nutriBarFats" style="width: 0%; height: 100%; background: #ec4899; border-radius: 6px;"></div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- 🔔 2. Master Unified Activity Ledger & Table (سجل النشاطات والعمليات الأخيرة) -->
@@ -435,6 +548,48 @@
             <!-- Dynamically populated with real hours and progress by app.js -->
           </div>
 
+          <!-- 🧠 1. Academic Spaced Repetition (SRS) Pipeline Hub -->
+          <div class="split-card full-width-card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(59, 130, 246, 0.08)); border: 1px solid rgba(59, 130, 246, 0.25);">
+            <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.4rem;">🧠</span>
+                <div>
+                  <h3 style="margin: 0; font-size: 1.15rem;">منظومة التكرار المتباعد والتثبيت العصبي للموديولات الطبية (Academic SRS Hub)</h3>
+                  <p style="margin: 2px 0 0; color: var(--text-secondary); font-size: 0.8rem;">تتبع منحنى النسيان للصفحات والموضوعات المدروسة مع كويزات تفاعلية مستخرجة حصرياً من الـ PDFs</p>
+                </div>
+              </div>
+              <span class="badge-gold" id="acadMasteryActiveCountBadge">0 موضوعات قيد التثبيت</span>
+            </div>
+
+            <!-- Academic SRS Metrics Row -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; padding: 12px 0;">
+              <div class="kpi-card" style="padding: 10px 12px;">
+                <span class="kpi-label">👑 موضوعات متقنة راسخة (100%)</span>
+                <div class="kpi-value" style="font-size: 1.25rem;" id="acadCountMastered">0 <span class="kpi-unit">موضوع</span></div>
+              </div>
+              <div class="kpi-card" style="padding: 10px 12px;">
+                <span class="kpi-label">⏳ قيد التثبيت والمراجعة</span>
+                <div class="kpi-value" style="font-size: 1.25rem; color: #fbbf24;" id="acadCountInReview">0 <span class="kpi-unit">موضوع</span></div>
+              </div>
+              <div class="kpi-card" style="padding: 10px 12px;">
+                <span class="kpi-label">📚 مذكرات PDF مربوطة</span>
+                <div class="kpi-value" style="font-size: 1.25rem; color: #38bdf8;" id="acadCountPdfsLinked">0 <span class="kpi-unit">ملف</span></div>
+              </div>
+              <div class="kpi-card" style="padding: 10px 12px;">
+                <span class="kpi-label">🎯 كويزات تفاعلية مستخرجة</span>
+                <div class="kpi-value" style="font-size: 1.25rem; color: #34d399;" id="acadCountMcqsReady">0 <span class="kpi-unit">سؤال</span></div>
+              </div>
+            </div>
+
+            <!-- Active Academic SRS Pipeline Queue -->
+            <div style="padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
+              <h4 style="font-size: 0.95rem; color: #fff; margin: 0 0 10px;">📋 خط أنابيب التثبيت والمراجعات المجدولة ذكياً:</h4>
+              <div id="acadSrsQueueList" style="max-height: 320px; overflow-y: auto;">
+                <div class="empty-state">لا توجد موضوعات في خط أنابيب التثبيت حالياً. سجل مذاكرتك وسيقوم المحرك بجدولتها وتوليد كويزاتها فوراً!</div>
+              </div>
+            </div>
+          </div>
+
           <!-- 📚 PROMINENT LIVE STUDY SESSIONS LEDGER (سجل جلسات المذاكرة المباشر) -->
           <div class="split-card full-width-card" style="margin-bottom: 24px;">
             <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
@@ -482,6 +637,23 @@
               <div class="attendance-list" id="attendanceLogsList">
                 <div class="empty-state">لا توجد سجلات غياب. سجل حضورك أو غيابك عبر الفويس مباشرة!</div>
               </div>
+            </div>
+          </div>
+
+          <!-- 📚 Academic PDF & Exam Q-Bank Vault -->
+          <div class="split-card full-width-card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(245, 158, 11, 0.08)); border: 1px solid rgba(245, 158, 11, 0.25);">
+            <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.4rem;">📑</span>
+                <div>
+                  <h3 style="margin: 0; font-size: 1.15rem;">خزنة ملفات ومذكرات الامتحانات السابقة (Academic PDF Vault)</h3>
+                  <p style="margin: 2px 0 0; color: var(--text-secondary); font-size: 0.8rem;">كبسولات ليلة الامتحان، تريكات الدكاترة، وبنك أسئلة الـ MCQs المستخرجة من الـ PDFs</p>
+                </div>
+              </div>
+              <span class="badge-gold" id="pdfVaultCountBadge">0 ملفات مفككة</span>
+            </div>
+            <div id="pdfVaultList" style="max-height: 380px; overflow-y: auto; padding: 10px 0;">
+              <div class="empty-state">لم يتم رفع أي ملفات PDF بعد. ارفع أي ملف مذكرات للبوت وسيتم تفكيكه فوراً!</div>
             </div>
           </div>
 
@@ -533,9 +705,51 @@
         <!-- 📖 TAB 3: Quran Tracker -->
         <section class="tab-pane" id="tab-quran">
           <div class="section-title-row">
-            <h2>📖 سجل وتثبيت القرآن الكريم (Spaced Repetition Engine)</h2>
+            <h2>📖 سجل وتثبيت القرآن الكريم بالمنهجية العلمية (Spaced Repetition & Conflict-Free Engine)</h2>
             <div class="actions-group">
-              <span class="badge-emerald">خطة الختمة وتثبيت المتشابهات</span>
+              <span class="badge-emerald">تثبيت السماع والحفظ البصري • إتقان 100%</span>
+            </div>
+          </div>
+
+          <!-- 🧠 1. Quran Spaced Repetition (SRS) Mastery Hub -->
+          <div class="split-card full-width-card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(16, 185, 129, 0.08)); border: 1px solid rgba(16, 185, 129, 0.25);">
+            <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.4rem;">🧠</span>
+                <div>
+                  <h3 style="margin: 0; font-size: 1.15rem;">منظومة التكرار المتباعد والتثبيت العصبي للقرآن (Quran SRS Hub)</h3>
+                  <p style="margin: 2px 0 0; color: var(--text-secondary); font-size: 0.8rem;">تتبع منحنى النسيان لـ د. عبدالله وجدولة مواعيد التسميع في أوقات خالية تماماً من أي تعارض</p>
+                </div>
+              </div>
+              <span class="badge-gold" id="quranMasteryActiveCountBadge">0 سور قيد التثبيت</span>
+            </div>
+
+            <!-- SRS Mastery Metrics Row -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; padding: 12px 0;">
+              <div class="kpi-card" style="padding: 10px 12px;">
+                <span class="kpi-label">👑 سور متقنة راسخة (100%)</span>
+                <div class="kpi-value" style="font-size: 1.25rem;" id="quranCountMastered">0 <span class="kpi-unit">سورة</span></div>
+              </div>
+              <div class="kpi-card" style="padding: 10px 12px;">
+                <span class="kpi-label">⏳ قيد التثبيت والمراجعة</span>
+                <div class="kpi-value" style="font-size: 1.25rem; color: #fbbf24;" id="quranCountInReview">0 <span class="kpi-unit">سورة</span></div>
+              </div>
+              <div class="kpi-card" style="padding: 10px 12px;">
+                <span class="kpi-label">🎧 حفظ بالسماع والتكرار</span>
+                <div class="kpi-value" style="font-size: 1.25rem; color: #38bdf8;" id="quranCountAuditory">0 <span class="kpi-unit">سورة</span></div>
+              </div>
+              <div class="kpi-card" style="padding: 10px 12px;">
+                <span class="kpi-label">📖 حفظ بصري من المصحف</span>
+                <div class="kpi-value" style="font-size: 1.25rem; color: #34d399;" id="quranCountVisual">0 <span class="kpi-unit">سورة</span></div>
+              </div>
+            </div>
+
+            <!-- Active Quran SRS Pipeline Queue -->
+            <div style="padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
+              <h4 style="font-size: 0.95rem; color: #fff; margin: 0 0 10px;">📋 خط أنابيب التثبيت والمراجعات القادمة (المجدولة ذكياً):</h4>
+              <div id="quranSrsQueueList" style="max-height: 320px; overflow-y: auto;">
+                <div class="empty-state">لا توجد سور في خط أنابيب التكرار المتباعد حالياً. قول للبوت بصوتك "سمعت سورة كذا" أو "حفظت من المصحف" وسيقوم بجدولتها فوراً!</div>
+              </div>
             </div>
           </div>
 
@@ -625,6 +839,25 @@
             </div>
           </div>
 
+          <!-- 🧠 Weekly Psychological Report Card -->
+          <div class="split-card full-width-card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(168, 85, 247, 0.08)); border: 1px solid rgba(168, 85, 247, 0.25);">
+            <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.4rem;">🧠</span>
+                <div>
+                  <h3 style="margin: 0; font-size: 1.15rem;">تقرير الاستشفاء والتحليل النفسي الأسبوعي (Weekly Pattern Report)</h3>
+                  <p style="margin: 2px 0 0; color: var(--text-secondary); font-size: 0.8rem;">تحليل ذكي لمسببات الضغط والخنقة خلال الأسبوع مع خطة تعافي ذهني مبنية على الـ CBT</p>
+                </div>
+              </div>
+              <button type="button" class="btn-action-sm" onclick="generateWeeklyMentalReportFromWeb()" style="background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.35); padding: 6px 14px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                ✨ توليد تقرير الأسبوع الآن
+              </button>
+            </div>
+            <div id="weeklyMentalReportPreview" style="padding: 14px; background: rgba(255,255,255,0.03); border-radius: 10px; margin-top: 10px; font-size: 0.9rem; line-height: 1.7; color: var(--text-secondary);">
+              اضغط على الزر بالأعلى لتوليد تحليل شامل لحالتك النفسية وتفريغاتك خلال آخر 7 أيام، وكشف الأسباب الرئيسية للضغط وطرق التعامل معها!
+            </div>
+          </div>
+
           <div class="thoughts-grid" id="wellnessGrid">
             <div class="empty-state full-width-card">
               ✨ عندما تشعر بضغط أو رغبة في تفريغ ما بداخلك، سجل فويس وابدأ بـ <i>"دردشة عامة / فضفضة: حاسس بـ..."</i>
@@ -638,6 +871,60 @@
             <h2>🏋️‍♂️ الجيم، اللياقة البدنية، والتغذية (Body Engineering)</h2>
             <div class="actions-group">
               <span class="badge-emerald">Peak Physical Conditioning</span>
+            </div>
+          </div>
+
+          <!-- ⚖️ InBody & Body Composition Profile Card -->
+          <div class="split-card full-width-card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(56, 189, 248, 0.08)); border: 1px solid rgba(56, 189, 248, 0.25);">
+            <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.4rem;">⚖️</span>
+                <div>
+                  <h3 style="margin: 0; font-size: 1.15rem;">بروفايل قياسات وفحص الجسم (InBody & Body Metrics)</h3>
+                  <p style="margin: 2px 0 0; color: var(--text-secondary); font-size: 0.8rem;">معايير الحرق والسعرات والماكروز المحسوبة لجسدك وهدفك الرياضي</p>
+                </div>
+              </div>
+              <button type="button" class="btn-action-sm" onclick="openEditBodyMetricsModal()" style="background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.35); padding: 6px 14px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                ✏️ تحديث قياسات الـ InBody
+              </button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; padding: 14px 0;">
+              <div class="kpi-card" style="padding: 12px 14px;">
+                <span class="kpi-label">🏋️‍♂️ الوزن الحالي</span>
+                <div class="kpi-value" style="font-size: 1.3rem;"><span id="inbodyWeight">75</span> <span class="kpi-unit">كجم</span></div>
+              </div>
+              <div class="kpi-card" style="padding: 12px 14px;">
+                <span class="kpi-label">📏 الطول</span>
+                <div class="kpi-value" style="font-size: 1.3rem;"><span id="inbodyHeight">175</span> <span class="kpi-unit">سم</span></div>
+              </div>
+              <div class="kpi-card" style="padding: 12px 14px;">
+                <span class="kpi-label">🧬 نسبة الدهون</span>
+                <div class="kpi-value" style="font-size: 1.3rem;"><span id="inbodyFat">18</span> <span class="kpi-unit">%</span></div>
+              </div>
+              <div class="kpi-card" style="padding: 12px 14px;">
+                <span class="kpi-label">💪 الكتلة العضلية</span>
+                <div class="kpi-value" style="font-size: 1.3rem;"><span id="inbodyMuscle">35</span> <span class="kpi-unit">كجم</span></div>
+              </div>
+              <div class="kpi-card" style="padding: 12px 14px;">
+                <span class="kpi-label">🔥 معدل الحرق BMR</span>
+                <div class="kpi-value" style="font-size: 1.3rem;"><span id="inbodyBmr">1750</span> <span class="kpi-unit">kcal</span></div>
+              </div>
+              <div class="kpi-card" style="padding: 12px 14px;">
+                <span class="kpi-label">🎯 الهدف الرياضي</span>
+                <div class="kpi-value" style="font-size: 1.05rem; color: #38bdf8;" id="inbodyGoal">تنشيف وحرق دهون</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 🍽️ Daily Nutrition & Meals Log -->
+          <div class="split-card full-width-card" style="margin-bottom: 24px;">
+            <div class="card-header" style="display: flex; align-items: center; justify-content: space-between;">
+              <h3>🍽️ سجل الوجبات والتغذية المحسوبة اليوم</h3>
+              <span class="card-badge" id="nutritionMealsCount">0 وجبات</span>
+            </div>
+            <div id="nutritionMealsList" style="max-height: 350px; overflow-y: auto;">
+              <div class="empty-state">لا توجد وجبات مسجلة اليوم. قول للبوت بصوتك "كلت كذا" وهيحسبها فوراً!</div>
             </div>
           </div>
 
@@ -709,6 +996,45 @@
               </div>
               <div class="appointments-list" id="appointmentsList" style="max-height: 420px; overflow-y: auto;">
                 <div class="empty-state">لا توجد مواعيد مجدولة.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 🛑 Distraction & Procrastination Radar + 📦 Wishlist Kanban -->
+          <div class="content-split-grid" style="margin-top: 24px;">
+            <!-- 🛑 Distraction Radar -->
+            <div class="split-card">
+              <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 1.3rem;">🛑</span>
+                  <div>
+                    <h3 style="margin: 0; font-size: 1.05rem;">رادار تشتت الانتباه ومحاربة التسويف</h3>
+                    <p style="margin: 2px 0 0; color: var(--text-secondary); font-size: 0.78rem;">رصد أوقات التشتت ومصادر التسويف اليومية</p>
+                  </div>
+                </div>
+                <span class="badge-gold" id="disciplineScoreBadge">انضباط: 92%</span>
+              </div>
+              <div id="distractionList" style="max-height: 320px; overflow-y: auto; padding: 10px 0;">
+                <div class="empty-state">لم يتم تسجيل أي تشتت اليوم! تركيزك ممتاز 🎯</div>
+              </div>
+            </div>
+
+            <!-- 📦 Wishlist & Supplies Kanban -->
+            <div class="split-card">
+              <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 1.3rem;">📦</span>
+                  <div>
+                    <h3 style="margin: 0; font-size: 1.05rem;">سجل النواقص والمستلزمات وكانبان المشتريات</h3>
+                    <p style="margin: 2px 0 0; color: var(--text-secondary); font-size: 0.78rem;">إدارة مستلزمات الطب والكتب والأدوات</p>
+                  </div>
+                </div>
+                <button type="button" class="btn-action-sm" onclick="openAddWishlistModal()" style="background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); padding: 4px 10px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                  + إضافة بند
+                </button>
+              </div>
+              <div id="wishlistContainer" style="max-height: 320px; overflow-y: auto; padding: 10px 0;">
+                <div class="empty-state">لا توجد نواقص معلقة حالياً.</div>
               </div>
             </div>
           </div>
@@ -1246,6 +1572,124 @@
       <div class="wallet-modal-footer" style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
         <span style="font-size: 0.84rem; color: var(--text-secondary);" id="modalActivityCountBadge">عرض 0 نشاط</span>
         <button type="button" class="btn-wallet-cancel" onclick="closeFullActivityModal()">إغلاق ✖</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⚖️ Modal: فحص وتحديث مقاييس الجسم (InBody Profile) -->
+  <div id="inbodyModalOverlay" class="wallet-modal-overlay" style="display: none;" onclick="closeInbodyModal(event)">
+    <div class="wallet-modal-content" style="max-width: 550px;" onclick="event.stopPropagation()">
+      <div class="wallet-modal-header">
+        <div class="wallet-modal-title">
+          <span>⚖️</span>
+          <span>تحديث مقاييس وفحص الجسم (InBody & Calories)</span>
+        </div>
+        <button type="button" class="wallet-modal-close" onclick="closeInbodyModal()">&times;</button>
+      </div>
+      <div class="wallet-modal-body" style="padding: 16px 20px;">
+        <p class="wallet-modal-desc" style="margin-bottom: 14px;">أدخل أحدث نتائج فحص الـ InBody ومقاييس جسمك ليقوم النظام بحساب السعرات والماكروز تلقائياً:</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">الوزن الحالي (كجم):</label>
+            <input type="number" id="inbodyInputWeight" class="wallet-modal-input" placeholder="75" step="0.1" style="width: 100%;">
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">الطول (سم):</label>
+            <input type="number" id="inbodyInputHeight" class="wallet-modal-input" placeholder="175" style="width: 100%;">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">نسبة الدهون (%):</label>
+            <input type="number" id="inbodyInputFat" class="wallet-modal-input" placeholder="18" step="0.1" style="width: 100%;">
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">الكتلة العضلية (كجم):</label>
+            <input type="number" id="inbodyInputMuscle" class="wallet-modal-input" placeholder="35" step="0.1" style="width: 100%;">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">الهدف الرياضي:</label>
+          <select id="inbodyInputGoal" class="wallet-modal-input" style="width: 100%; background: var(--bg-card); color: #fff; padding: 8px;">
+            <option value="تنشيف وحرق دهون">تنشيف وحرق دهون (Cutting / Fat Loss)</option>
+            <option value="تضخيم وبناء عضل">تضخيم وبناء عضل (Bulking / Hypertrophy)</option>
+            <option value="الحفاظ على الوزن واللياقة">الحفاظ على الوزن واللياقة (Maintenance)</option>
+          </select>
+        </div>
+
+        <div class="wallet-modal-hint">💡 سيقوم الذكاء الاصطناعي بإعادة حساب السعرات المستهدفة والبروتين اليومي تلقائياً بناءً على هذه الأرقام.</div>
+      </div>
+      <div class="wallet-modal-footer">
+        <button type="button" class="btn-wallet-cancel" onclick="closeInbodyModal()">إلغاء</button>
+        <button type="button" class="btn-wallet-save" onclick="saveInbodyFromModal()">✅ حفظ وتحديث البروفايل</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🧠 Modal: تقرير الاستشفاء والتحليل النفسي الأسبوعي -->
+  <div id="mentalReportModalOverlay" class="wallet-modal-overlay" style="display: none; z-index: 100001;" onclick="closeMentalReportModal(event)">
+    <div class="wallet-modal-content" style="max-width: 750px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;" onclick="event.stopPropagation()">
+      <div class="wallet-modal-header">
+        <div class="wallet-modal-title">
+          <span>🧠</span>
+          <span>تقرير الاستشفاء الذهني والتحليل النفسي الأسبوعي</span>
+        </div>
+        <button type="button" class="wallet-modal-close" onclick="closeMentalReportModal()">&times;</button>
+      </div>
+      <div style="flex: 1; overflow-y: auto; padding: 20px; font-size: 0.95rem; line-height: 1.8;" id="mentalReportModalBody">
+        جاري إعداد التقرير وتحليل نمط الأسبوع...
+      </div>
+      <div class="wallet-modal-footer">
+        <button type="button" class="btn-wallet-cancel" onclick="closeMentalReportModal()">إغلاق ✖</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📦 Modal: إضافة بند في سجل النواقص والمستلزمات -->
+  <div id="addWishlistModalOverlay" class="wallet-modal-overlay" style="display: none;" onclick="closeAddWishlistModal(event)">
+    <div class="wallet-modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
+      <div class="wallet-modal-header">
+        <div class="wallet-modal-title">
+          <span>📦</span>
+          <span>إضافة مستلزمات / نواقص جديدة</span>
+        </div>
+        <button type="button" class="wallet-modal-close" onclick="closeAddWishlistModal()">&times;</button>
+      </div>
+      <div class="wallet-modal-body" style="padding: 16px 20px;">
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">اسم البند / المستلزمات:</label>
+          <input type="text" id="wishlistInputTitle" class="wallet-modal-input" placeholder="مثال: سماعة Littmann / ملزمة دكتور..." style="width: 100%;">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">التصنيف:</label>
+            <select id="wishlistInputCategory" class="wallet-modal-input" style="width: 100%; background: var(--bg-card); color: #fff; padding: 8px;">
+              <option value="مستلزمات طبية">مستلزمات طبية</option>
+              <option value="كتب وملازم">كتب وملازم</option>
+              <option value="أجهزة وإلكترونيات">أجهزة وإلكترونيات</option>
+              <option value="شخصي وعام">شخصي وعام</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">التكلفة التقديرية (ج.م):</label>
+            <input type="number" id="wishlistInputCost" class="wallet-modal-input" placeholder="0" min="0" style="width: 100%;">
+          </div>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">الأولوية:</label>
+          <select id="wishlistInputPriority" class="wallet-modal-input" style="width: 100%; background: var(--bg-card); color: #fff; padding: 8px;">
+            <option value="عاجل">عاجل (Urgent)</option>
+            <option value="متوسطة" selected>متوسطة (Medium)</option>
+            <option value="لاحقاً">لاحقاً (Someday / Wishlist)</option>
+          </select>
+        </div>
+      </div>
+      <div class="wallet-modal-footer">
+        <button type="button" class="btn-wallet-cancel" onclick="closeAddWishlistModal()">إلغاء</button>
+        <button type="button" class="btn-wallet-save" onclick="saveWishlistItemFromModal()">✅ إضافة للبند</button>
       </div>
     </div>
   </div>

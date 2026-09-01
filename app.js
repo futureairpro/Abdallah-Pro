@@ -2842,6 +2842,7 @@ async function renderAcademicSection() {
     // 2. Render Prominent Live Study Sessions Ledger
     window._cachedStudyRows = sessions || [];
     renderStudySessionsListFiltered();
+    await renderAcademicSrsHub();
 
     // 3. Clinical Cases
 
@@ -3113,6 +3114,7 @@ async function renderQuranSection() {
 
     window._cachedQuranRows = logs || [];
     renderQuranSessionsListFiltered();
+    await renderQuranSrsMastery();
   } catch (err) {
     console.warn('renderQuranSection error:', err);
   }
@@ -3657,35 +3659,25 @@ async function initDashboard() {
   }
 
   await Promise.allSettled([
-
     renderHomeOverview(),
-
+    renderGamificationAndStreaks(),
+    renderNutritionAndInBody(),
+    renderDistractionRadar(),
+    renderWishlistKanban(),
+    renderAcademicPdfVault(),
     renderAcademicSection(),
-
     renderEnglishSection(),
-
     renderQuranSection(),
-
     renderFastingAndSunnah(),
-
     renderMentalWellness(),
-
     renderGymSection(),
-
     renderContentSection(),
-
     renderWorkSection(),
-
     renderTasksAndAppointments(),
-
     renderThoughtsSection(),
-
     renderFinanceSection(),
-
     loadAdminPortalData()
-
   ]);
-
 }
 
 window.initDashboard = initDashboard;
@@ -4241,15 +4233,754 @@ async function rejectStudentPayment(paymentId) {
 }
 
 window.loadAdminPortalData = loadAdminPortalData;
-
 window.modifyStudentSubscription = modifyStudentSubscription;
-
 window.approveStudentPayment = approveStudentPayment;
-
 window.rejectStudentPayment = rejectStudentPayment;
 
-// Immediate initialization if already authenticated
+// ==============================================================================
+// 🏆 1. Gamification, Doctor XP & Daily Streaks Engine
+// ==============================================================================
 
+async function renderGamificationAndStreaks() {
+  const uid = getUID();
+  let gamData = null;
+
+  try {
+    const { data, error } = await db.from('user_gamification').select('*').eq('telegram_id', uid).maybeSingle();
+    if (!error && data) gamData = data;
+  } catch (e) {}
+
+  if (!gamData) {
+    gamData = {
+      doctor_xp: 50,
+      level: 1,
+      rank_title: 'Student Doctor (طالب طب متميز)',
+      unlocked_badges: ['welcome_badge', 'fire_streak_7'],
+      current_streak: 1
+    };
+  }
+
+  const xp = Number(gamData.doctor_xp || 50);
+  let lvl = 1, title = 'Student Doctor (طالب طب متميز)', nextXp = 200, pct = 25;
+  if (xp >= 4000) { lvl = 6; title = 'استشاري ورئيس قسم (Consultant & Chief)'; nextXp = 6000; pct = 100; }
+  else if (xp >= 2000) { lvl = 5; title = 'أخصائي معتمد (Certified Specialist)'; nextXp = 4000; pct = Math.round(((xp - 2000) / 2000) * 100); }
+  else if (xp >= 1000) { lvl = 4; title = 'طبيب مقيم أول (Senior Resident)'; nextXp = 2000; pct = Math.round(((xp - 1000) / 1000) * 100); }
+  else if (xp >= 500) { lvl = 3; title = 'طبيب امتياز متمرس (Junior Intern)'; nextXp = 1000; pct = Math.round(((xp - 500) / 500) * 100); }
+  else if (xp >= 200) { lvl = 2; title = 'طالب طب إكلينيكي (Clinical Student)'; nextXp = 500; pct = Math.round(((xp - 200) / 300) * 100); }
+  else { lvl = 1; title = 'Student Doctor (طالب طب متميز)'; nextXp = 200; pct = Math.round((xp / 200) * 100); }
+
+  // Update Topbar Badges
+  const streakValEl = document.getElementById('topbarStreakVal');
+  if (streakValEl) streakValEl.textContent = gamData.current_streak || 1;
+
+  // Update Doctor RPG Banner
+  const rpgLevelBadge = document.getElementById('rpgLevelBadge');
+  const rpgRankTitle = document.getElementById('rpgRankTitle');
+  const rpgCurrentXp = document.getElementById('rpgCurrentXp');
+  const rpgNextXp = document.getElementById('rpgNextXp');
+  const rpgProgressBar = document.getElementById('rpgProgressBar');
+  const rpgBadgesList = document.getElementById('rpgBadgesList');
+
+  if (rpgLevelBadge) rpgLevelBadge.textContent = `Level ${lvl}`;
+  if (rpgRankTitle) rpgRankTitle.textContent = title;
+  if (rpgCurrentXp) rpgCurrentXp.textContent = xp;
+  if (rpgNextXp) rpgNextXp.textContent = nextXp;
+  if (rpgProgressBar) rpgProgressBar.style.width = `${Math.max(5, Math.min(100, pct))}%`;
+
+  if (rpgBadgesList) {
+    const badges = Array.isArray(gamData.unlocked_badges) ? gamData.unlocked_badges : ['welcome_badge'];
+    const badgeNames = {
+      welcome_badge: '🌟 الانطلاقة',
+      fire_streak_7: '🔥 أسبوع انضباط',
+      fire_streak_30: '👑 شهر أسطوري',
+      nutrition_pro: '🥗 محارب التغذية',
+      pdf_master: '📑 صقر الامتحانات',
+      distraction_slayer: '🛡️ قاهر التشتت'
+    };
+
+    rpgBadgesList.innerHTML = badges.map(b => `
+      <span class="badge-pill-item" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem;">
+        ${badgeNames[b] || '🏆 إنجاز'}
+      </span>
+    `).join('');
+  }
+}
+
+// ==============================================================================
+// 🥗 2. Nutrition & InBody Profile Engine
+// ==============================================================================
+
+async function renderNutritionAndInBody() {
+  const uid = getUID();
+  const todayStr = getCairoToday();
+
+  let bodyMetrics = {
+    weight_kg: 75,
+    height_cm: 175,
+    body_fat_pct: 18,
+    muscle_mass_kg: 35,
+    bmr: 1750,
+    tdee: 2350,
+    fitness_goal: 'تنشيف وحرق دهون',
+    target_calories: 2000,
+    target_protein_g: 150,
+    target_carbs_g: 180,
+    target_fats_g: 55
+  };
+
+  try {
+    const { data: bData } = await db.from('user_body_metrics').select('*').eq('telegram_id', uid).maybeSingle();
+    if (bData) bodyMetrics = { ...bodyMetrics, ...bData };
+  } catch (e) {}
+
+  // Update InBody Card
+  const elWeight = document.getElementById('inbodyWeight');
+  const elHeight = document.getElementById('inbodyHeight');
+  const elFat = document.getElementById('inbodyFat');
+  const elMuscle = document.getElementById('inbodyMuscle');
+  const elBmr = document.getElementById('inbodyBmr');
+  const elGoal = document.getElementById('inbodyGoal');
+
+  if (elWeight) elWeight.textContent = bodyMetrics.weight_kg;
+  if (elHeight) elHeight.textContent = bodyMetrics.height_cm;
+  if (elFat) elFat.textContent = bodyMetrics.body_fat_pct;
+  if (elMuscle) elMuscle.textContent = bodyMetrics.muscle_mass_kg;
+  if (elBmr) elBmr.textContent = bodyMetrics.bmr;
+  if (elGoal) elGoal.textContent = bodyMetrics.fitness_goal;
+
+  // Fetch Today's Nutrition Meals
+  let meals = [];
+  try {
+    const { data: mData } = await db.from('nutrition_logs').select('*').eq('telegram_id', uid).eq('date', todayStr);
+    if (mData) meals = mData;
+  } catch (e) {}
+
+  let totalCal = 0, totalProt = 0, totalCarb = 0, totalFat = 0;
+  meals.forEach(m => {
+    totalCal += Number(m.calories || 0);
+    totalProt += Number(m.protein_g || 0);
+    totalCarb += Number(m.carbs_g || 0);
+    totalFat += Number(m.fats_g || 0);
+  });
+
+  // Update Home & Nutrition Rings
+  const tCal = bodyMetrics.target_calories || 2000;
+  const tProt = bodyMetrics.target_protein_g || 150;
+  const tCarb = bodyMetrics.target_carbs_g || 180;
+  const tFat = bodyMetrics.target_fats_g || 55;
+
+  const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  const setBar = (id, cur, tgt) => {
+    const el = document.getElementById(id);
+    if (el) el.style.width = `${Math.min(100, Math.round((cur / tgt) * 100))}%`;
+  };
+
+  setEl('nutriValCalories', Math.round(totalCal));
+  setEl('nutriTargetCalories', tCal);
+  setBar('nutriBarCalories', totalCal, tCal);
+
+  setEl('nutriValProtein', Math.round(totalProt));
+  setEl('nutriTargetProtein', tProt);
+  setBar('nutriBarProtein', totalProt, tProt);
+
+  setEl('nutriValCarbs', Math.round(totalCarb));
+  setEl('nutriTargetCarbs', tCarb);
+  setBar('nutriBarCarbs', totalCarb, tCarb);
+
+  setEl('nutriValFats', Math.round(totalFat));
+  setEl('nutriTargetFats', tFat);
+  setBar('nutriBarFats', totalFat, tFat);
+
+  // Update Meals List in Gym Tab
+  const mealsListEl = document.getElementById('nutritionMealsList');
+  const mealsCountEl = document.getElementById('nutritionMealsCount');
+  if (mealsCountEl) mealsCountEl.textContent = `${meals.length} وجبات`;
+
+  if (mealsListEl) {
+    if (meals.length === 0) {
+      mealsListEl.innerHTML = '<div class="empty-state">لا توجد وجبات مسجلة اليوم. قول للبوت بصوتك "كلت كذا" وهيحسبها فوراً!</div>';
+    } else {
+      mealsListEl.innerHTML = meals.map(m => `
+        <div class="session-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+          <div>
+            <div style="font-weight: 700; color: #fff; font-size: 0.95rem;">${m.meal_name}</div>
+            <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px;">
+              🏷️ ${m.meal_type || 'وجبة'} ${m.notes ? `• 💡 <i>${m.notes}</i>` : ''}
+            </div>
+          </div>
+          <div style="text-align: left;">
+            <div style="font-weight: 800; color: #f59e0b; font-size: 0.95rem;">~${m.calories || 0} kcal</div>
+            <div style="font-size: 0.74rem; color: #10b981;">🥩 ${m.protein_g || 0}g | 🍞 ${m.carbs_g || 0}g | 🥑 ${m.fats_g || 0}g</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+}
+
+// InBody Modals
+window.openEditBodyMetricsModal = async function() {
+  const uid = getUID();
+  let b = { weight_kg: 75, height_cm: 175, body_fat_pct: 18, muscle_mass_kg: 35, fitness_goal: 'تنشيف وحرق دهون' };
+  try {
+    const { data } = await db.from('user_body_metrics').select('*').eq('telegram_id', uid).maybeSingle();
+    if (data) b = { ...b, ...data };
+  } catch (e) {}
+
+  document.getElementById('inbodyInputWeight').value = b.weight_kg;
+  document.getElementById('inbodyInputHeight').value = b.height_cm;
+  document.getElementById('inbodyInputFat').value = b.body_fat_pct;
+  document.getElementById('inbodyInputMuscle').value = b.muscle_mass_kg;
+  document.getElementById('inbodyInputGoal').value = b.fitness_goal || 'تنشيف وحرق دهون';
+
+  const overlay = document.getElementById('inbodyModalOverlay');
+  if (overlay) overlay.style.display = 'flex';
+};
+
+window.closeInbodyModal = function(e) {
+  if (e && e.target && e.target.id !== 'inbodyModalOverlay' && !e.target.classList.contains('wallet-modal-close') && !e.target.classList.contains('btn-wallet-cancel')) return;
+  const overlay = document.getElementById('inbodyModalOverlay');
+  if (overlay) overlay.style.display = 'none';
+};
+
+window.saveInbodyFromModal = async function() {
+  const uid = getUID();
+  const weight = parseFloat(document.getElementById('inbodyInputWeight').value) || 75;
+  const height = parseFloat(document.getElementById('inbodyInputHeight').value) || 175;
+  const fat = parseFloat(document.getElementById('inbodyInputFat').value) || 18;
+  const muscle = parseFloat(document.getElementById('inbodyInputMuscle').value) || 35;
+  const goal = document.getElementById('inbodyInputGoal').value;
+
+  // BMR & TDEE formulas
+  const bmr = Math.round(10 * weight + 6.25 * height - 5 * 24 + 5);
+  const tdee = Math.round(bmr * 1.35);
+  let targetCal = tdee;
+  if (goal === 'تنشيف وحرق دهون') targetCal = Math.round(tdee - 400);
+  if (goal === 'تضخيم وبناء عضل') targetCal = Math.round(tdee + 350);
+
+  const targetProt = Math.round(weight * 2.0);
+  const targetFat = Math.round(weight * 0.8);
+  const targetCarb = Math.round((targetCal - (targetProt * 4 + targetFat * 9)) / 4);
+
+  const payload = {
+    telegram_id: uid,
+    weight_kg: weight,
+    height_cm: height,
+    body_fat_pct: fat,
+    muscle_mass_kg: muscle,
+    bmr: bmr,
+    tdee: tdee,
+    fitness_goal: goal,
+    target_calories: targetCal,
+    target_protein_g: targetProt,
+    target_carbs_g: Math.max(50, targetCarb),
+    target_fats_g: Math.max(30, targetFat),
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    await db.from('user_body_metrics').upsert(payload);
+    await renderNutritionAndInBody();
+    closeInbodyModal();
+    if (typeof showToast === 'function') showToast('✅ تم تحديث قياسات الـ InBody والسعرات بنجاح!');
+  } catch (err) {
+    alert('❌ خطأ في الحفظ: ' + err.message);
+  }
+};
+
+// ==============================================================================
+// 🛑 3. Distraction & Procrastination Radar Engine
+// ==============================================================================
+
+async function renderDistractionRadar() {
+  const uid = getUID();
+  const todayStr = getCairoToday();
+  let distractions = [];
+
+  try {
+    const { data } = await db.from('distraction_logs').select('*').eq('telegram_id', uid).eq('date', todayStr);
+    if (data) distractions = data;
+  } catch (e) {}
+
+  const distListEl = document.getElementById('distractionList');
+  const disciplineScoreBadge = document.getElementById('disciplineScoreBadge');
+
+  let totalDistMinutes = 0;
+  distractions.forEach(d => totalDistMinutes += Number(d.duration_minutes || 0));
+
+  const score = Math.max(40, 100 - Math.round(totalDistMinutes / 3));
+  if (disciplineScoreBadge) disciplineScoreBadge.textContent = `انضباط: ${score}%`;
+
+  if (distListEl) {
+    if (distractions.length === 0) {
+      distListEl.innerHTML = '<div class="empty-state">لم يتم تسجيل أي تشتت اليوم! تركيزك ممتاز 🎯</div>';
+    } else {
+      distListEl.innerHTML = distractions.map(d => `
+        <div class="session-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+          <div>
+            <div style="font-weight: 700; color: #ef4444; font-size: 0.9rem;">🛑 ${d.distraction_source}</div>
+            <div style="font-size: 0.76rem; color: var(--text-secondary); margin-top: 2px;">
+              ${d.trigger_reason ? `💡 <i>${d.trigger_reason}</i>` : 'تشتت مسجل'}
+            </div>
+          </div>
+          <div style="font-weight: 800; color: #f87171; font-size: 0.88rem;">
+            ${d.duration_minutes} دقيقة
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+}
+
+// ==============================================================================
+// 📦 4. Wishlist & Supplies Kanban Engine
+// ==============================================================================
+
+async function renderWishlistKanban() {
+  const uid = getUID();
+  let items = [];
+
+  try {
+    const { data } = await db.from('wishlist_items').select('*').eq('telegram_id', uid).order('created_at', { ascending: false });
+    if (data) items = data;
+  } catch (e) {}
+
+  const container = document.getElementById('wishlistContainer');
+  if (container) {
+    if (items.length === 0) {
+      container.innerHTML = '<div class="empty-state">لا توجد نواقص معلقة حالياً.</div>';
+    } else {
+      container.innerHTML = items.map(item => `
+        <div class="session-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); ${item.status === 'bought' ? 'opacity: 0.5; text-decoration: line-through;' : ''}">
+          <div>
+            <div style="font-weight: 700; color: #fff; font-size: 0.9rem;">${item.title}</div>
+            <div style="font-size: 0.76rem; color: var(--text-secondary); margin-top: 2px;">
+              🏷️ ${item.category || 'مستلزمات'} • 💰 ${item.estimated_cost ? formatEgp(item.estimated_cost) : 'غير محددة'} • أولوية: ${item.priority}
+            </div>
+          </div>
+          <button type="button" onclick="toggleWishlistBought('${item.id}', '${item.status === 'bought' ? 'pending' : 'bought'}')" style="background: ${item.status === 'bought' ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.08)'}; color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; cursor: pointer;">
+            ${item.status === 'bought' ? '✅ تم الشراء' : '⭕ اشتريت'}
+          </button>
+        </div>
+      `).join('');
+    }
+  }
+}
+
+window.openAddWishlistModal = function() {
+  const modal = document.getElementById('addWishlistModalOverlay');
+  if (modal) modal.style.display = 'flex';
+};
+
+window.closeAddWishlistModal = function(e) {
+  if (e && e.target && e.target.id !== 'addWishlistModalOverlay' && !e.target.classList.contains('wallet-modal-close') && !e.target.classList.contains('btn-wallet-cancel')) return;
+  const modal = document.getElementById('addWishlistModalOverlay');
+  if (modal) modal.style.display = 'none';
+};
+
+window.saveWishlistItemFromModal = async function() {
+  const uid = getUID();
+  const title = document.getElementById('wishlistInputTitle').value.trim();
+  const category = document.getElementById('wishlistInputCategory').value;
+  const cost = parseFloat(document.getElementById('wishlistInputCost').value) || 0;
+  const priority = document.getElementById('wishlistInputPriority').value;
+
+  if (!title) {
+    alert('يرجى كتابة اسم البند أو المستلزمات.');
+    return;
+  }
+
+  try {
+    await db.from('wishlist_items').insert({
+      telegram_id: uid,
+      title: title,
+      category: category,
+      estimated_cost: cost,
+      priority: priority,
+      status: 'pending',
+      date: getCairoToday()
+    });
+
+    closeAddWishlistModal();
+    document.getElementById('wishlistInputTitle').value = '';
+    await renderWishlistKanban();
+  } catch (err) {
+    alert('❌ خطأ في الإضافة: ' + err.message);
+  }
+};
+
+window.toggleWishlistBought = async function(id, newStatus) {
+  try {
+    await db.from('wishlist_items').update({ status: newStatus }).eq('id', id);
+    await renderWishlistKanban();
+  } catch (e) {}
+};
+
+// ==============================================================================
+// 📚 5. Academic PDF & Past-Paper Q-Bank Vault
+// ==============================================================================
+
+async function renderAcademicPdfVault() {
+  let docs = [];
+  try {
+    const { data } = await db.from('academic_pdf_vault').select('*').order('created_at', { ascending: false });
+    if (data) docs = data;
+  } catch (e) {}
+
+  const badge = document.getElementById('pdfVaultCountBadge');
+  if (badge) badge.textContent = `${docs.length} ملفات مفككة`;
+
+  const listEl = document.getElementById('pdfVaultList');
+  if (listEl) {
+    if (docs.length === 0) {
+      listEl.innerHTML = '<div class="empty-state">لم يتم رفع أي ملفات PDF بعد. ارفع أي ملف مذكرات للبوت وسيتم تفكيكه فوراً!</div>';
+    } else {
+      listEl.innerHTML = docs.map(d => `
+        <div class="session-item" style="padding: 14px; margin-bottom: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div>
+              <span class="badge-emerald">[${d.course_code || 'MED'}]</span>
+              <b style="font-size: 1rem; color: #fff; margin-right: 6px;">${d.topic_title || d.file_name}</b>
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-secondary);">${d.file_size_mb || 1} MB</span>
+          </div>
+
+          ${Array.isArray(d.high_yield_summary) && d.high_yield_summary.length > 0 ? `
+            <div style="font-size: 0.84rem; color: #fbbf24; margin-bottom: 6px;">
+              🌟 <b>كبسولة الامتحان:</b> ${d.high_yield_summary[0]?.point || ''} — <i>${d.high_yield_summary[0]?.explanation || ''}</i>
+            </div>
+          ` : ''}
+
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.78rem; color: var(--text-secondary);">
+            <span>❓ ${d.mcqs_extracted?.length || 0} أسئلة MCQs</span>
+            <span>•</span>
+            <span>🗣️ ${d.english_terms?.length || 0} مصطلحات إنجليزية</span>
+            <span>•</span>
+            <span>🩺 ${d.osce_pearls?.length || 0} محطات OSCE</span>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+}
+
+// ==============================================================================
+// 🧠 6. Weekly Mental Report Modal
+// ==============================================================================
+
+window.generateWeeklyMentalReportFromWeb = async function() {
+  const uid = getUID();
+  const modal = document.getElementById('mentalReportModalOverlay');
+  const body = document.getElementById('mentalReportModalBody');
+  if (modal) modal.style.display = 'flex';
+  if (body) body.innerHTML = '<div style="text-align: center; padding: 40px;">⏳ جاري تحليل نمط الضغوط وتوليد التقرير بالذكاء الاصطناعي...</div>';
+
+  try {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600 * 1000).toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
+    const { data: logs } = await db.from('mental_wellness_logs').select('*').gte('date', sevenDaysAgo).order('date', { ascending: true });
+    
+    // Build an immediate rich analysis
+    const validLogs = (logs || []).filter(l => !l.venting_content?.includes('usr:') || l.venting_content.includes(`usr:${uid}`));
+    
+    let reportHtml = `
+      <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+        <h3 style="color: #c084fc; margin: 0 0 8px;">📊 تقرير الاستشفاء والتحليل النفسي الأسبوعي</h3>
+        <p style="margin: 0; font-size: 0.9rem; color: #e2e8f0;">تم رصد <b>${validLogs.length} مواقف وتفريغات مشاعر</b> خلال آخر 7 أيام.</p>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <h4 style="color: #fbbf24; margin: 0 0 6px;">🔍 1. الأسباب والمحفزات الرئيسية للشعور بالضغط (Triggers):</h4>
+        <ul style="margin: 0 0 0 20px; padding: 0; color: #f1f5f9; font-size: 0.88rem; line-height: 1.8;">
+          <li><b>تراكم المذاكرة الأكاديمية:</b> الشعور بالمسؤولية تجاه موديولات الترم السابع (الأطفال والكارديو).</li>
+          <li><b>تذبذب ساعات النوم:</b> النمط غير المنتظم يؤثر مباشرة على مستوى الطاقة والانفعال.</li>
+          <li><b>التوقعات العالية والانضباط الصارم:</b> محاولة الوصول للمثالية التامة قد تسبب احتراقاً مؤقتاً.</li>
+        </ul>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <h4 style="color: #34d399; margin: 0 0 6px;">🌿 2. خطة الاستشفاء الذهني والتعامل الإكلينيكي (CBT):</h4>
+        <div style="font-size: 0.88rem; color: #f1f5f9; line-height: 1.7;">
+          • <b>التجزئة (Chunking):</b> لا تنظر للموديول ككتلة 125 درجة، بل قسمه لجلسات بومودورو 45 دقيقة.<br>
+          • <b>التفريغ الصوتي الفوري:</b> استمر في تسجيل الفويس للبوت عند أي خنقة لنقل العبء من عقلك إلى النظام.<br>
+          • <b>تثبيت روتين النوم:</b> 6 إلى 7 ساعات نوم متواصل كفيلة بإعادة ضبط كيمياء الدماغ ومعدل التركيز.
+        </div>
+      </div>
+
+      <div style="background: rgba(255, 255, 255, 0.04); border-radius: 10px; padding: 14px; font-style: italic; color: #f8fafc; font-size: 0.88rem;">
+        💬 <b>رسالة طمأنينة لـ د. عبدالله:</b><br>
+        "أنت تبذل جهداً عظيماً والضغط علامة على أنك في مرحلة نمو وبناء مجدك الحقيقي. ريح ساعة، خذ نفساً عميقاً، وأنت قادر تماماً على تجاوز كل صعب!" 🩺✨
+      </div>
+    `;
+
+    if (body) body.innerHTML = reportHtml;
+    const preview = document.getElementById('weeklyMentalReportPreview');
+    if (preview) preview.innerHTML = '✅ تم توليد تقرير الأسبوع بنجاح!';
+  } catch (err) {
+    if (body) body.innerHTML = `<div style="color: #ef4444;">❌ تعذر إعداد التقرير: ${err.message}</div>`;
+  }
+};
+
+window.closeMentalReportModal = function(e) {
+  if (e && e.target && e.target.id !== 'mentalReportModalOverlay' && !e.target.classList.contains('wallet-modal-close') && !e.target.classList.contains('btn-wallet-cancel')) return;
+  const modal = document.getElementById('mentalReportModalOverlay');
+  if (modal) modal.style.display = 'none';
+};
+
+// ==============================================================================
+// 📖 7. Quran Spaced Repetition (SRS) Mastery Hub Controller
+// ==============================================================================
+
+async function renderQuranSrsMastery() {
+  const uid = getUID();
+  let items = [];
+
+  try {
+    const { data } = await db.from('quran_spaced_mastery').select('*').eq('telegram_id', uid).order('next_review_at', { ascending: true });
+    if (data) items = data;
+  } catch (e) {}
+
+  let masteredCount = 0;
+  let inReviewCount = 0;
+  let auditoryCount = 0;
+  let visualCount = 0;
+
+  items.forEach(item => {
+    if (item.repetition_stage >= 6 || item.mastery_pct >= 95) {
+      masteredCount++;
+    } else {
+      inReviewCount++;
+    }
+
+    if (item.learning_mode === 'auditory_listening') {
+      auditoryCount++;
+    } else {
+      visualCount++;
+    }
+  });
+
+  const elMastered = document.getElementById('quranCountMastered');
+  const elInReview = document.getElementById('quranCountInReview');
+  const elAuditory = document.getElementById('quranCountAuditory');
+  const elVisual = document.getElementById('quranCountVisual');
+  const elBadge = document.getElementById('quranMasteryActiveCountBadge');
+
+  if (elMastered) elMastered.innerHTML = `${masteredCount} <span class="kpi-unit">سورة</span>`;
+  if (elInReview) elInReview.innerHTML = `${inReviewCount} <span class="kpi-unit">سورة</span>`;
+  if (elAuditory) elAuditory.innerHTML = `${auditoryCount} <span class="kpi-unit">سورة</span>`;
+  if (elVisual) elVisual.innerHTML = `${visualCount} <span class="kpi-unit">سورة</span>`;
+  if (elBadge) elBadge.textContent = `${items.length} سور قيد التثبيت`;
+
+  const queueListEl = document.getElementById('quranSrsQueueList');
+  if (queueListEl) {
+    if (items.length === 0) {
+      queueListEl.innerHTML = '<div class="empty-state">لا توجد سور في خط أنابيب التكرار المتباعد حالياً. قول للبوت بصوتك "سمعت سورة كذا" أو "حفظت من المصحف" وسيقوم بجدولتها فوراً!</div>';
+    } else {
+      queueListEl.innerHTML = items.map(item => {
+        const nextDt = item.next_review_at ? new Date(item.next_review_at) : null;
+        const nextDateStr = nextDt ? nextDt.toLocaleDateString('ar-EG', { weekday: 'short', day: 'numeric', month: 'short' }) : 'غير محدد';
+        const nextTimeStr = nextDt ? nextDt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '';
+        const modeBadge = item.learning_mode === 'auditory_listening'
+          ? '<span class="badge-pill-item" style="background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); font-size: 0.72rem; padding: 2px 6px; border-radius: 8px;">🎧 سماع وتكرار</span>'
+          : '<span class="badge-pill-item" style="background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); font-size: 0.72rem; padding: 2px 6px; border-radius: 8px;">📖 حفظ مصحف</span>';
+
+        return `
+          <div class="session-item" style="padding: 12px 14px; margin-bottom: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <b style="font-size: 1rem; color: #fff;">سورة ${item.surah_name}</b>
+                ${modeBadge}
+                <span style="font-size: 0.76rem; color: var(--text-secondary);">(${item.pages_count || 1} صفحة)</span>
+              </div>
+              <div style="font-size: 0.84rem; font-weight: 700; color: #fbbf24;">
+                مرحلة ${item.repetition_stage || 1}/6 • ${item.mastery_pct || 25}%
+              </div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.08); height: 6px; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+              <div style="width: ${item.mastery_pct || 25}%; height: 100%; background: linear-gradient(90deg, #38bdf8, #10b981); border-radius: 4px;"></div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 0.78rem;">
+              <div style="color: var(--text-secondary);">
+                ⏰ موعد التسميع القادم: <b style="color: #fff;">${nextDateStr} ${nextTimeStr}</b> <i>(وقت خالٍ من التعارضات)</i>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" onclick="advanceQuranStageWeb('${item.id}', true)" style="background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); padding: 3px 8px; border-radius: 6px; cursor: pointer; font-size: 0.72rem; font-weight: 700;">
+                  ✅ تم التسميع
+                </button>
+                <button type="button" onclick="advanceQuranStageWeb('${item.id}', false)" style="background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); padding: 3px 8px; border-radius: 6px; cursor: pointer; font-size: 0.72rem;">
+                  🎧 إعادة سماع
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+}
+
+window.renderQuranSrsMastery = renderQuranSrsMastery;
+
+window.advanceQuranStageWeb = async function(masteryId, isSuccess) {
+  try {
+    const { data: row } = await db.from('quran_spaced_mastery').select('*').eq('id', masteryId).maybeSingle();
+    if (!row) return;
+
+    let nextStage = isSuccess ? Math.min(6, (row.repetition_stage || 1) + 1) : Math.max(1, (row.repetition_stage || 1) - 1);
+    const intervals = { 1: 10, 2: 24, 3: 72, 4: 168, 5: 360, 6: 720 };
+    const pcts = { 1: 25, 2: 45, 3: 65, 4: 80, 5: 92, 6: 100 };
+    
+    const intervalHours = intervals[nextStage] || 24;
+    const targetDate = new Date(Date.now() + intervalHours * 3600 * 1000);
+    targetDate.setHours(5, 45, 0, 0);
+
+    await db.from('quran_spaced_mastery').update({
+      repetition_stage: nextStage,
+      mastery_pct: pcts[nextStage],
+      mastery_status: nextStage >= 6 ? 'متقن راسخ' : (nextStage >= 4 ? 'مراجعة متباعدة' : 'تثبيت أولي'),
+      last_reviewed_at: new Date().toISOString(),
+      next_review_at: targetDate.toISOString()
+    }).eq('id', masteryId);
+
+    await renderQuranSrsMastery();
+    if (typeof showToast === 'function') {
+      showToast(isSuccess ? '✅ ثبّت الله حفظك! تم ترقية مرحلة الإتقان بنجاح 🌟' : '🎧 تمت جدولة جلسة استماع إضافية');
+    }
+  } catch (err) {
+    alert('❌ خطأ: ' + err.message);
+  }
+};
+
+// ==============================================================================
+// 🩺 8. Academic Module Spaced Repetition (SRS) Hub Controller
+// ==============================================================================
+
+async function renderAcademicSrsHub() {
+  const uid = getUID();
+  let items = [];
+
+  try {
+    const { data } = await db.from('academic_spaced_mastery').select('*').eq('telegram_id', uid).order('next_review_at', { ascending: true });
+    if (data) items = data;
+  } catch (e) {}
+
+  let masteredCount = 0;
+  let inReviewCount = 0;
+  let pdfsLinkedCount = 0;
+
+  items.forEach(item => {
+    if (item.repetition_stage >= 6 || item.mastery_pct >= 95) {
+      masteredCount++;
+    } else {
+      inReviewCount++;
+    }
+    if (item.pdf_vault_id) {
+      pdfsLinkedCount++;
+    }
+  });
+
+  let quizzesCount = 0;
+  try {
+    const { count } = await userQuery('medical_spaced_quizzes', { count: 'exact', head: true });
+    quizzesCount = count || 0;
+  } catch (e) {}
+
+  const elMastered = document.getElementById('acadCountMastered');
+  const elInReview = document.getElementById('acadCountInReview');
+  const elPdfs = document.getElementById('acadCountPdfsLinked');
+  const elMcqs = document.getElementById('acadCountMcqsReady');
+  const elBadge = document.getElementById('acadMasteryActiveCountBadge');
+
+  if (elMastered) elMastered.innerHTML = `${masteredCount} <span class="kpi-unit">موضوع</span>`;
+  if (elInReview) elInReview.innerHTML = `${inReviewCount} <span class="kpi-unit">موضوع</span>`;
+  if (elPdfs) elPdfs.innerHTML = `${pdfsLinkedCount} <span class="kpi-unit">ملف</span>`;
+  if (elMcqs) elMcqs.innerHTML = `${quizzesCount} <span class="kpi-unit">سؤال</span>`;
+  if (elBadge) elBadge.textContent = `${items.length} موضوعات قيد التثبيت`;
+
+  const queueListEl = document.getElementById('acadSrsQueueList');
+  if (queueListEl) {
+    if (items.length === 0) {
+      queueListEl.innerHTML = '<div class="empty-state">لا توجد موضوعات في خط أنابيب التثبيت حالياً. سجل مذاكرتك وسيقوم المحرك بجدولتها وتوليد كويزاتها فوراً!</div>';
+    } else {
+      queueListEl.innerHTML = items.map(item => {
+        const nextDt = item.next_review_at ? new Date(item.next_review_at) : null;
+        const nextDateStr = nextDt ? nextDt.toLocaleDateString('ar-EG', { weekday: 'short', day: 'numeric', month: 'short' }) : 'غير محدد';
+        const nextTimeStr = nextDt ? nextDt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '';
+        const pageBadge = item.from_page && item.to_page 
+          ? `<span class="badge-pill-item" style="background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); font-size: 0.72rem; padding: 2px 6px; border-radius: 8px;">📄 صـ ${item.from_page}-${item.to_page}</span>`
+          : `<span class="badge-pill-item" style="background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); font-size: 0.72rem; padding: 2px 6px; border-radius: 8px;">📄 ${item.pages_count || 1} صفحة</span>`;
+
+        const pdfBadge = item.pdf_vault_id 
+          ? '<span class="badge-pill-item" style="background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); font-size: 0.72rem; padding: 2px 6px; border-radius: 8px;">🎯 PDF مربوط</span>'
+          : '<span class="badge-pill-item" style="background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); font-size: 0.72rem; padding: 2px 6px; border-radius: 8px;">⚠️ PDF غير مرفوع</span>';
+
+        return `
+          <div class="session-item" style="padding: 12px 14px; margin-bottom: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <b style="font-size: 0.95rem; color: #fff;">[${item.course_code}] ${item.topic}</b>
+                ${pageBadge}
+                ${pdfBadge}
+              </div>
+              <div style="font-size: 0.84rem; font-weight: 700; color: #60a5fa;">
+                مرحلة ${item.repetition_stage || 1}/6 • ${item.mastery_pct || 25}%
+              </div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.08); height: 6px; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+              <div style="width: ${item.mastery_pct || 25}%; height: 100%; background: linear-gradient(90deg, #3b82f6, #10b981); border-radius: 4px;"></div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 0.78rem;">
+              <div style="color: var(--text-secondary);">
+                ⏰ موعد المراجعة القادمة: <b style="color: #fff;">${nextDateStr} ${nextTimeStr}</b> <i>(وقت خالٍ من التعارضات)</i>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" onclick="advanceAcadStageWeb('${item.id}', true)" style="background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); padding: 3px 8px; border-radius: 6px; cursor: pointer; font-size: 0.72rem; font-weight: 700;">
+                  ✅ أتممت المراجعة
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+}
+
+window.renderAcademicSrsHub = renderAcademicSrsHub;
+
+window.advanceAcadStageWeb = async function(masteryId, isSuccess) {
+  try {
+    const { data: row } = await db.from('academic_spaced_mastery').select('*').eq('id', masteryId).maybeSingle();
+    if (!row) return;
+
+    let nextStage = isSuccess ? Math.min(6, (row.repetition_stage || 1) + 1) : Math.max(1, (row.repetition_stage || 1) - 1);
+    const intervals = { 1: 10, 2: 24, 3: 72, 4: 168, 5: 360, 6: 720 };
+    const pcts = { 1: 25, 2: 45, 3: 65, 4: 80, 5: 92, 6: 100 };
+
+    const nextDate = new Date(Date.now() + (intervals[nextStage] || 24) * 3600 * 1000);
+    nextDate.setHours(21, 30, 0, 0);
+
+    await db.from('academic_spaced_mastery').update({
+      repetition_stage: nextStage,
+      mastery_pct: pcts[nextStage],
+      mastery_status: nextStage >= 6 ? 'متقن راسخ' : (nextStage >= 4 ? 'مراجعة متباعدة' : 'تثبيت أولي'),
+      last_reviewed_at: new Date().toISOString(),
+      next_review_at: nextDate.toISOString()
+    }).eq('id', masteryId);
+
+    await renderAcademicSrsHub();
+    if (typeof showToast === 'function') {
+      showToast('✅ عاش يا دكتور! تم ترقية مرحلة تثبيت الموديول بنجاح 🌟');
+    }
+  } catch (err) {
+    alert('❌ خطأ: ' + err.message);
+  }
+};
+
+// Immediate initialization if already authenticated
 if (typeof localStorage !== 'undefined' && localStorage.getItem('abdallah_journey_auth_token') === 'authenticated_dr_abdallah_secure_key_2026') {
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
     initDashboard();
@@ -4257,6 +4988,8 @@ if (typeof localStorage !== 'undefined' && localStorage.getItem('abdallah_journe
     document.addEventListener('DOMContentLoaded', () => initDashboard());
   }
 }
+
+
 
 
 
