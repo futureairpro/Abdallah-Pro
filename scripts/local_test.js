@@ -1,10 +1,8 @@
 // 🧪 Local Development Polling Runner for Abdullah's Journey Bot
+import 'dotenv/config';
 import { bot } from '../lib/bot.js';
 import { registerHandlers } from '../lib/handlers.js';
 import { startScheduler } from '../lib/scheduler.js';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 if (!bot) {
   console.error('❌ Error: TELEGRAM_BOT_TOKEN is missing in .env');
