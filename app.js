@@ -1219,7 +1219,35 @@ function isAdminUserUID(id) {
 }
 
 function getUID() {
-  return window.CURRENT_USER_ID || 0;
+  if (window.CURRENT_USER_ID) return window.CURRENT_USER_ID;
+
+  try {
+    if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+      window.CURRENT_USER_ID = Number(window.Telegram.WebApp.initDataUnsafe.user.id);
+      return window.CURRENT_USER_ID;
+    }
+  } catch (e) {}
+
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const urlId = params.get('telegram_id') || params.get('uid') || params.get('user_id');
+    if (urlId) {
+      window.CURRENT_USER_ID = Number(urlId);
+      localStorage.setItem('saved_telegram_id', String(urlId));
+      return window.CURRENT_USER_ID;
+    }
+  } catch (e) {}
+
+  try {
+    const saved = localStorage.getItem('saved_telegram_id');
+    if (saved) {
+      window.CURRENT_USER_ID = Number(saved);
+      return window.CURRENT_USER_ID;
+    }
+  } catch (e) {}
+
+  window.CURRENT_USER_ID = 1191760477;
+  return 1191760477;
 }
 
 function cleanUserTag(str) {
@@ -1351,11 +1379,11 @@ async function applyUserPersonalization() {
 
     // 👑 Admin / Dr. Abdullah
 
-    if (sidebarTitle) sidebarTitle.textContent = 'منظومة د. عبدالله';
+    if (sidebarTitle) sidebarTitle.textContent = 'منظومة د. عبدالله (المدير والمؤسس)';
 
     if (sidebarSubtitle) sidebarSubtitle.textContent = 'Abdullah OS • الفرقة 4 • امتياز 450/450 🎯';
 
-    if (welcomeTitle) welcomeTitle.textContent = 'مرحباً بك يا د. عبدالله 🩺✨';
+    if (welcomeTitle) welcomeTitle.textContent = 'مرحباً بك يا د. عبدالله المدير والمؤسس 👑✨';
 
     if (welcomeDesc) welcomeDesc.textContent = 'تقرير "الزتونة" الشامل — رصد تحليلي دقيق لمستوى أدائك اليومي، صعودك وهبوطك، ما أنجزته وما تأخرت فيه، والسيولة النقدية مع توجيه ذكي للحفاظ على شعلة الانضباط.';
 
@@ -1363,7 +1391,7 @@ async function applyUserPersonalization() {
 
     if (adminNav) adminNav.style.display = 'flex';
 
-    document.title = "منظومة د. عبدالله | Abdullah's Journey OS";
+    document.title = "منظومة د. عبدالله (المدير والمؤسس) | Abdullah's Journey OS";
 
     return;
 
@@ -4982,6 +5010,10 @@ window.advanceAcadStageWeb = async function(masteryId, isSuccess) {
       showToast('✅ عاش يا دكتور! تم ترقية مرحلة تثبيت الموديول بنجاح 🌟');
     }
   } catch (err) {
+    alert('❌ خطأ: ' + err.message);
+  }
+};
+
 // ==============================================================================
 // 🛡️ Admin Purity & Dopamine Recovery Vault (سوسو & بوبو)
 // ==============================================================================
