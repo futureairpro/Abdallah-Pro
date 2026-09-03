@@ -1,8 +1,6 @@
 // 🚀 Vercel Serverless Webhook Endpoint for Abdullah's Journey OS
 import { bot } from '../lib/bot.js';
 import { registerHandlers } from '../lib/handlers.js';
-import { runSchedulerCycle } from '../lib/scheduler.js';
-import { getAllRegisteredUsers } from '../lib/supabase.js';
 
 let isRegistered = false;
 if (bot && !isRegistered) {
@@ -40,15 +38,6 @@ export default async function handler(req, res) {
         }
         await bot.handleUpdate(body);
       }
-
-      // Background scheduler check for due reminders & notifications
-      getAllRegisteredUsers().then(users => {
-        for (const u of (users || [])) {
-          if (u.is_active !== false && u.telegram_id) {
-            runSchedulerCycle(bot, u.telegram_id, u.full_name).catch(() => {});
-          }
-        }
-      }).catch(() => {});
 
       return res.status(200).json({ ok: true });
     } catch (err) {
