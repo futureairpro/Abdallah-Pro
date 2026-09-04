@@ -371,7 +371,7 @@ values (
       "إنستا باي": 0,
       "بنك مصر": 0
     },
-    "GEMINI_API_KEYS": "AQ.Ab8RN6KWeyA97I9jIVfVZp82VCWIshzVd5H3zT7k6qIooYeotA,AQ.Ab8RN6KRhjZydNIseJQd0AJ7UZ1iKUZXiuaq9K9wJEcW0cF-ng,AQ.Ab8RN6L9TYzSxv02kkJ8NJxNWN6-lcPV6iFJi48FuvzDuqH_YQ"
+    "GEMINI_API_KEYS": ""
   }'::jsonb
 )
 on conflict (chat_id) do nothing;
