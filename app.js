@@ -1,8 +1,8 @@
 // 🌟 Abdullah's Journey OS - Master 360° Life OS Controller & Security Gateway
 
-const SUPABASE_URL = 'https://iluvbcadeteawbyrlqmo.supabase.co';
+const SUPABASE_URL = 'https://rkpkjilrsylgoomqxouq.supabase.co';
 
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlsdXZiY2FkZXRlYXdieXJscW1vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NzYzMjAsImV4cCI6MjEwMjU1MjMyMH0.sMZqoW6697HLOCNb5CJFO47ZQzjCBRw7KBIxLfvtI6g';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrcGtqaWxyc3lsZ29vbXF4b3VxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0OTA3ODAsImV4cCI6MjEwNDA2Njc4MH0.oRUsuJrKrT6dffFQGyVb1MAaXWNwlGQnNmteT4kyT-4';
 
 let _dbInstance = null;
 

@@ -580,5 +580,13 @@ create table if not exists public.admin_purity_recovery (
 
 create index if not exists idx_admin_purity_user on public.admin_purity_recovery(telegram_id);
 
+-- ==============================================================================
+-- 👑 Initial Super Admin (د. عبدالله)
+-- ==============================================================================
+insert into public.users (telegram_id, full_name, username, role, subscription_status)
+values (1191760477, 'د. عبدالله (المؤسس والمدير)', 'AbdallahPro', 'admin', 'lifetime')
+on conflict (telegram_id) do update set role = 'admin', subscription_status = 'lifetime';
 
-
+insert into public.admin_purity_recovery (telegram_id, longest_soso_streak_days, longest_bobo_streak_days, urges_resisted_count)
+values (1191760477, 0, 0, 0)
+on conflict (telegram_id) do nothing;
