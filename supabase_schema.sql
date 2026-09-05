@@ -349,15 +349,6 @@ on conflict (code) do update set
   pract_clin_marks = excluded.pract_clin_marks,
   total_marks = excluded.total_marks;
 
--- جدول السكاشن
-insert into public.academic_schedule (course_code, title, day_of_week, start_time, end_time, location, type, reminder_mins_before)
-values
-  ('PED401', 'راوند طب الأطفال الإكلينيكي', 'السبت', '09:00', '12:00', 'مستشفى الأطفال الجامعي', 'راوند سريري', 60),
-  ('CAD402', 'سيكشن أمراض القلب ورسم القلب ECG', 'الأحد', '10:00', '12:30', 'مبنى المهارات الإكلينيكية', 'سيكشن عملي', 60),
-  ('RSD403', 'سيكشن أمراض الصدر وأشعة X-Ray', 'الثلاثاء', '09:30', '11:30', 'مستشفى الصدر الجامعي', 'راوند سريري', 60),
-  ('HVD404', 'راوند أمراض الدم والأوعية الدموية', 'الأربعاء', '10:00', '12:00', 'قسم الباطنة العامة', 'راوند سريري', 60),
-  ('SKL 7', 'سيكشن المهارات الإكلينيكية (OSCE Skills)', 'الخميس', '09:00', '11:00', 'معمل المحاكاة الطبية', 'سيكشن عملي', 60)
-on conflict do nothing;
 
 -- Initial Bot Session & Liquidity Accounts Configuration
 insert into public.bot_sessions (chat_id, state, data)

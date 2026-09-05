@@ -4307,6 +4307,13 @@ async function renderGamificationAndStreaks() {
   const streakValEl = document.getElementById('topbarStreakVal');
   if (streakValEl) streakValEl.textContent = gamData.current_streak || 1;
 
+  const recoveryValEl = document.getElementById('topbarRecoveryVal');
+  if (recoveryValEl) {
+    const streakDays = Number(gamData.current_streak || 1);
+    const readinessPct = Math.min(98, Math.max(70, 75 + Math.min(20, streakDays * 5)));
+    recoveryValEl.textContent = `${readinessPct}%`;
+  }
+
   // Update Doctor RPG Banner
   const rpgLevelBadge = document.getElementById('rpgLevelBadge');
   const rpgRankTitle = document.getElementById('rpgRankTitle');
